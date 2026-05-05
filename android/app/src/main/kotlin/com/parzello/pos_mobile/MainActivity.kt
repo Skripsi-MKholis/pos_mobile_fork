@@ -1,4 +1,4 @@
-package com.example.pos_mobile
+package com.parzello.pos_mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
