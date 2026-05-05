@@ -2,101 +2,96 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tabler_icons/tabler_icons.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ShadTheme.of(context);
+
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: const Text('Parzello POS'),
+        backgroundColor: theme.colorScheme.background,
+        elevation: 0,
+        title: Text(
+          'Parzello POS',
+          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(TablerIcons.bell),
+          ShadButton.ghost(
+            child: const Icon(TablerIcons.bell),
             onPressed: () {},
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildQuickStats(context),
-            const SizedBox(height: 24),
+            _buildQuickStats(context, theme),
+            const SizedBox(height: 32),
             Text(
-              'Quick Actions',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Aksi Cepat',
+              style: theme.textTheme.h4,
             ),
             const SizedBox(height: 16),
-            _buildQuickActions(context),
+            _buildQuickActions(context, theme),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Warna.primary,
-        unselectedItemColor: Colors.grey,
+        backgroundColor: theme.colorScheme.background,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.mutedForeground,
         onTap: (index) {
           if (index == 1) context.push('/products');
           if (index == 2) context.push('/pos');
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(TablerIcons.layout_dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(TablerIcons.package),
-            label: 'Products',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(TablerIcons.shopping_cart),
-            label: 'POS',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(TablerIcons.settings),
-            label: 'Settings',
-          ),
+          BottomNavigationBarItem(icon: Icon(TablerIcons.layout_dashboard), label: 'Beranda'),
+          BottomNavigationBarItem(icon: Icon(TablerIcons.package), label: 'Produk'),
+          BottomNavigationBarItem(icon: Icon(TablerIcons.shopping_cart), label: 'Kasir'),
+          BottomNavigationBarItem(icon: Icon(TablerIcons.settings), label: 'Pengaturan'),
         ],
       ),
     );
   }
 
-  Widget _buildQuickStats(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Warna.primary,
-        borderRadius: BorderRadius.circular(16),
-      ),
+  Widget _buildQuickStats(BuildContext context, ShadThemeData theme) {
+    return ShadCard(
+      backgroundColor: theme.colorScheme.foreground, // Dark Stone background for contrast
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Today\'s Sales',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.black,
-              fontWeight: FontWeight.w600,
+            'Penjualan Hari Ini',
+            style: TextStyle(
+              color: theme.colorScheme.background.withValues(alpha: 0.7),
+              fontWeight: FontWeight.w500,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Rp 0',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-              color: Colors.black,
+            style: TextStyle(
+              color: theme.colorScheme.primary, // Using Lime for the amount
               fontSize: 36,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Row(
             children: [
-              _buildMiniStat(context, 'Orders', '0'),
-              const SizedBox(width: 24),
-              _buildMiniStat(context, 'Customers', '0'),
+              _buildMiniStat(theme, 'Pesanan', '0'),
+              const SizedBox(width: 32),
+              _buildMiniStat(theme, 'Pelanggan', '0'),
             ],
           ),
         ],
@@ -104,18 +99,22 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMiniStat(BuildContext context, String label, String value) {
+  Widget _buildMiniStat(ShadThemeData theme, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.black54),
+          style: TextStyle(
+            color: theme.colorScheme.background.withValues(alpha: 0.54),
+            fontSize: 12,
+          ),
         ),
         Text(
           value,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Colors.black,
+          style: TextStyle(
+            color: theme.colorScheme.background,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -123,40 +122,44 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, ShadThemeData theme) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
-      childAspectRatio: 1.5,
+      childAspectRatio: 1.3,
       children: [
-        _buildActionCard(context, TablerIcons.plus, 'New Order', Warna.primary, () => context.push('/pos')),
-        _buildActionCard(context, TablerIcons.package, 'Products', Colors.blue.shade100, () => context.push('/products')),
-        _buildActionCard(context, TablerIcons.history, 'History', Colors.orange.shade100, () {}),
-        _buildActionCard(context, TablerIcons.chart_bar, 'Reports', Colors.purple.shade100, () {}),
+        _buildActionCard(context, theme, TablerIcons.plus, 'Transaksi Baru', () => context.push('/pos')),
+        _buildActionCard(context, theme, TablerIcons.package, 'Kelola Produk', () => context.push('/products')),
+        _buildActionCard(context, theme, TablerIcons.history, 'Riwayat', () {}),
+        _buildActionCard(context, theme, TablerIcons.printer, 'Printer', () => context.push('/printer-settings')),
       ],
     );
   }
 
-  Widget _buildActionCard(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
-    return Card(
-      color: color.withValues(alpha: 0.2),
+  Widget _buildActionCard(BuildContext context, ShadThemeData theme, IconData icon, String label, VoidCallback onTap) {
+    return ShadCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: Colors.black87),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.secondary,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 28, color: theme.colorScheme.foreground),
+            ),
+            const SizedBox(height: 12),
             Text(
               label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),

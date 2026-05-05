@@ -11,7 +11,7 @@ class CartNotifier extends _$CartNotifier {
     return [];
   }
 
-  void addToCart(Product product) {
+  void addItem(Product product) {
     final existingIndex = state.indexWhere((item) => item.product.supabaseId == product.supabaseId);
     
     if (existingIndex != -1) {

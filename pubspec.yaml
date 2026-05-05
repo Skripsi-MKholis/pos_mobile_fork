@@ -58,6 +58,7 @@ dependencies:
   intl: ^0.20.2
   blue_thermal_printer: ^1.2.3
   esc_pos_utils_plus: ^2.0.4
+  shadcn_ui: ^0.54.0
 
 dev_dependencies:
   flutter_test:

@@ -9,16 +9,16 @@ class Product {
   @Index(unique: true)
   late String supabaseId;
 
-  late String storeId; // Ditambahkan sesuai Supabase
+  late String storeId; 
 
   late String name;
   String? description;
   
   late double price;
-  double? modalPrice; // Ditambahkan (Harga Modal)
+  double? modalPrice; 
   
   @Index()
-  int stockQuantity = 0; // Diganti dari stock -> stock_quantity
+  int stockQuantity = 0; 
 
   String? sku;
   
@@ -28,7 +28,23 @@ class Product {
   String? imageUrl;
 
   @Index()
-  String? categoryId; // Diselaraskan dengan nama di Supabase
+  String? categoryId; 
 
   DateTime? updatedAt;
+
+  Product({
+    this.id = Isar.autoIncrement,
+    required this.supabaseId,
+    required this.storeId,
+    required this.name,
+    this.description,
+    required this.price,
+    this.modalPrice,
+    this.stockQuantity = 0,
+    this.sku,
+    this.barcode,
+    this.imageUrl,
+    this.categoryId,
+    this.updatedAt,
+  });
 }

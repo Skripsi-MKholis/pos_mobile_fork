@@ -4,6 +4,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ReceiptScreen extends ConsumerWidget {
   final Map<String, dynamic> transaction;
@@ -20,19 +21,18 @@ class ReceiptScreen extends ConsumerWidget {
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     final connectedPrinter = ref.watch(printerNotifierProvider);
+    final theme = ShadTheme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: theme.colorScheme.muted,
       appBar: AppBar(
-        title: const Text('Struk Digital'),
+        backgroundColor: theme.colorScheme.muted,
+        elevation: 0,
+        title: const Text('Struk Digital', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(TablerIcons.printer),
             onPressed: () => context.push('/printer-settings'),
-          ),
-          IconButton(
-            icon: const Icon(TablerIcons.share),
-            onPressed: () {},
           ),
         ],
       ),
@@ -41,71 +41,66 @@ class ReceiptScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Container(
-                constraints: const BoxConstraints(maxWidth: 400),
+              ShadCard(
                 padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 5)),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const Text('PARZELLO POS', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const Text('Terima Kasih Telah Berbelanja', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                    const SizedBox(height: 16),
-                    const Divider(thickness: 1, color: Colors.black12),
-                    _buildRow('No. Transaksi', '#${transaction['id'].toString().substring(0, 8).toUpperCase()}'),
-                    _buildRow('Tanggal', dateFormat.format(DateTime.parse(transaction['created_at']))),
-                    _buildRow('Metode', transaction['payment_method']),
-                    const Divider(thickness: 1, color: Colors.black12),
-                    const SizedBox(height: 16),
-                    ...items.map((item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(item['product_name'], style: const TextStyle(fontWeight: FontWeight.w600)),
-                                Text('${item['quantity']} x ${currencyFormat.format(item['unit_price'])}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                              ],
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 350),
+                  child: Column(
+                    children: [
+                      Text('PARZELLO POS', style: theme.textTheme.h3),
+                      const SizedBox(height: 4),
+                      Text('Terima Kasih Telah Berbelanja', style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      _buildRow('No. Transaksi', '#${transaction['id'].toString().substring(0, 8).toUpperCase()}'),
+                      _buildRow('Tanggal', dateFormat.format(DateTime.parse(transaction['created_at']))),
+                      _buildRow('Metode', transaction['payment_method']),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      ...items.map((item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item['product_name'], style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text('${item['quantity']} x ${currencyFormat.format(item['unit_price'])}', 
+                                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                                ],
+                              ),
                             ),
-                          ),
-                          Text(currencyFormat.format(item['subtotal']), style: const TextStyle(fontWeight: FontWeight.w600)),
-                        ],
-                      ),
-                    )),
-                    const SizedBox(height: 16),
-                    const Divider(thickness: 1, color: Colors.black12),
-                    const SizedBox(height: 16),
-                    _buildRow('Total Belanja', currencyFormat.format(transaction['total_amount']), isBold: true),
-                    _buildRow('Bayar', currencyFormat.format(transaction['cash_paid'])),
-                    _buildRow('Kembalian', currencyFormat.format(transaction['change_amount'])),
-                    const SizedBox(height: 32),
-                    const Text('--- SELESAI ---', style: TextStyle(color: Colors.grey, letterSpacing: 2)),
-                  ],
+                            Text(currencyFormat.format(item['subtotal']), style: const TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      )),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      _buildRow('Total Belanja', currencyFormat.format(transaction['total_amount']), isBold: true),
+                      _buildRow('Bayar', currencyFormat.format(transaction['cash_paid'])),
+                      _buildRow('Kembalian', currencyFormat.format(transaction['change_amount'])),
+                      const SizedBox(height: 32),
+                      Text('--- SELESAI ---', style: theme.textTheme.muted.copyWith(letterSpacing: 2)),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  ElevatedButton.icon(
+                  ShadButton.outline(
                     onPressed: () => context.go('/dashboard'),
-                    icon: const Icon(TablerIcons.home),
-                    label: const Text('Dashboard'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                    ),
+                    leading: const Icon(TablerIcons.home),
+                    child: const Text('Dashboard'),
                   ),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(
+                  ShadButton(
                     onPressed: () async {
                       if (connectedPrinter == null) {
                         context.push('/printer-settings');
@@ -117,13 +112,13 @@ class ReceiptScreen extends ConsumerWidget {
                           );
                         } catch (e) {
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                            ShadToaster.of(context).show(ShadToast.destructive(description: Text(e.toString())));
                           }
                         }
                       }
                     },
-                    icon: const Icon(TablerIcons.printer),
-                    label: Text(connectedPrinter == null ? 'Set Printer' : 'Cetak Struk'),
+                    leading: const Icon(TablerIcons.printer),
+                    child: Text(connectedPrinter == null ? 'Set Printer' : 'Cetak Struk'),
                   ),
                 ],
               ),
@@ -141,7 +136,7 @@ class ReceiptScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.w600)),
+          Text(value, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.w600, fontSize: isBold ? 16 : 14)),
         ],
       ),
     );

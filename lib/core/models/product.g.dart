@@ -213,20 +213,21 @@ Product _productDeserialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Product();
-  object.barcode = reader.readStringOrNull(offsets[0]);
-  object.categoryId = reader.readStringOrNull(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
-  object.id = id;
-  object.imageUrl = reader.readStringOrNull(offsets[3]);
-  object.modalPrice = reader.readDoubleOrNull(offsets[4]);
-  object.name = reader.readString(offsets[5]);
-  object.price = reader.readDouble(offsets[6]);
-  object.sku = reader.readStringOrNull(offsets[7]);
-  object.stockQuantity = reader.readLong(offsets[8]);
-  object.storeId = reader.readString(offsets[9]);
-  object.supabaseId = reader.readString(offsets[10]);
-  object.updatedAt = reader.readDateTimeOrNull(offsets[11]);
+  final object = Product(
+    barcode: reader.readStringOrNull(offsets[0]),
+    categoryId: reader.readStringOrNull(offsets[1]),
+    description: reader.readStringOrNull(offsets[2]),
+    id: id,
+    imageUrl: reader.readStringOrNull(offsets[3]),
+    modalPrice: reader.readDoubleOrNull(offsets[4]),
+    name: reader.readString(offsets[5]),
+    price: reader.readDouble(offsets[6]),
+    sku: reader.readStringOrNull(offsets[7]),
+    stockQuantity: reader.readLongOrNull(offsets[8]) ?? 0,
+    storeId: reader.readString(offsets[9]),
+    supabaseId: reader.readString(offsets[10]),
+    updatedAt: reader.readDateTimeOrNull(offsets[11]),
+  );
   return object;
 }
 
@@ -254,7 +255,7 @@ P _productDeserializeProp<P>(
     case 7:
       return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readLong(offset)) as P;
+      return (reader.readLongOrNull(offset) ?? 0) as P;
     case 9:
       return (reader.readString(offset)) as P;
     case 10:

@@ -21,10 +21,16 @@ subprojects {
 
 subprojects {
     val fixNamespace = {
-        val android = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
-        android?.let {
-            if (it.namespace == null) {
-                it.namespace = "dev.isar.${project.name.replace("-", "_")}"
+        if (project.hasProperty("android")) {
+            val android = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
+            android?.let {
+                if (it.namespace == null) {
+                    when (project.name) {
+                        "blue_thermal_printer" -> it.namespace = "id.kakzaki.blue_thermal_printer"
+                        "isar_flutter_libs" -> it.namespace = "dev.isar.isar_flutter_libs"
+                        else -> it.namespace = "com.${project.name.replace("-", "_")}"
+                    }
+                }
             }
         }
     }

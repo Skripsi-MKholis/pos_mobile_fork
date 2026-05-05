@@ -42,19 +42,20 @@ class ProductNotifier extends _$ProductNotifier {
   }
 
   Product _mapSupabaseToProduct(Map<String, dynamic> data) {
-    return Product()
-      ..supabaseId = data['id'].toString()
-      ..storeId = data['store_id'].toString()
-      ..name = data['name']
-      ..description = data['description']
-      ..price = (data['price'] as num).toDouble()
-      ..modalPrice = data['modal_price'] != null ? (data['modal_price'] as num).toDouble() : null
-      ..stockQuantity = data['stock_quantity'] ?? 0
-      ..barcode = data['barcode']
-      ..sku = data['sku']
-      ..imageUrl = data['image_url']
-      ..categoryId = data['category_id']?.toString()
-      ..updatedAt = data['updated_at'] != null ? DateTime.parse(data['updated_at']) : null;
+    return Product(
+      supabaseId: data['id'].toString(),
+      storeId: data['store_id'].toString(),
+      name: data['name'],
+      description: data['description'],
+      price: (data['price'] as num).toDouble(),
+      modalPrice: data['modal_price'] != null ? (data['modal_price'] as num).toDouble() : null,
+      stockQuantity: data['stock_quantity'] ?? 0,
+      barcode: data['barcode'],
+      sku: data['sku'],
+      imageUrl: data['image_url'],
+      categoryId: data['category_id']?.toString(),
+      updatedAt: data['updated_at'] != null ? DateTime.parse(data['updated_at']) : null,
+    );
   }
 
   Future<List<Product>> _fetchLocalProducts() async {
@@ -93,17 +94,16 @@ class ProductNotifier extends _$ProductNotifier {
     }
   }
 
-  Future<void> addProduct(Product product, {File? imageFile}) async {
-    // Ambil store_id dari user yang sedang login
+  Future<void> saveProduct(Product product, {File? imageFile}) async {
     final userData = await _supabase.from('users').select('store_id').eq('id', _supabase.auth.currentUser!.id).single();
     final storeId = userData['store_id'];
 
-    String? imageUrl;
+    String? imageUrl = product.imageUrl;
     if (imageFile != null) {
       imageUrl = await uploadImage(imageFile);
     }
 
-    final response = await _supabase.from('products').insert({
+    final productData = {
       'store_id': storeId,
       'name': product.name,
       'description': product.description,
@@ -114,12 +114,21 @@ class ProductNotifier extends _$ProductNotifier {
       'sku': product.sku,
       'category_id': product.categoryId,
       'image_url': imageUrl,
-    }).select().single();
+    };
+
+    dynamic response;
+    if (product.supabaseId.isEmpty) {
+      // Create new
+      response = await _supabase.from('products').insert(productData).select().single();
+    } else {
+      // Update existing
+      response = await _supabase.from('products').update(productData).eq('id', product.supabaseId).select().single();
+    }
 
     final savedProduct = _mapSupabaseToProduct(response);
 
     await _isar.writeTxn(() async {
-      await _isar.products.put(savedProduct);
+      await _isar.products.putBySupabaseId(savedProduct);
     });
 
     ref.invalidateSelf();

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
+import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -22,16 +24,19 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productNotifierProvider);
     final cartItems = ref.watch(cartNotifierProvider);
+    final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final theme = ShadTheme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        title: const Text('Kasir'),
+        title: const Text('Kasir', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(TablerIcons.barcode),
             onPressed: () {
-              // TODO: Integrate Barcode Scanner for POS
+              // TODO: Scanner logic
             },
           ),
         ],
@@ -40,87 +45,110 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
+            child: ShadInput(
               controller: _searchController,
-              onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
-              decoration: InputDecoration(
-                hintText: 'Cari produk atau scan barcode...',
-                prefixIcon: const Icon(TablerIcons.search),
-                suffixIcon: _searchQuery.isNotEmpty 
-                  ? IconButton(icon: const Icon(TablerIcons.x), onPressed: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = '');
-                    })
-                  : null,
+              placeholder: const Text('Cari produk atau scan barcode...'),
+              leading: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(TablerIcons.search, size: 20),
               ),
+              onChanged: (value) => setState(() => _searchQuery = value),
             ),
           ),
           Expanded(
             child: productsAsync.when(
               data: (products) {
-                final filteredProducts = products.where((p) => 
-                  p.name.toLowerCase().contains(_searchQuery) || 
-                  (p.barcode?.contains(_searchQuery) ?? false)
-                ).toList();
+                final filteredProducts = products.where((p) =>
+                    p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                    (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)).toList();
 
                 if (filteredProducts.isEmpty) {
                   return const Center(child: Text('Produk tidak ditemukan'));
                 }
 
                 return GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.8,
+                    childAspectRatio: 0.75,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                   ),
                   itemCount: filteredProducts.length,
                   itemBuilder: (context, index) {
                     final product = filteredProducts[index];
-                    return _buildProductCard(product, currencyFormat);
+                    final cartItem = cartItems.firstWhere(
+                      (item) => item.product.supabaseId == product.supabaseId,
+                      orElse: () => CartItem(product: product, quantity: 0),
+                    );
+
+                    return _buildProductCard(context, product, cartItem, cartNotifier, currencyFormat);
                   },
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => Center(child: Text('Error: $e')),
+              error: (err, stack) => Center(child: Text('Error: $err')),
             ),
           ),
+          if (cartItems.isNotEmpty) _buildCartSummary(context, cartNotifier, currencyFormat),
         ],
       ),
-      bottomNavigationBar: cartItems.isNotEmpty ? _buildCartSummary(cartItems, currencyFormat) : null,
     );
   }
 
-  Widget _buildProductCard(dynamic product, NumberFormat format) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
+  Widget _buildProductCard(BuildContext context, dynamic product, CartItem cartItem, CartNotifier cartNotifier, NumberFormat format) {
+    final theme = ShadTheme.of(context);
+    return ShadCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
-        onTap: () => ref.read(cartNotifierProvider.notifier).addToCart(product),
+        onTap: () => cartNotifier.addItem(product),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: product.imageUrl != null
-                ? Image.network(product.imageUrl!, fit: BoxFit.cover)
-                : Container(color: Warna.neutral, child: const Icon(TablerIcons.package, color: Colors.grey)),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.muted,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  image: product.imageUrl != null
+                      ? DecorationImage(image: NetworkImage(product.imageUrl!), fit: BoxFit.cover)
+                      : null,
+                ),
+                child: product.imageUrl == null
+                    ? const Center(child: Icon(TablerIcons.package, size: 40, color: Colors.grey))
+                    : null,
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 2),
-                  Text(format.format(product.price), style: TextStyle(color: Warna.primary, fontWeight: FontWeight.w600, fontSize: 12)),
+                  Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Stok: ${product.stockQuantity}', style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                      const Icon(TablerIcons.circle_plus, size: 20, color: Colors.grey),
-                    ],
-                  ),
+                  Text(format.format(product.price), style: TextStyle(color: theme.colorScheme.mutedForeground, fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  if (cartItem.quantity > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.foreground,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        '${cartItem.quantity}x',
+                        style: TextStyle(
+                          color: theme.colorScheme.background,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      'Stok: ${product.stockQuantity}',
+                      style: TextStyle(fontSize: 11, color: theme.colorScheme.mutedForeground),
+                    ),
                 ],
               ),
             ),
@@ -130,40 +158,44 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
   }
 
-  Widget _buildCartSummary(List<dynamic> items, NumberFormat format) {
-    final total = ref.read(cartNotifierProvider.notifier).totalAmount;
-    final count = ref.read(cartNotifierProvider.notifier).totalItems;
-
+  Widget _buildCartSummary(BuildContext context, CartNotifier cartNotifier, NumberFormat format) {
+    final theme = ShadTheme.of(context);
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        color: theme.colorScheme.background,
+        boxShadow: [BoxShadow(color: theme.colorScheme.foreground.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
       ),
       child: SafeArea(
         child: Row(
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$count Item', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                Text(format.format(total), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ],
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Belanja',
+                    style: TextStyle(color: theme.colorScheme.mutedForeground, fontSize: 12),
+                  ),
+                  Text(
+                    format.format(cartNotifier.totalAmount),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const CartDetailSheet(),
-                  );
-                },
-                child: const Text('Lanjutkan Ke Pembayaran'),
-              ),
+            ShadButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const CartDetailSheet(),
+                );
+              },
+              child: const Text('Cek Detail'),
             ),
           ],
         ),
