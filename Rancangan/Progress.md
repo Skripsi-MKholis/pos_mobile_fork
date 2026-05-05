@@ -4,6 +4,22 @@ Dokumen ini mencatat riwayat kemajuan pengembangan aplikasi Parzello POS.
 
 ---
 
+### 📅 5 Mei 2026 (Sesi 5) - Fase: Data Sync Stability & Multi-Store Visibility (Status: 100% Selesai ✅)
+
+#### ✅ Pencapaian Sesi Ini:
+1.  **Robust Data Synchronization**: Memperbaiki masalah katalog produk kosong dengan mengimplementasikan auto-sync pada `build()` provider dan memperkuat pemetaan data numerik dari Supabase.
+2.  **Multi-Store Query Fix**: Menghilangkan bug pada query `in` di `store_provider.dart` yang menyebabkan toko tempat user terdaftar sebagai staff tidak muncul. Kini seluruh toko (Owner & Staff) tampil dengan benar.
+3.  **Real-time UI Refresh**: Menambahkan `RefreshIndicator` pada Katalog Produk untuk memudahkan pengguna melakukan sinkronisasi manual.
+4.  **Premium Store Branding**: Memastikan logo toko dari Supabase Storage tampil konsisten di halaman pemilihan toko dan sidebar.
+5.  **Modern Code Standards**: Refactor seluruh pemanggilan `withOpacity` ke `withValues(alpha: ...)` sesuai standar Flutter 3.27+.
+
+#### 🛠️ Status Teknis:
+- **Sync Logic**: Menggunakan `Future.microtask` untuk background sync tanpa infinite loop.
+- **Data Mapping**: Penanganan nilai `numeric` Supabase (String) ke `double` Flutter sudah aman.
+- **Store Visibility**: Query `.or()` sudah dioptimasi untuk UUID PostgREST.
+
+---
+
 ### 📅 5 Mei 2026 (Sesi 3) - Fase: Store Management & Sidebar UX Optimization (Status: 100% Selesai ✅)
 
 #### ✅ Pencapaian Sesi Ini:
@@ -34,10 +50,19 @@ Dokumen ini mencatat riwayat kemajuan pengembangan aplikasi Parzello POS.
 - **UI Components**: Implementasi `CustomPainter` untuk visualisasi grafik estetik.
 - **Router**: Mendukung 5-branch navigation stack.
 
-### ⏭️ Langkah Selanjutnya:
-1.  **Tahap 3: Manajemen Katalog**: Implementasi CRUD Kategori dan integrasi dropdown di form produk.
-2.  **Tahap 4: Riwayat Transaksi**: Menampilkan data real-time dari Supabase di halaman riwayat.
-3.  **Tahap 5: Fitur Admin**: Mulai membangun halaman khusus Admin Dashboard dan Manajemen Toko.
+### Sesi 4: Katalog Produk & Manajemen Kategori (Premium UI)
+*   **Redesain Katalog Produk**: Mengubah tampilan daftar produk menjadi model "Table-View" yang bersih dan profesional, sesuai dengan dashboard web Parzello. (Status: 100% Selesai ✅)
+*   **Implementasi CategoryNotifier**: Membuat sistem sinkronisasi kategori secara realtime antara Supabase dan Isar (Local Storage).
+*   **Fitur Filter Kategori**: Menambahkan dropdown filter kategori pada katalog produk untuk mempermudah pencarian barang.
+*   **Optimasi UI/UX**:
+    *   Implementasi tombol "Tambah Produk" dengan warna aksen Lime Green (Premium Feel).
+    *   Sinkronisasi data kategori secara otomatis pada setiap baris produk.
+    *   Pembersihan kode dari *deprecated methods* (migrasi `withOpacity` ke `withValues`).
+
+### Next Steps (Prioritas Berikutnya)
+1.  **CRUD Produk Lengkap**: Menyelesaikan halaman Tambah/Edit produk dengan pemilihan kategori yang dinamis.
+2.  **Manajemen Stok**: Menambahkan visualisasi stok rendah dan integrasi update stok cepat.
+3.  **Realtime Sync Update**: Memastikan setiap perubahan di dashboard web langsung tercermin di aplikasi mobile tanpa refresh manual.
 
 ---
 

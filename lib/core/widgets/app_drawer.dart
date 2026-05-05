@@ -241,7 +241,7 @@ class _StoreSwitcherHeaderState extends State<_StoreSwitcherHeader> {
                         leading: Container(
                           width: 32,
                           height: 32,
-                          decoration: BoxDecoration(color: theme.colorScheme.primary.withOpacity(0.1), shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: (store['logo_url'] != null && store['logo_url'].toString().isNotEmpty == true)
@@ -289,7 +289,7 @@ class _StoreSwitcherHeaderState extends State<_StoreSwitcherHeader> {
             color: theme.colorScheme.background,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -303,9 +303,9 @@ class _StoreSwitcherHeaderState extends State<_StoreSwitcherHeader> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.05),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.primary.withOpacity(0.1)),
+                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   children: [

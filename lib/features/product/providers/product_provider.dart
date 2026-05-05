@@ -15,6 +15,8 @@ class ProductNotifier extends _$ProductNotifier {
   @override
   Future<List<Product>> build() async {
     _listenToRealtimeChanges();
+    // Trigger background sync
+    Future.microtask(() => syncProducts());
     return _fetchLocalProducts();
   }
 
@@ -42,13 +44,25 @@ class ProductNotifier extends _$ProductNotifier {
   }
 
   Product _mapSupabaseToProduct(Map<String, dynamic> data) {
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString()) ?? 0.0;
+    }
+
+    double? parseDoubleNullable(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString());
+    }
+
     return Product(
       supabaseId: data['id'].toString(),
       storeId: data['store_id'].toString(),
-      name: data['name'],
+      name: data['name'] ?? 'Tanpa Nama',
       description: data['description'],
-      price: (data['price'] as num).toDouble(),
-      modalPrice: data['modal_price'] != null ? (data['modal_price'] as num).toDouble() : null,
+      price: parseDouble(data['price']),
+      modalPrice: parseDoubleNullable(data['modal_price']),
       stockQuantity: data['stock_quantity'] ?? 0,
       barcode: data['barcode'],
       sku: data['sku'],
@@ -64,7 +78,10 @@ class ProductNotifier extends _$ProductNotifier {
 
   Future<void> syncProducts() async {
     try {
+      print('DEBUG: Memulai sinkronisasi produk dari Supabase...');
       final response = await _supabase.from('products').select();
+      
+      print('DEBUG: Berhasil mengambil ${response.length} produk dari Supabase.');
       
       final products = (response as List).map((data) => _mapSupabaseToProduct(data)).toList();
 
@@ -74,8 +91,13 @@ class ProductNotifier extends _$ProductNotifier {
         }
       });
 
-      ref.invalidateSelf();
+      final localCount = await _isar.products.count();
+      print('DEBUG: Sinkronisasi produk ke Isar selesai. Total produk di Isar: $localCount');
+      
+      // Update state directly to avoid infinite loop from invalidateSelf()
+      state = AsyncData(await _fetchLocalProducts());
     } catch (e) {
+      print('DEBUG: Error saat sinkronisasi produk: $e');
       rethrow;
     }
   }

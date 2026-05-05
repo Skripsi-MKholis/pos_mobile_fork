@@ -66,7 +66,7 @@ Future<List<Map<String, dynamic>>> userStores(UserStoresRef ref) async {
       final stores = await supabase
           .from('stores')
           .select()
-          .or('id.in.(${memberStoreIds.map((id) => '"$id"').join(',')}),owner_id.eq.${user.id}');
+          .or('id.in.(${memberStoreIds.join(',')}),owner_id.eq.${user.id}');
       return List<Map<String, dynamic>>.from(stores);
     } else {
       // Jika tidak ada di store_members, ambil yang owned saja
