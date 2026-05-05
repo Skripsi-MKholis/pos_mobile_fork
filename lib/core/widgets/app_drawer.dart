@@ -71,6 +71,19 @@ class AppDrawer extends ConsumerWidget {
                     _buildSectionHeader(theme, 'SUPER ADMIN'),
                     _buildDrawerItem(context, TablerIcons.shield_check, 'Admin Dashboard', '/admin/dashboard', isSoon: true),
                   ],
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Divider(height: 1, indent: 16, endIndent: 16),
+                  ),
+                  _buildDrawerItem(
+                    context, 
+                    TablerIcons.logout, 
+                    'Keluar', 
+                    '', 
+                    color: Colors.red,
+                    onTap: () => _showLogoutConfirm(context, ref),
+                  ),
                 ],
               ),
             ),
@@ -97,9 +110,17 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  Widget _buildDrawerItem(BuildContext context, IconData icon, String title, String route, {bool isSoon = false}) {
+  Widget _buildDrawerItem(
+    BuildContext context, 
+    IconData icon, 
+    String title, 
+    String route, {
+    bool isSoon = false, 
+    Color? color,
+    VoidCallback? onTap,
+  }) {
     final theme = ShadTheme.of(context);
-    final bool isActive = GoRouterState.of(context).matchedLocation == route;
+    final bool isActive = route.isNotEmpty && GoRouterState.of(context).matchedLocation == route;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -109,12 +130,12 @@ class AppDrawer extends ConsumerWidget {
         leading: Icon(
           icon,
           size: 20,
-          color: isActive ? Colors.white : theme.colorScheme.mutedForeground,
+          color: isActive ? Colors.white : (color ?? theme.colorScheme.mutedForeground),
         ),
         title: Text(
           title,
           style: theme.textTheme.list.copyWith(
-            color: isActive ? Colors.white : theme.colorScheme.foreground,
+            color: isActive ? Colors.white : (color ?? theme.colorScheme.foreground),
             fontSize: 14,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
@@ -129,16 +150,37 @@ class AppDrawer extends ConsumerWidget {
                 child: const Text('Soon', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
               )
             : null,
-        onTap: isSoon ? null : () {
+        onTap: isSoon ? null : (onTap ?? () {
           Navigator.pop(context);
-          // Use push for sub-pages so hardware back button works correctly
-          // context.go replaces the whole stack, making hardware back exit the app
           if (['/dashboard', '/pos', '/transactions', '/reports', '/settings'].contains(route)) {
             context.go(route);
           } else {
             context.push(route);
           }
-        },
+        }),
+      ),
+    );
+  }
+
+  void _showLogoutConfirm(BuildContext context, WidgetRef ref) {
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: const Text('Konfirmasi Keluar'),
+        description: const Text('Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.'),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          ShadButton.destructive(
+            onPressed: () {
+              ref.read(authProvider.notifier).signOut();
+              Navigator.pop(context);
+            },
+            child: const Text('Ya, Keluar'),
+          ),
+        ],
       ),
     );
   }
@@ -146,33 +188,53 @@ class AppDrawer extends ConsumerWidget {
   Widget _buildUserFooter(BuildContext context, WidgetRef ref, ShadThemeData theme, dynamic user) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: theme.colorScheme.secondary,
-            child: Text(user?.email?[0].toUpperCase() ?? 'U', style: const TextStyle(fontWeight: FontWeight.bold)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _showUserMenu(context, ref, theme),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  user?.email?.split('@')[0] ?? 'User',
-                  style: theme.textTheme.list.copyWith(fontSize: 13, fontWeight: FontWeight.bold),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
+                child: Center(
+                  child: Text(
+                    user?.email?[0].toUpperCase() ?? 'U',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
                 ),
-                Text(user?.email ?? '', style: theme.textTheme.muted.copyWith(fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.email?.split('@')[0] ?? 'User',
+                      style: theme.textTheme.h4.copyWith(fontSize: 15, fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      user?.email ?? '',
+                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(TablerIcons.dots_vertical, size: 16, color: theme.colorScheme.mutedForeground),
+            ],
           ),
-          IconButton(
-            icon: const Icon(TablerIcons.dots_vertical, size: 18),
-            onPressed: () => _showUserMenu(context, ref, theme),
-          ),
-        ],
+        ),
       ),
     );
   }

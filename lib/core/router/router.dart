@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/setup_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
@@ -61,6 +62,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/setup-password',
+        builder: (context, state) => const SetupPasswordScreen(),
       ),
       GoRoute(
         path: '/select-store',
