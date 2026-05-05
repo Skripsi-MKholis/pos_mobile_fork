@@ -19,12 +19,12 @@ Membangun UI untuk pengelolaan inventaris yang ramah sentuhan.
 - [x] **Product Form**: CRUD produk (Nama, Harga, SKU, Gambar dari Galeri/Kamera).
 - [x] **Real-time Inventory**: Sinkronisasi stok otomatis via Supabase Realtime.
 
-## Fase 3: Core POS / Antarmuka Kasir 💳
+## Fase 3: Core POS / Antarmuka Kasir (Status: In Progress) 💳
 Fitur kritikal untuk operasional bisnis di mobile/tablet.
 
-- [ ] **Checkout Interface**: Grid/List produk dengan sistem keranjang (Add/Remove items).
-- [ ] **Calculation Engine**: Kalkulasi total, pajak, dan diskon di tingkat lokal.
-- [ ] **Payment Flow**: Pemilihan metode bayar (Tunai, QRIS) dan input nominal.
+- [x] **Checkout Interface**: Grid/List produk dengan sistem keranjang (Add/Remove items).
+- [x] **Calculation Engine**: Kalkulasi total, pajak, dan diskon di tingkat lokal.
+- [x] **Payment Flow**: Pemilihan metode bayar (Tunai, QRIS) dan input nominal.
 - [ ] **Receipt Management**: Generate struk digital (PDF/Image).
 
 ## Fase 4: Integrasi Hardware & Cetak 🖨️

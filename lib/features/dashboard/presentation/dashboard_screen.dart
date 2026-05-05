@@ -40,6 +40,10 @@ class DashboardScreen extends ConsumerWidget {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Warna.primary,
         unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          if (index == 1) context.push('/products');
+          if (index == 2) context.push('/pos');
+        },
         items: const [
           BottomNavigationBarItem(
             icon: Icon(TablerIcons.layout_dashboard),
@@ -128,7 +132,7 @@ class DashboardScreen extends ConsumerWidget {
       crossAxisSpacing: 16,
       childAspectRatio: 1.5,
       children: [
-        _buildActionCard(context, TablerIcons.plus, 'New Order', Warna.primary, () {}),
+        _buildActionCard(context, TablerIcons.plus, 'New Order', Warna.primary, () => context.push('/pos')),
         _buildActionCard(context, TablerIcons.package, 'Products', Colors.blue.shade100, () => context.push('/products')),
         _buildActionCard(context, TablerIcons.history, 'History', Colors.orange.shade100, () {}),
         _buildActionCard(context, TablerIcons.chart_bar, 'Reports', Colors.purple.shade100, () {}),

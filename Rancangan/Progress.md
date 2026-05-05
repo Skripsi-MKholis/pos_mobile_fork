@@ -4,28 +4,25 @@ Dokumen ini mencatat riwayat kemajuan pengembangan aplikasi Parzello POS.
 
 ---
 
-### 📅 5 Mei 2026 - Fase 2: Manajemen Produk & Stok (Status: SELESAI ✅)
+### 📅 5 Mei 2026 - Fase 3: Core POS (Status: 90% Selesai 🚧)
 
 #### ✅ Pencapaian:
-1.  **Local Database Schema**: Implementasi Isar collection untuk `Product` dan `Category`.
-2.  **Product Logic**: Membuat `ProductNotifier` dengan sinkronisasi Supabase ↔ Isar.
-3.  **UI Catalog**: Layar Katalog Produk dengan grid layout dan search bar.
-4.  **UI Product Form**: Form input produk lengkap (Harga Jual, Harga Modal, Stok, SKU).
-5.  **Barcode Scanner**: Integrasi kamera untuk scan SKU/Barcode produk secara otomatis.
-6.  **Image Picker & Storage**: Dukungan upload foto produk ke Supabase Storage.
-7.  **Real-time Synchronization**: Stok terupdate secara otomatis via Supabase Realtime.
-8.  **Database Alignment**: Skema Isar & Supabase sinkron 100% (Column: `stock_quantity`, `modal_price`, `store_id`).
+1.  **Cart System**: Implementasi `CartNotifier` (Riverpod) untuk manajemen keranjang belanja.
+2.  **Checkout UI**: Layar Kasir interaktif dengan pencarian produk dan grid katalog.
+3.  **Cart Detail**: Modal bottom sheet untuk peninjauan item, edit kuantitas, dan hapus item.
+4.  **Calculation Engine**: Perhitungan otomatis subtotal dan total harga secara lokal.
+5.  **Payment Flow**: Layar pembayaran dengan dukungan metode Tunai & QRIS.
+6.  **Supabase Integration**: Transaksi otomatis tersimpan ke tabel `transactions` dan `transaction_items`.
+7.  **Auto Store ID**: Sistem otomatis mendeteksi `store_id` dan `cashier_id` dari user aktif.
 
 #### 🚧 Sedang Dikerjakan:
-- [ ] Memasuki **Fase 3: Core POS (Checkout & Payment)**.
+- [ ] **Receipt Management**: Menyiapkan tampilan struk digital setelah transaksi berhasil.
+- [ ] Integrasi **Hardware Printer** (Fase 4).
 
 ### 🛠️ Status Teknis:
-- **Build Status**: Berhasil (Android).
-- **Database**: Isar & Supabase Terkoneksi (Real-time Active).
-- **Scanner**: Camera permission & Mobile Scanner terkonfigurasi.
-- **Store Context**: Otomatisasi `store_id` berdasarkan user yang login berhasil diimplementasikan.
+- **Navigation**: Dashboard -> POS -> Cart -> Payment -> Success (Berjalan Lancar).
+- **Database Status**: Transaksi berhasil di-sinkron ke Cloud Supabase.
 
-### ⏭️ Langkah Selanjutnya (Fase 3):
-1.  **Checkout Interface**: Membuat sistem keranjang belanja (Add to Cart).
-2.  **Payment Calculation**: Logika perhitungan subtotal, pajak, dan kembalian.
-3.  **Transaction Record**: Simpan data transaksi ke tabel `transactions` dan `transaction_items`.
+### ⏭️ Langkah Selanjutnya:
+1.  **Digital Receipt**: Menambahkan tombol "Cetak Struk" atau "Bagikan Struk" di dialog sukses.
+2.  **Thermal Printer Setup**: Mulai riset library Bluetooth Printer untuk cetak fisik.
