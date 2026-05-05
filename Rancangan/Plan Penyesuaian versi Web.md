@@ -45,8 +45,8 @@ Aplikasi akan menggunakan **Bottom Navigation Bar** dengan 4 tab utama:
 - [ ] Implementasi `StoreInfoScreen` (Informasi Detail Toko/Merchant).
 
 ### Tahap 5: Alur Multi-Outlet (Alignment Bagian 2)
-- [ ] Pembuatan `StoreSelectionScreen`.
-- [ ] Logika penyimpanan `active_store_id` di state management (Riverpod).
+- [x] Pembuatan `StoreSelectionScreen`.
+- [x] Logika penyimpanan `active_store_id` di state management (Riverpod).
 
 ---
 

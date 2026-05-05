@@ -15,7 +15,7 @@ Untuk mendukung multi-tab tanpa kehilangan state, kita akan mengoptimalkan `GoRo
 
 ---
 
-## 2. Alur Autentikasi & Multi-Outlet (Pilih Toko)
+## 2. Alur Autentikasi & Multi-Outlet (Pilih Toko) [COMPLETED]
 Menangani user yang memiliki lebih dari satu toko (Owner) atau staf yang ditugaskan ke outlet tertentu.
 
 - **Logika**:

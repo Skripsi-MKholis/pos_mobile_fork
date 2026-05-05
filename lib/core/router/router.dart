@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_form_screen.dart';
@@ -12,18 +14,43 @@ import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/printer_settings_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final GlobalKey<NavigatorState> _shellNavigatorDashboardKey = GlobalKey<NavigatorState>(debugLabel: 'shellDashboard');
-final GlobalKey<NavigatorState> _shellNavigatorPOSKey = GlobalKey<NavigatorState>(debugLabel: 'shellPOS');
-final GlobalKey<NavigatorState> _shellNavigatorHistoryKey = GlobalKey<NavigatorState>(debugLabel: 'shellHistory');
-final GlobalKey<NavigatorState> _shellNavigatorSettingsKey = GlobalKey<NavigatorState>(debugLabel: 'shellSettings');
-
 final routerProvider = Provider<GoRouter>((ref) {
+  // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
     initialLocation: '/login',
+    refreshListenable: _RouterRefreshNotifier(ref),
+    redirect: (context, state) {
+      // Gunakan ref.read di sini agar redirect bersifat reaktif terhadap data terbaru
+      // tanpa memicu rebuild instance GoRouter
+      final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+      final isAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+      
+      if (!isLoggedIn) {
+        return isAuthPage ? null : '/login';
+      }
+
+      final activeStoreAsync = ref.read(activeStoreProvider);
+      
+      // Jika masih loading data toko dari storage, jangan redirect dulu
+      if (activeStoreAsync.isLoading) return null;
+
+      final hasSelectedStore = activeStoreAsync.value != null;
+      final isSelectingStore = state.matchedLocation == '/select-store';
+
+      if (!hasSelectedStore) {
+        return isSelectingStore ? null : '/select-store';
+      }
+
+      if (hasSelectedStore && (isAuthPage || isSelectingStore)) {
+        return '/dashboard';
+      }
+
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/login',
@@ -33,16 +60,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
+      GoRoute(
+        path: '/select-store',
+        builder: (context, state) => const StoreSelectionScreen(),
+      ),
       
-      // PERSISTENT NAVIGATION SHELL
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
         },
         branches: [
-          // Branch 1: Dashboard
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorDashboardKey,
             routes: [
               GoRoute(
                 path: '/dashboard',
@@ -50,9 +78,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 2: POS
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorPOSKey,
             routes: [
               GoRoute(
                 path: '/pos',
@@ -60,9 +86,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 3: History
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorHistoryKey,
             routes: [
               GoRoute(
                 path: '/transactions',
@@ -70,9 +94,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Branch 4: Settings
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorSettingsKey,
             routes: [
               GoRoute(
                 path: '/settings',
@@ -83,14 +105,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ROUTES WITHOUT BOTTOM NAV (Sub-pages)
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
         path: '/payment',
         builder: (context, state) => const PaymentScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
         path: '/receipt',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
@@ -101,17 +120,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
         path: '/printer-settings',
         builder: (context, state) => const PrinterSettingsScreen(),
       ),
       GoRoute(
-        parentNavigatorKey: _rootNavigatorKey,
         path: '/products',
         builder: (context, state) => const ProductListScreen(),
         routes: [
           GoRoute(
-            parentNavigatorKey: _rootNavigatorKey,
             path: 'add',
             builder: (context, state) => const ProductFormScreen(),
           ),
@@ -120,3 +136,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    // Memantau perubahan tanpa merebuild notifier itu sendiri
+    ref.listen(authProvider, (_, __) => notifyListeners());
+    ref.listen(activeStoreProvider, (_, __) => notifyListeners());
+  }
+}
