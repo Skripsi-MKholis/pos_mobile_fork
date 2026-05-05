@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/env/env.dart';
 import 'package:pos_mobile/core/theme/app_theme.dart';
 import 'package:pos_mobile/core/router/router.dart';
@@ -9,6 +10,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
+  await IsarService.init();
 
   runApp(const ProviderScope(child: MyApp()));
 }
