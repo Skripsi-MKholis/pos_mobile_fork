@@ -15,14 +15,18 @@ class ProductNotifier extends _$ProductNotifier {
 
   @override
   Future<List<Product>> build() async {
-    _listenToRealtimeChanges();
+    final channel = _listenToRealtimeChanges();
+    ref.onDispose(() {
+      _supabase.removeChannel(channel);
+    });
+    
     // Trigger background sync
     Future.microtask(() => syncProducts());
     return _fetchLocalProducts();
   }
 
-  void _listenToRealtimeChanges() {
-    _supabase
+  RealtimeChannel _listenToRealtimeChanges() {
+    return _supabase
         .channel('public:products')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,

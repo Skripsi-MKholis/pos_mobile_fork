@@ -14,14 +14,18 @@ class CategoryNotifier extends _$CategoryNotifier {
 
   @override
   Future<List<Category>> build() async {
-    _listenToRealtimeChanges();
+    final channel = _listenToRealtimeChanges();
+    ref.onDispose(() {
+      _supabase.removeChannel(channel);
+    });
+
     // Trigger background sync
     Future.microtask(() => syncCategories());
     return _fetchLocalCategories();
   }
 
-  void _listenToRealtimeChanges() {
-    _supabase
+  RealtimeChannel _listenToRealtimeChanges() {
+    return _supabase
         .channel('public:categories')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -46,7 +50,6 @@ class CategoryNotifier extends _$CategoryNotifier {
         ..supabaseId = data['id'].toString()
         ..storeId = data['store_id'].toString()
         ..name = data['name']
-        ..description = data['description']
         ..updatedAt = data['updated_at'] != null ? DateTime.parse(data['updated_at']) : null
       ).toList();
 
@@ -62,7 +65,7 @@ class CategoryNotifier extends _$CategoryNotifier {
     }
   }
 
-  Future<void> addCategory({required String name, String? description}) async {
+  Future<void> addCategory({required String name}) async {
     final activeStore = ref.read(activeStoreProvider).value;
     if (activeStore == null) return;
 
@@ -70,7 +73,6 @@ class CategoryNotifier extends _$CategoryNotifier {
       await _supabase.from('categories').insert({
         'store_id': activeStore['id'],
         'name': name,
-        'description': description,
       });
       // Realtime listener will trigger sync
     } catch (e) {
@@ -81,12 +83,10 @@ class CategoryNotifier extends _$CategoryNotifier {
   Future<void> updateCategory({
     required String supabaseId,
     required String name,
-    String? description,
   }) async {
     try {
       await _supabase.from('categories').update({
         'name': name,
-        'description': description,
       }).eq('id', supabaseId);
       // Realtime listener will trigger sync
     } catch (e) {

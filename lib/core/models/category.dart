@@ -12,7 +12,6 @@ class Category {
   late String storeId; // Ditambahkan sesuai Supabase
 
   late String name;
-  String? description;
 
   DateTime? updatedAt;
 }

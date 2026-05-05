@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/core/widgets/parzello_table.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -46,9 +48,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             .read(productNotifierProvider.notifier)
             .deleteProduct(product.supabaseId);
         if (mounted) {
-          ShadToaster.of(context).show(
-            const ShadToast(description: Text('Produk berhasil dihapus')),
-          );
+          ShadToaster.of(
+            context,
+          ).show(const ShadToast(description: Text('Produk berhasil dihapus')));
         }
       } catch (e) {
         if (mounted) {
@@ -231,394 +233,228 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
               const SizedBox(height: 16),
 
-              // TABLE AREA WITH HORIZONTAL SCROLL
+              // TABLE
               Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: SizedBox(
-                    width:
-                        700, // Increased width to accommodate padding and all columns
-                    child: Column(
-                      children: [
-                        // TABLE HEADER
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 220,
-                                child: Text(
-                                  'Produk',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 120,
-                                child: Text(
-                                  'Kategori',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 120,
-                                child: Text(
-                                  'Harga',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 70,
-                                child: Text(
-                                  'Stok',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              const Expanded(
-                                child: Center(
-                                  child: Text(
-                                    'Aksi',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(indent: 24, endIndent: 24),
+                child: productsAsync.when(
+                  data: (products) {
+                    final filteredProducts = products.where((p) {
+                      final matchesSearch =
+                          p.name.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ) ||
+                          (p.sku?.toLowerCase().contains(
+                                _searchQuery.toLowerCase(),
+                              ) ??
+                              false);
+                      final matchesCategory =
+                          _selectedCategory == null ||
+                          p.categoryId == _selectedCategory;
+                      return matchesSearch && matchesCategory;
+                    }).toList();
 
-                        // PRODUCT LIST
-                        Expanded(
-                          child: RefreshIndicator(
-                            onRefresh: () => ref
-                                .read(productNotifierProvider.notifier)
-                                .syncProducts(),
-                            child: productsAsync.when(
-                              data: (products) {
-                                final filteredProducts = products.where((p) {
-                                  final matchesSearch =
-                                      p.name.toLowerCase().contains(
-                                        _searchQuery.toLowerCase(),
-                                      ) ||
-                                      (p.sku?.toLowerCase().contains(
-                                            _searchQuery.toLowerCase(),
-                                          ) ??
-                                          false);
-                                  final matchesCategory =
-                                      _selectedCategory == null ||
-                                      p.categoryId == _selectedCategory;
-                                  return matchesSearch && matchesCategory;
-                                }).toList();
+                    final tableColumns = [
+                      ParzelloColumn(title: 'PRODUK', width: 220),
+                      ParzelloColumn(
+                        title: 'KATEGORI',
+                        width: 120,
+                        textAlign: TextAlign.center,
+                      ),
+                      ParzelloColumn(
+                        title: 'HARGA',
+                        width: 120,
+                        textAlign: TextAlign.center,
+                      ),
+                      ParzelloColumn(
+                        title: 'STOK',
+                        width: 70,
+                        textAlign: TextAlign.center,
+                      ),
+                      ParzelloColumn(
+                        title: 'AKSI',
+                        isFlex: true,
+                        textAlign: TextAlign.center,
+                      ),
+                    ];
 
-                                if (filteredProducts.isEmpty) {
-                                  return Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          TablerIcons.package_off,
-                                          size: 64,
-                                          color: theme.colorScheme.muted,
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Tidak ada produk',
-                                          style: TextStyle(
-                                            color: theme
-                                                .colorScheme
-                                                .mutedForeground,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
+                    final categoryMap = categoriesAsync.maybeWhen(
+                      data: (categories) => {
+                        for (var c in categories) c.supabaseId: c.name,
+                      },
+                      orElse: () => <String, String>{},
+                    );
 
-                                return categoriesAsync.when(
-                                  data: (categories) {
-                                    final categoryMap = {
-                                      for (var c in categories)
-                                        c.supabaseId: c.name,
-                                    };
-
-                                    return ListView.builder(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 8,
-                                      ),
-                                      itemCount: filteredProducts.length,
-                                      itemBuilder: (context, index) {
-                                        final product = filteredProducts[index];
-                                        final categoryName =
-                                            categoryMap[product.categoryId] ??
-                                            'Tanpa Kategori';
-
-                                        return Container(
-                                          margin: const EdgeInsets.only(
-                                            bottom: 8,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 12,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            border: Border(
-                                              bottom: BorderSide(
-                                                color: theme.colorScheme.border
-                                                    .withValues(alpha: 0.5),
-                                              ),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // PRODUK COLUMN
-                                              SizedBox(
-                                                width: 220,
-                                                child: Row(
-                                                  children: [
-                                                    Container(
-                                                      width: 48,
-                                                      height: 48,
-                                                      decoration: BoxDecoration(
-                                                        color: theme
-                                                            .colorScheme
-                                                            .muted,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
-                                                        image:
-                                                            product.imageUrl !=
-                                                                null
-                                                            ? DecorationImage(
-                                                                image: NetworkImage(
-                                                                  product
-                                                                      .imageUrl!,
-                                                                ),
-                                                                fit: BoxFit
-                                                                    .cover,
-                                                              )
-                                                            : null,
-                                                      ),
-                                                      child:
-                                                          product.imageUrl ==
-                                                              null
-                                                          ? Icon(
-                                                              TablerIcons
-                                                                  .package,
-                                                              color: theme
-                                                                  .colorScheme
-                                                                  .mutedForeground,
-                                                              size: 20,
-                                                            )
-                                                          : null,
-                                                    ),
-                                                    const SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                            product.name,
-                                                            style:
-                                                                const TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  fontSize: 14,
-                                                                ),
-                                                            maxLines: 1,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                          ),
-                                                          Text(
-                                                            product.sku ??
-                                                                'Tanpa SKU',
-                                                            style: theme
-                                                                .textTheme
-                                                                .muted
-                                                                .copyWith(
-                                                                  fontSize: 11,
-                                                                ),
-                                                            maxLines: 1,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              // KATEGORI COLUMN
-                                              SizedBox(
-                                                width: 120,
-                                                child: Center(
-                                                  child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 4,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .secondary
-                                                          .withValues(
-                                                            alpha: 0.5,
-                                                          ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            4,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      categoryName,
-                                                      style: const TextStyle(
-                                                        fontSize: 10,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              // HARGA COLUMN
-                                              SizedBox(
-                                                width: 120,
-                                                child: Text(
-                                                  format.format(product.price),
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              // STOK COLUMN
-                                              SizedBox(
-                                                width: 70,
-                                                child: Text(
-                                                  '${product.stockQuantity}',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
-                                                    color:
-                                                        product.stockQuantity <
-                                                            10
-                                                        ? Colors.red
-                                                        : null,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              // AKSI COLUMN
-                                              Expanded(
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                        TablerIcons.edit,
-                                                        size: 18,
-                                                      ),
-                                                      onPressed: () =>
-                                                          context.push(
-                                                            '/products/edit',
-                                                            extra: product,
-                                                          ),
-                                                      padding: EdgeInsets.zero,
-                                                      constraints:
-                                                          const BoxConstraints(),
-                                                    ),
-                                                    const SizedBox(width: 8),
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                        TablerIcons.trash,
-                                                        size: 18,
-                                                        color: Colors.red,
-                                                      ),
-                                                      onPressed: () =>
-                                                          _showDeleteDialog(
-                                                              product),
-                                                      padding: EdgeInsets.zero,
-                                                      constraints:
-                                                          const BoxConstraints(),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                  loading: () => const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                  error: (err, _) => Center(
-                                    child: Text(
-                                      'Error loading categories: $err',
-                                    ),
-                                  ),
-                                );
-                              },
-                              loading: () => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              error: (err, stack) =>
-                                  Center(child: Text('Error: $err')),
+                    return ParzelloTable(
+                      totalWidth: 700,
+                      columns: tableColumns,
+                      itemCount: filteredProducts.length,
+                      onRefresh: () => ref
+                          .read(productNotifierProvider.notifier)
+                          .syncProducts(),
+                      emptyWidget: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              TablerIcons.package,
+                              size: 64,
+                              color: theme.colorScheme.muted,
                             ),
-                          ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Produk tidak ditemukan',
+                              style: TextStyle(
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = filteredProducts[index];
+                        final categoryName =
+                            categoryMap[product.categoryId] ?? 'Tanpa Kategori';
+
+                        return ParzelloTableRow(
+                          columns: tableColumns,
+                          children: [
+                            // PRODUK
+                            Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.muted,
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: product.imageUrl != null
+                                        ? DecorationImage(
+                                            image: NetworkImage(
+                                              product.imageUrl!,
+                                            ),
+                                            fit: BoxFit.cover,
+                                          )
+                                        : null,
+                                  ),
+                                  child: product.imageUrl == null
+                                      ? Icon(
+                                          TablerIcons.package,
+                                          color:
+                                              theme.colorScheme.mutedForeground,
+                                          size: 20,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        product.sku ?? 'Tanpa SKU',
+                                        style: theme.textTheme.muted.copyWith(
+                                          fontSize: 11,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            // KATEGORI
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.secondary.withValues(
+                                    alpha: 0.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  categoryName,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                            // HARGA
+                            Text(
+                              format.format(product.price),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // STOK
+                            Text(
+                              '${product.stockQuantity}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: product.stockQuantity < 10
+                                    ? Colors.red
+                                    : null,
+                              ),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            // AKSI
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                InkWell(
+                                  onTap: () => context.push('/products/edit',
+                                      extra: product),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4.0),
+                                    child: Icon(TablerIcons.edit, size: 18),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: () => _showDeleteDialog(product),
+                                  child: const Padding(
+                                    padding: EdgeInsets.all(4.0),
+                                    child: Icon(TablerIcons.trash,
+                                        size: 18, color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
                 ),
               ),
             ],

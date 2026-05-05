@@ -5,6 +5,7 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/core/widgets/parzello_table.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
   const CategoryListScreen({super.key});
@@ -79,98 +80,83 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               ),
             ),
 
-            // TABLE HEADER
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(flex: 3, child: Text('Nama Kategori', style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold))),
-                  Expanded(flex: 4, child: Text('Deskripsi', style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold))),
-                  const SizedBox(width: 80, child: Center(child: Text('Aksi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)))),
-                ],
-              ),
-            ),
-
-            const Divider(indent: 24, endIndent: 24),
-
-            // CATEGORY LIST
+            // TABLE
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => ref.read(categoryNotifierProvider.notifier).syncCategories(),
-                child: categoriesAsync.when(
-                  data: (categories) {
-                    final filtered = categories.where((c) {
-                      return c.name.toLowerCase().contains(_searchQuery.toLowerCase());
-                    }).toList();
+              child: categoriesAsync.when(
+                data: (categories) {
+                  final filtered = categories.where((c) {
+                    return c.name
+                        .toLowerCase()
+                        .contains(_searchQuery.toLowerCase());
+                  }).toList();
 
-                    if (filtered.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(TablerIcons.category, size: 64, color: theme.colorScheme.muted),
-                            const SizedBox(height: 16),
-                            Text('Belum ada kategori', style: TextStyle(color: theme.colorScheme.mutedForeground)),
-                          ],
-                        ),
-                      );
-                    }
+                  final tableColumns = [
+                    ParzelloColumn(title: 'NAMA KATEGORI', isFlex: true),
+                    ParzelloColumn(
+                        title: 'AKSI',
+                        width: 100,
+                        textAlign: TextAlign.center),
+                  ];
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final category = filtered[index];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: theme.colorScheme.border.withValues(alpha: 0.5))),
-                          ),
-                          child: Row(
+                  return ParzelloTable(
+                    totalWidth: MediaQuery.of(context).size.width,
+                    columns: tableColumns,
+                    itemCount: filtered.length,
+                    onRefresh: () => ref
+                        .read(categoryNotifierProvider.notifier)
+                        .syncCategories(),
+                    emptyWidget: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(TablerIcons.category,
+                              size: 64, color: theme.colorScheme.muted),
+                          const SizedBox(height: 16),
+                          Text('Belum ada kategori',
+                              style: TextStyle(
+                                  color: theme.colorScheme.mutedForeground)),
+                        ],
+                      ),
+                    ),
+                    itemBuilder: (context, index) {
+                      final category = filtered[index];
+                      return ParzelloTableRow(
+                        columns: tableColumns,
+                        children: [
+                          Text(category.name,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Expanded(
-                                flex: 3,
-                                child: Text(category.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                              ),
-                              Expanded(
-                                flex: 4,
-                                child: Text(
-                                  category.description ?? '-',
-                                  style: theme.textTheme.muted.copyWith(fontSize: 13),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              InkWell(
+                                onTap: () => _showCategoryForm(context,
+                                    category: category),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(TablerIcons.edit, size: 18),
                                 ),
                               ),
-                              SizedBox(
-                                width: 80,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(TablerIcons.edit, size: 18),
-                                      onPressed: () => _showCategoryForm(context, category: category),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(TablerIcons.trash, size: 18, color: Colors.red),
-                                      onPressed: () => _confirmDelete(context, category),
-                                      padding: EdgeInsets.zero,
-                                      constraints: const BoxConstraints(),
-                                    ),
-                                  ],
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () => _confirmDelete(context, category),
+                                child: const Padding(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: Icon(TablerIcons.trash,
+                                      size: 18, color: Colors.red),
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (err, _) => Center(child: Text('Error: $err')),
-                ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (err, _) => Center(child: Text('Error: $err')),
               ),
             ),
           ],
@@ -184,7 +170,6 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
     final theme = ShadTheme.of(context);
     final isEditing = category != null;
     final nameController = TextEditingController(text: category?.name);
-    final descController = TextEditingController(text: category?.description);
 
     showShadDialog(
       context: context,
@@ -200,14 +185,6 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             ShadInput(
               controller: nameController,
               placeholder: const Text('Contoh: Makanan, Minuman...'),
-            ),
-            const SizedBox(height: 16),
-            const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            const SizedBox(height: 8),
-            ShadInput(
-              controller: descController,
-              placeholder: const Text('Penjelasan singkat...'),
-              maxLines: 3,
             ),
           ],
         ),
@@ -230,12 +207,10 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                   await ref.read(categoryNotifierProvider.notifier).updateCategory(
                         supabaseId: category.supabaseId,
                         name: nameController.text,
-                        description: descController.text,
                       );
                 } else {
                   await ref.read(categoryNotifierProvider.notifier).addCategory(
                         name: nameController.text,
-                        description: descController.text,
                       );
                 }
                 if (context.mounted) {
