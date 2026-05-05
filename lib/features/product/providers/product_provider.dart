@@ -4,7 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:isar/isar.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:uuid/uuid.dart';
 
 part 'product_provider.g.dart';
 
@@ -12,6 +15,7 @@ part 'product_provider.g.dart';
 class ProductNotifier extends _$ProductNotifier {
   final _supabase = Supabase.instance.client;
   final _isar = IsarService.instance;
+  final _uuid = const Uuid();
 
   @override
   Future<List<Product>> build() async {
@@ -19,8 +23,15 @@ class ProductNotifier extends _$ProductNotifier {
     ref.onDispose(() {
       _supabase.removeChannel(channel);
     });
-    
-    // Trigger background sync
+
+    // Watch connectivity to trigger sync when online
+    ref.listen(connectivityNotifierProvider, (previous, next) {
+      if (next.value == ConnectivityStatus.online) {
+        syncProducts();
+      }
+    });
+
+    // Trigger initial background sync
     Future.microtask(() => syncProducts());
     return _fetchLocalProducts();
   }
@@ -36,11 +47,12 @@ class ProductNotifier extends _$ProductNotifier {
             if (payload.newRecord.isNotEmpty) {
               final data = payload.newRecord;
               final product = _mapSupabaseToProduct(data);
+              product.isSynced = true;
 
               await _isar.writeTxn(() async {
                 await _isar.products.putBySupabaseId(product);
               });
-              
+
               ref.invalidateSelf();
             }
           },
@@ -73,36 +85,53 @@ class ProductNotifier extends _$ProductNotifier {
       sku: data['sku'],
       imageUrl: data['image_url'],
       categoryId: data['category_id']?.toString(),
-      updatedAt: data['updated_at'] != null ? DateTime.parse(data['updated_at']) : null,
+      updatedAt: data['updated_at'] != null
+          ? DateTime.parse(data['updated_at'])
+          : null,
+      isSynced: true,
     );
   }
 
   Future<List<Product>> _fetchLocalProducts() async {
-    return _isar.products.where().findAll();
+    return _isar.products.where().filter().isDeletedEqualTo(false).findAll();
   }
 
   Future<void> syncProducts() async {
     try {
-      print('DEBUG: Memulai sinkronisasi produk dari Supabase...');
+      final isOnline =
+          ref.read(connectivityNotifierProvider).value ==
+          ConnectivityStatus.online;
+      if (!isOnline) return;
+
       final response = await _supabase.from('products').select();
-      
-      print('DEBUG: Berhasil mengambil ${response.length} produk dari Supabase.');
-      
-      final products = (response as List).map((data) => _mapSupabaseToProduct(data)).toList();
+      final products = (response as List)
+          .map((data) => _mapSupabaseToProduct(data))
+          .toList();
+      final remoteIds = products.map((p) => p.supabaseId).toSet();
 
       await _isar.writeTxn(() async {
+        // 1. Update/Add dari Remote
         for (var product in products) {
           await _isar.products.putBySupabaseId(product);
         }
+
+        // 2. Hapus data lokal yang sudah tersinkron tapi tidak ada di Remote
+        // (Artinya data tersebut dihapus dari server/dashboard oleh user lain)
+        final localProducts = await _isar.products
+            .filter()
+            .isSyncedEqualTo(true)
+            .isDeletedEqualTo(false)
+            .findAll();
+
+        for (var lp in localProducts) {
+          if (!remoteIds.contains(lp.supabaseId)) {
+            await _isar.products.delete(lp.id);
+          }
+        }
       });
 
-      final localCount = await _isar.products.count();
-      print('DEBUG: Sinkronisasi produk ke Isar selesai. Total produk di Isar: $localCount');
-      
-      // Update state directly to avoid infinite loop from invalidateSelf()
       state = AsyncData(await _fetchLocalProducts());
     } catch (e) {
-      print('DEBUG: Error saat sinkronisasi produk: $e');
       rethrow;
     }
   }
@@ -111,14 +140,53 @@ class ProductNotifier extends _$ProductNotifier {
     try {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final path = 'product_images/$fileName';
-      
+
       await _supabase.storage.from('product-images').upload(path, imageFile);
-      
-      final imageUrl = _supabase.storage.from('product-images').getPublicUrl(path);
+
+      final imageUrl = _supabase.storage
+          .from('product-images')
+          .getPublicUrl(path);
       return imageUrl;
     } catch (e) {
-      print('DEBUG: Error upload image: $e');
       return null;
+    }
+  }
+
+  Future<String?> _saveImageLocally(File imageFile) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final fileName = 'off_img_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final localFile = await imageFile.copy('${dir.path}/$fileName');
+      return localFile.path;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> deleteImageFromStorage(String? imageUrl) async {
+    if (imageUrl == null || imageUrl.isEmpty) return;
+    try {
+      final uri = Uri.parse(imageUrl);
+      final pathSegments = uri.pathSegments;
+      final bucketIndex = pathSegments.indexOf('product-images');
+      if (bucketIndex != -1 && bucketIndex < pathSegments.length - 1) {
+        final storagePath = pathSegments.sublist(bucketIndex + 1).join('/');
+        await _supabase.storage.from('product-images').remove([storagePath]);
+      }
+    } catch (e) {
+      print('Error deleting remote image: $e');
+    }
+  }
+
+  Future<void> deleteLocalImage(String? path) async {
+    if (path == null || path.isEmpty) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      print('Error deleting local image: $e');
     }
   }
 
@@ -130,56 +198,121 @@ class ProductNotifier extends _$ProductNotifier {
       throw Exception('Tidak ada toko aktif yang terpilih.');
     }
 
+    // 1. Prepare Local Data
+    final isNew = product.supabaseId.isEmpty;
+    final localId = isNew ? _uuid.v4() : product.supabaseId;
+
     String? imageUrl = product.imageUrl;
+    String? localImagePath = product.localImagePath;
+
+    final isOnline =
+        ref.read(connectivityNotifierProvider).value ==
+        ConnectivityStatus.online;
+
     if (imageFile != null) {
-      imageUrl = await uploadImage(imageFile);
+      if (isOnline) {
+        imageUrl = await uploadImage(imageFile);
+      } else {
+        // Save locally if offline
+        localImagePath = await _saveImageLocally(imageFile);
+      }
     }
 
-    final productData = {
-      'store_id': storeId,
-      'name': product.name,
-      'description': product.description,
-      'price': product.price,
-      'modal_price': product.modalPrice,
-      'stock_quantity': product.stockQuantity,
-      'barcode': product.barcode,
-      'sku': product.sku,
-      'category_id': product.categoryId,
-      'image_url': imageUrl,
-    };
+    final localProduct = product
+      ..supabaseId = localId
+      ..storeId = storeId
+      ..imageUrl = imageUrl
+      ..localImagePath = localImagePath
+      ..isSynced = false;
 
-    dynamic response;
-    if (product.supabaseId.isEmpty) {
-      // Create new
-      response = await _supabase.from('products').insert(productData).select().single();
-    } else {
-      // Update existing
-      response = await _supabase.from('products').update(productData).eq('id', product.supabaseId).select().single();
-    }
-
-    final savedProduct = _mapSupabaseToProduct(response);
-
+    // 2. Save Locally First
     await _isar.writeTxn(() async {
-      await _isar.products.putBySupabaseId(savedProduct);
+      await _isar.products.putBySupabaseId(localProduct);
     });
-
     ref.invalidateSelf();
+
+    // 3. Try Sync if Online
+    if (isOnline) {
+      try {
+        final productData = {
+          'id': localId,
+          'store_id': storeId,
+          'name': product.name,
+          'description': product.description,
+          'price': product.price,
+          'modal_price': product.modalPrice,
+          'stock_quantity': product.stockQuantity,
+          'barcode': product.barcode,
+          'sku': product.sku,
+          'category_id': product.categoryId,
+          'image_url': imageUrl,
+        };
+
+        if (isNew) {
+          await _supabase.from('products').insert(productData);
+        } else {
+          await _supabase
+              .from('products')
+              .update(productData)
+              .eq('id', localId);
+        }
+
+        // Mark as synced locally
+        await _isar.writeTxn(() async {
+          localProduct.isSynced = true;
+          localProduct.syncError = null;
+          await _isar.products.putBySupabaseId(localProduct);
+        });
+        ref.invalidateSelf();
+      } catch (e) {
+        await _isar.writeTxn(() async {
+          localProduct.syncError = e.toString();
+          await _isar.products.putBySupabaseId(localProduct);
+        });
+        ref.invalidateSelf();
+      }
+    }
   }
 
   Future<void> deleteProduct(String supabaseId) async {
     try {
-      // 1. Delete from Supabase
-      await _supabase.from('products').delete().eq('id', supabaseId);
+      // 1. Soft delete locally
+      final localProduct = await _isar.products
+          .filter()
+          .supabaseIdEqualTo(supabaseId)
+          .findFirst();
+      if (localProduct != null) {
+        await _isar.writeTxn(() async {
+          localProduct.isDeleted = true;
+          localProduct.isSynced = false;
+          await _isar.products.put(localProduct);
+        });
+        ref.invalidateSelf();
+      }
 
-      // 2. Delete from Isar
-      await _isar.writeTxn(() async {
-        await _isar.products.filter().supabaseIdEqualTo(supabaseId).deleteAll();
-      });
+      // 2. Try sync if online
+      final isOnline =
+          ref.read(connectivityNotifierProvider).value ==
+          ConnectivityStatus.online;
+      if (isOnline) {
+        // Delete image from storage first
+        if (localProduct != null) {
+          await deleteImageFromStorage(localProduct.imageUrl);
+          await deleteLocalImage(localProduct.localImagePath);
+        }
 
-      // 3. Update state
-      ref.invalidateSelf();
+        await _supabase.from('products').delete().eq('id', supabaseId);
+        
+        // Hard delete locally if sync success
+        await _isar.writeTxn(() async {
+          await _isar.products
+              .filter()
+              .supabaseIdEqualTo(supabaseId)
+              .deleteAll();
+        });
+        ref.invalidateSelf();
+      }
     } catch (e) {
-      print('DEBUG: Error saat menghapus produk: $e');
       rethrow;
     }
   }

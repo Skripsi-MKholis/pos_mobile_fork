@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
+import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -121,6 +123,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const ConnectivityStatusBar(),
+              
               // SUBTITLE AREA
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
@@ -328,14 +332,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                     image: product.imageUrl != null
                                         ? DecorationImage(
-                                            image: NetworkImage(
-                                              product.imageUrl!,
-                                            ),
+                                            image: NetworkImage(product.imageUrl!),
                                             fit: BoxFit.cover,
                                           )
-                                        : null,
+                                        : (product.localImagePath != null
+                                            ? DecorationImage(
+                                                image: FileImage(File(product.localImagePath!)),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : null),
                                   ),
-                                  child: product.imageUrl == null
+                                  child: (product.imageUrl == null && product.localImagePath == null)
                                       ? Icon(
                                           TablerIcons.package,
                                           color:
@@ -351,14 +358,23 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                         CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        product.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(product.name,
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis),
+                                          ),
+                                          if (!product.isSynced)
+                                            const Padding(
+                                              padding: EdgeInsets.only(left: 4),
+                                              child: Icon(TablerIcons.cloud_off,
+                                                  size: 12, color: Colors.orange),
+                                            ),
+                                        ],
                                       ),
                                       Text(
                                         product.sku ?? 'Tanpa SKU',

@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/env/env.dart';
 import 'package:pos_mobile/core/router/router.dart';
+import 'package:pos_mobile/core/providers/sync_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Keep sync logic alive in the background
+    ref.watch(syncNotifierProvider);
+    
     final router = ref.watch(routerProvider);
 
     // Theme Colors based on Shadcn Preset: b6V64cnNom (Luma - Stone/Lime)

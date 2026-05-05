@@ -14,4 +14,11 @@ class Category {
   late String name;
 
   DateTime? updatedAt;
+  
+  @Index()
+  bool isSynced = true;
+  
+  bool isDeleted = false;
+  
+  String? syncError;
 }

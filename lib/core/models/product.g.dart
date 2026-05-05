@@ -37,43 +37,63 @@ const ProductSchema = CollectionSchema(
       name: r'imageUrl',
       type: IsarType.string,
     ),
-    r'modalPrice': PropertySchema(
+    r'isDeleted': PropertySchema(
       id: 4,
+      name: r'isDeleted',
+      type: IsarType.bool,
+    ),
+    r'isSynced': PropertySchema(
+      id: 5,
+      name: r'isSynced',
+      type: IsarType.bool,
+    ),
+    r'localImagePath': PropertySchema(
+      id: 6,
+      name: r'localImagePath',
+      type: IsarType.string,
+    ),
+    r'modalPrice': PropertySchema(
+      id: 7,
       name: r'modalPrice',
       type: IsarType.double,
     ),
     r'name': PropertySchema(
-      id: 5,
+      id: 8,
       name: r'name',
       type: IsarType.string,
     ),
     r'price': PropertySchema(
-      id: 6,
+      id: 9,
       name: r'price',
       type: IsarType.double,
     ),
     r'sku': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'sku',
       type: IsarType.string,
     ),
     r'stockQuantity': PropertySchema(
-      id: 8,
+      id: 11,
       name: r'stockQuantity',
       type: IsarType.long,
     ),
     r'storeId': PropertySchema(
-      id: 9,
+      id: 12,
       name: r'storeId',
       type: IsarType.string,
     ),
     r'supabaseId': PropertySchema(
-      id: 10,
+      id: 13,
       name: r'supabaseId',
       type: IsarType.string,
     ),
+    r'syncError': PropertySchema(
+      id: 14,
+      name: r'syncError',
+      type: IsarType.string,
+    ),
     r'updatedAt': PropertySchema(
-      id: 11,
+      id: 15,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -135,6 +155,19 @@ const ProductSchema = CollectionSchema(
           caseSensitive: true,
         )
       ],
+    ),
+    r'isSynced': IndexSchema(
+      id: -39763503327887510,
+      name: r'isSynced',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'isSynced',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
     )
   },
   links: {},
@@ -175,6 +208,12 @@ int _productEstimateSize(
       bytesCount += 3 + value.length * 3;
     }
   }
+  {
+    final value = object.localImagePath;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.name.length * 3;
   {
     final value = object.sku;
@@ -184,6 +223,12 @@ int _productEstimateSize(
   }
   bytesCount += 3 + object.storeId.length * 3;
   bytesCount += 3 + object.supabaseId.length * 3;
+  {
+    final value = object.syncError;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -197,14 +242,18 @@ void _productSerialize(
   writer.writeString(offsets[1], object.categoryId);
   writer.writeString(offsets[2], object.description);
   writer.writeString(offsets[3], object.imageUrl);
-  writer.writeDouble(offsets[4], object.modalPrice);
-  writer.writeString(offsets[5], object.name);
-  writer.writeDouble(offsets[6], object.price);
-  writer.writeString(offsets[7], object.sku);
-  writer.writeLong(offsets[8], object.stockQuantity);
-  writer.writeString(offsets[9], object.storeId);
-  writer.writeString(offsets[10], object.supabaseId);
-  writer.writeDateTime(offsets[11], object.updatedAt);
+  writer.writeBool(offsets[4], object.isDeleted);
+  writer.writeBool(offsets[5], object.isSynced);
+  writer.writeString(offsets[6], object.localImagePath);
+  writer.writeDouble(offsets[7], object.modalPrice);
+  writer.writeString(offsets[8], object.name);
+  writer.writeDouble(offsets[9], object.price);
+  writer.writeString(offsets[10], object.sku);
+  writer.writeLong(offsets[11], object.stockQuantity);
+  writer.writeString(offsets[12], object.storeId);
+  writer.writeString(offsets[13], object.supabaseId);
+  writer.writeString(offsets[14], object.syncError);
+  writer.writeDateTime(offsets[15], object.updatedAt);
 }
 
 Product _productDeserialize(
@@ -219,14 +268,18 @@ Product _productDeserialize(
     description: reader.readStringOrNull(offsets[2]),
     id: id,
     imageUrl: reader.readStringOrNull(offsets[3]),
-    modalPrice: reader.readDoubleOrNull(offsets[4]),
-    name: reader.readString(offsets[5]),
-    price: reader.readDouble(offsets[6]),
-    sku: reader.readStringOrNull(offsets[7]),
-    stockQuantity: reader.readLongOrNull(offsets[8]) ?? 0,
-    storeId: reader.readString(offsets[9]),
-    supabaseId: reader.readString(offsets[10]),
-    updatedAt: reader.readDateTimeOrNull(offsets[11]),
+    isDeleted: reader.readBoolOrNull(offsets[4]) ?? false,
+    isSynced: reader.readBoolOrNull(offsets[5]) ?? true,
+    localImagePath: reader.readStringOrNull(offsets[6]),
+    modalPrice: reader.readDoubleOrNull(offsets[7]),
+    name: reader.readString(offsets[8]),
+    price: reader.readDouble(offsets[9]),
+    sku: reader.readStringOrNull(offsets[10]),
+    stockQuantity: reader.readLongOrNull(offsets[11]) ?? 0,
+    storeId: reader.readString(offsets[12]),
+    supabaseId: reader.readString(offsets[13]),
+    syncError: reader.readStringOrNull(offsets[14]),
+    updatedAt: reader.readDateTimeOrNull(offsets[15]),
   );
   return object;
 }
@@ -247,20 +300,28 @@ P _productDeserializeProp<P>(
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
-      return (reader.readDoubleOrNull(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? false) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readBoolOrNull(offset) ?? true) as P;
     case 6:
-      return (reader.readDouble(offset)) as P;
-    case 7:
       return (reader.readStringOrNull(offset)) as P;
+    case 7:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 8:
-      return (reader.readLongOrNull(offset) ?? 0) as P;
+      return (reader.readString(offset)) as P;
     case 9:
-      return (reader.readString(offset)) as P;
+      return (reader.readDouble(offset)) as P;
     case 10:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
+      return (reader.readLongOrNull(offset) ?? 0) as P;
+    case 12:
+      return (reader.readString(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readStringOrNull(offset)) as P;
+    case 15:
       return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -345,6 +406,14 @@ extension ProductQueryWhereSort on QueryBuilder<Product, Product, QWhere> {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'stockQuantity'),
+      );
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhere> anyIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'isSynced'),
       );
     });
   }
@@ -675,6 +744,51 @@ extension ProductQueryWhere on QueryBuilder<Product, Product, QWhereClause> {
               indexName: r'categoryId',
               lower: [],
               upper: [categoryId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> isSyncedEqualTo(
+      bool isSynced) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'isSynced',
+        value: [isSynced],
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterWhereClause> isSyncedNotEqualTo(
+      bool isSynced) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [],
+              upper: [isSynced],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [isSynced],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [isSynced],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'isSynced',
+              lower: [],
+              upper: [isSynced],
               includeUpper: false,
             ));
       }
@@ -1316,6 +1430,177 @@ extension ProductQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'imageUrl',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> isDeletedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDeleted',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> isSyncedEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isSynced',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'localImagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      localImagePathIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'localImagePath',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      localImagePathGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'localImagePath',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      localImagePathStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'localImagePath',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> localImagePathMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'localImagePath',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      localImagePathIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'localImagePath',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition>
+      localImagePathIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'localImagePath',
         value: '',
       ));
     });
@@ -2051,6 +2336,152 @@ extension ProductQueryFilter
     });
   }
 
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'syncError',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'syncError',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'syncError',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'syncError',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'syncError',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'syncError',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterFilterCondition> syncErrorIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'syncError',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterFilterCondition> updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2176,6 +2607,42 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsDeleted() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDeleted', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsDeletedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDeleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByLocalImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localImagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortByLocalImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localImagePath', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByModalPrice() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'modalPrice', Sort.asc);
@@ -2260,6 +2727,18 @@ extension ProductQuerySortBy on QueryBuilder<Product, Product, QSortBy> {
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> sortBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> sortBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -2332,6 +2811,42 @@ extension ProductQuerySortThenBy
   QueryBuilder<Product, Product, QAfterSortBy> thenByImageUrlDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'imageUrl', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsDeleted() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDeleted', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsDeletedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDeleted', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByIsSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSynced', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByLocalImagePath() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localImagePath', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenByLocalImagePathDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'localImagePath', Sort.desc);
     });
   }
 
@@ -2419,6 +2934,18 @@ extension ProductQuerySortThenBy
     });
   }
 
+  QueryBuilder<Product, Product, QAfterSortBy> thenBySyncError() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Product, Product, QAfterSortBy> thenBySyncErrorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'syncError', Sort.desc);
+    });
+  }
+
   QueryBuilder<Product, Product, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -2459,6 +2986,26 @@ extension ProductQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'imageUrl', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByIsDeleted() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByIsSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isSynced');
+    });
+  }
+
+  QueryBuilder<Product, Product, QDistinct> distinctByLocalImagePath(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'localImagePath',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2508,6 +3055,13 @@ extension ProductQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Product, Product, QDistinct> distinctBySyncError(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'syncError', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Product, Product, QDistinct> distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
@@ -2544,6 +3098,24 @@ extension ProductQueryProperty
   QueryBuilder<Product, String?, QQueryOperations> imageUrlProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'imageUrl');
+    });
+  }
+
+  QueryBuilder<Product, bool, QQueryOperations> isDeletedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDeleted');
+    });
+  }
+
+  QueryBuilder<Product, bool, QQueryOperations> isSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isSynced');
+    });
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> localImagePathProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'localImagePath');
     });
   }
 
@@ -2586,6 +3158,12 @@ extension ProductQueryProperty
   QueryBuilder<Product, String, QQueryOperations> supabaseIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'supabaseId');
+    });
+  }
+
+  QueryBuilder<Product, String?, QQueryOperations> syncErrorProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'syncError');
     });
   }
 

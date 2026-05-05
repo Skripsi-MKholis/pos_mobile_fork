@@ -6,6 +6,7 @@ import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
+import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
   const CategoryListScreen({super.key});
@@ -54,7 +55,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-            // HEADER & SEARCH
+              const ConnectivityStatusBar(),
+              
+              // HEADER & SEARCH
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
               child: Row(
@@ -123,9 +126,21 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                       return ParzelloTableRow(
                         columns: tableColumns,
                         children: [
-                          Text(category.name,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(category.name,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold, fontSize: 14)),
+                              ),
+                              if (!category.isSynced)
+                                const Padding(
+                                  padding: EdgeInsets.only(left: 4),
+                                  child: Icon(TablerIcons.cloud_off,
+                                      size: 12, color: Colors.orange),
+                                ),
+                            ],
+                          ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,

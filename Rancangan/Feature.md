@@ -72,6 +72,10 @@ Sistem mengadopsi estetika **Modern Premium & Ergonomic** yang disesuaikan untuk
 - **Sans/Body (Outfit)**: Keterbacaan tinggi untuk daftar produk dan form.
 - **Data/Mono (Geist Mono)**: Untuk SKU, ID Transaksi, dan data teknis.
 
+### 🧩 Komponen Modular (Standardisasi)
+- **ParzelloTable**: Sistem tabel data kustom yang mendukung *horizontal scroll* responsif, pre-calculated lookups, dan manajemen state terintegrasi.
+- **Compact Action System**: Tombol aksi yang dioptimalkan untuk tap-target mobile tanpa mengorbankan kepadatan informasi (density).
+
 ---
 
 ## 📊 Model Data (Schema Supabase)
@@ -81,6 +85,7 @@ Sistem mobile ini berbagi database yang sama dengan versi web untuk sinkronisasi
 ### Inti Bisnis & Inventaris
 - **`stores`**: Metadata toko dengan pengaturan modular (JSONB).
 - **`products`**: Katalog produk dengan dukungan scan barcode.
+- **`categories`**: Klasifikasi produk yang disinkronkan secara real-time.
 - **`store_members`**: Relasi user-toko dan manajemen role.
 
 ### Transaksi & Operasional
@@ -88,7 +93,6 @@ Sistem mobile ini berbagi database yang sama dengan versi web untuk sinkronisasi
 - **`tables` & `kds_orders`**: Manajemen operasional khusus F&B.
 - **`vouchers` & `discounts`**: Integrasi sistem promosi.
 
-### Komunikasi & Log
 - **`notifications`**: Pusat notifikasi push dan in-app.
 - **`broadcasts`**: Pesan internal antar pengguna dalam satu toko.
-dentifikasi Super Admin.
+- **`super_admins`**: Daftar identifikasi Super Admin.

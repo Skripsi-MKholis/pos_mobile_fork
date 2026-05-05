@@ -30,7 +30,17 @@ class Product {
   @Index()
   String? categoryId; 
 
+  String? localImagePath;
+
   DateTime? updatedAt;
+  
+  // SYNC METADATA
+  @Index()
+  bool isSynced = true;
+  
+  bool isDeleted = false;
+  
+  String? syncError;
 
   Product({
     this.id = Isar.autoIncrement,
@@ -45,6 +55,10 @@ class Product {
     this.barcode,
     this.imageUrl,
     this.categoryId,
+    this.localImagePath,
     this.updatedAt,
+    this.isSynced = true,
+    this.isDeleted = false,
+    this.syncError,
   });
 }

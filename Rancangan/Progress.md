@@ -4,6 +4,23 @@ Dokumen ini mencatat riwayat kemajuan pengembangan aplikasi Parzello POS.
 
 ---
 
+### 📅 5 Mei 2026 (Sesi 6) - Fase: UI Modularization & Performance Optimization (Status: 100% Selesai ✅)
+
+#### ✅ Pencapaian Sesi Ini:
+1.  **Modular Table Architecture**: Menciptakan widget kustom `ParzelloTable` dan `ParzelloTableRow` untuk standardisasi tampilan data di seluruh aplikasi (Produk & Kategori).
+2.  **Schema Alignment (Category)**: Menghapus field `description` pada model dan UI Kategori agar sesuai dengan skema database Supabase terkini.
+3.  **High-Performance Lookups**: Mengoptimalkan render katalog produk dengan mengimplementasikan `categoryMap` (O(1) lookup) untuk menggantikan pencarian linear O(N).
+4.  **Memory Leak Prevention**: Implementasi manajemen siklus hidup `RealtimeChannel` Supabase menggunakan `ref.onDispose` pada seluruh provider.
+5.  **UX & System Stability**: 
+    - Memperbaiki *layout overflow* pada kolom aksi dengan tombol berbasis `InkWell` yang lebih ringkas.
+    - Mengaktifkan `OnBackInvokedCallback` di `AndroidManifest.xml` untuk mendukung fitur *predictive back gesture* pada Android 13+.
+
+#### 🛠️ Status Teknis:
+- **UI Architecture**: Standardisasi tabel modular selesai.
+- **Resource Management**: Realtime subscription sudah terkelola dengan aman.
+- **Android Support**: Kompatibel penuh dengan Android 13+ (API 33).
+
+
 ### 📅 5 Mei 2026 (Sesi 5) - Fase: Data Sync Stability & Multi-Store Visibility (Status: 100% Selesai ✅)
 
 #### ✅ Pencapaian Sesi Ini:

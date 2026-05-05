@@ -37,18 +37,14 @@ class ParzelloTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
 
-    if (itemCount == 0 && emptyWidget != null) {
-      return emptyWidget!;
-    }
-
-    return Column(
-      children: [
-        // Table Header
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: totalWidth,
-            child: Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: SizedBox(
+        width: totalWidth,
+        child: Column(
+          children: [
+            // Table Header
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
                 children: columns.map((col) {
@@ -62,40 +58,41 @@ class ParzelloTable extends StatelessWidget {
                   );
 
                   if (col.isFlex) {
-                    return Expanded(child: col.textAlign == TextAlign.center ? Center(child: text) : text);
+                    return Expanded(
+                      child: col.textAlign == TextAlign.center
+                          ? Center(child: text)
+                          : text,
+                    );
                   }
                   return SizedBox(
                     width: col.width,
-                    child: col.textAlign == TextAlign.center 
-                        ? Center(child: text) 
+                    child: col.textAlign == TextAlign.center
+                        ? Center(child: text)
                         : text,
                   );
                 }).toList(),
               ),
             ),
-          ),
-        ),
-        const Divider(indent: 24, endIndent: 24, height: 1),
-        
-        // Table Body
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: onRefresh ?? () async {},
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: SizedBox(
-                width: totalWidth,
+            const Divider(indent: 24, endIndent: 24, height: 1),
+
+            // Table Body
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: onRefresh ?? () async {},
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   itemCount: itemCount,
                   itemBuilder: itemBuilder,
                 ),
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -135,10 +132,7 @@ class ParzelloTableRow extends StatelessWidget {
             if (col.isFlex) {
               return Expanded(child: child);
             }
-            return SizedBox(
-              width: col.width,
-              child: child,
-            );
+            return SizedBox(width: col.width, child: child);
           }),
         ),
       ),
