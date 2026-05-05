@@ -46,7 +46,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return isSelectingStore ? null : '/select-store';
       }
 
-      if (hasSelectedStore && (isAuthPage || isSelectingStore)) {
+      if (hasSelectedStore && isAuthPage) {
         return '/dashboard';
       }
 

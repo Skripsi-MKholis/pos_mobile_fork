@@ -90,12 +90,22 @@ class StoreSelectionScreen extends ConsumerWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: theme.colorScheme.secondary,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(TablerIcons.building_store, color: theme.colorScheme.foreground),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: (store['logo_url'] != null && store['logo_url'].toString().isNotEmpty == true)
+                      ? Image.network(
+                          store['logo_url'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Icon(TablerIcons.building_store, color: theme.colorScheme.foreground),
+                        )
+                      : Icon(TablerIcons.building_store, color: theme.colorScheme.foreground),
+                ),
               ),
               const SizedBox(width: 20),
               Expanded(

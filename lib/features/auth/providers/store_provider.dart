@@ -46,10 +46,38 @@ Future<List<Map<String, dynamic>>> userStores(UserStoresRef ref) async {
   
   if (user == null) return [];
 
-  // Ambil toko di mana user adalah owner
-  final ownedStores = await supabase.from('stores').select().eq('owner_id', user.id);
-  
-  // Nanti bisa ditambah pencarian toko di mana user adalah staff
-  
-  return List<Map<String, dynamic>>.from(ownedStores);
+  try {
+    // 1. Ambil ID toko dari tabel store_members (Tempat user jadi Staff/Owner/Kasir)
+    final memberStoreData = await supabase
+        .from('store_members')
+        .select('store_id')
+        .eq('user_id', user.id);
+    
+    final memberStoreIds = (memberStoreData as List)
+        .map((m) => m['store_id'] as String)
+        .toList();
+
+    // 2. Ambil semua toko yang ID-nya ada di daftar memberStoreIds ATAU owner_id-nya adalah user.id
+    // Catatan: Menggunakan query 'in' untuk efisiensi
+    var query = supabase.from('stores').select();
+    
+    if (memberStoreIds.isNotEmpty) {
+      // Ambil toko yang user adalah member ATAU owner
+      final stores = await supabase
+          .from('stores')
+          .select()
+          .or('id.in.(${memberStoreIds.map((id) => '"$id"').join(',')}),owner_id.eq.${user.id}');
+      return List<Map<String, dynamic>>.from(stores);
+    } else {
+      // Jika tidak ada di store_members, ambil yang owned saja
+      final ownedStores = await supabase
+          .from('stores')
+          .select()
+          .eq('owner_id', user.id);
+      return List<Map<String, dynamic>>.from(ownedStores);
+    }
+  } catch (e) {
+    print('Error fetching user stores: $e');
+    return [];
+  }
 }
