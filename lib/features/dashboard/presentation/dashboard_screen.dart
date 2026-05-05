@@ -11,37 +11,20 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        title: Text(
-          'Parzello POS',
-          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          ShadButton.ghost(
-            child: const Icon(TablerIcons.bell),
-            onPressed: () {},
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildQuickStats(context, theme),
+          const SizedBox(height: 32),
+          Text(
+            'Aksi Cepat',
+            style: theme.textTheme.h4,
           ),
+          const SizedBox(height: 16),
+          _buildQuickActions(context, theme),
         ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildQuickStats(context, theme),
-            const SizedBox(height: 32),
-            Text(
-              'Aksi Cepat',
-              style: theme.textTheme.h4,
-            ),
-            const SizedBox(height: 16),
-            _buildQuickActions(context, theme),
-          ],
-        ),
       ),
     );
   }

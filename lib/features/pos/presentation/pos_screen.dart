@@ -28,71 +28,57 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final theme = ShadTheme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Kasir', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(TablerIcons.barcode),
-            onPressed: () {
-              // TODO: Scanner logic
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ShadInput(
+            controller: _searchController,
+            placeholder: const Text('Cari produk atau scan barcode...'),
+            leading: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(TablerIcons.search, size: 20),
+            ),
+            onChanged: (value) => setState(() => _searchQuery = value),
+          ),
+        ),
+        Expanded(
+          child: productsAsync.when(
+            data: (products) {
+              final filteredProducts = products.where((p) =>
+                  p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                  (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)).toList();
+
+              if (filteredProducts.isEmpty) {
+                return const Center(child: Text('Produk tidak ditemukan'));
+              }
+
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.75,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: filteredProducts.length,
+                itemBuilder: (context, index) {
+                  final product = filteredProducts[index];
+                  final cartItem = cartItems.firstWhere(
+                    (item) => item.product.supabaseId == product.supabaseId,
+                    orElse: () => CartItem(product: product, quantity: 0),
+                  );
+
+                  return _buildProductCard(context, product, cartItem, cartNotifier, currencyFormat);
+                },
+              );
             },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ShadInput(
-              controller: _searchController,
-              placeholder: const Text('Cari produk atau scan barcode...'),
-              leading: const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Icon(TablerIcons.search, size: 20),
-              ),
-              onChanged: (value) => setState(() => _searchQuery = value),
-            ),
-          ),
-          Expanded(
-            child: productsAsync.when(
-              data: (products) {
-                final filteredProducts = products.where((p) =>
-                    p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)).toList();
-
-                if (filteredProducts.isEmpty) {
-                  return const Center(child: Text('Produk tidak ditemukan'));
-                }
-
-                return GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.75,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                  ),
-                  itemCount: filteredProducts.length,
-                  itemBuilder: (context, index) {
-                    final product = filteredProducts[index];
-                    final cartItem = cartItems.firstWhere(
-                      (item) => item.product.supabaseId == product.supabaseId,
-                      orElse: () => CartItem(product: product, quantity: 0),
-                    );
-
-                    return _buildProductCard(context, product, cartItem, cartNotifier, currencyFormat);
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
-          ),
-          if (cartItems.isNotEmpty) _buildCartSummary(context, cartNotifier, currencyFormat),
-        ],
-      ),
+        ),
+        if (cartItems.isNotEmpty) _buildCartSummary(context, cartNotifier, currencyFormat),
+      ],
     );
   }
 

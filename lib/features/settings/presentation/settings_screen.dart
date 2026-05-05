@@ -14,45 +14,37 @@ class SettingsScreen extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final activeStore = ref.watch(activeStoreProvider);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        title: const Text('Menu Utama', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          if (activeStore.value != null)
-            _buildStoreHeader(theme, activeStore.value!),
-          
-          const SizedBox(height: 24),
-          _buildMenuSection(theme, 'Katalog & Stok', [
-            _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
-            _buildMenuItem(context, theme, TablerIcons.category, 'Kategori', () {}),
-          ]),
-          const SizedBox(height: 24),
-          _buildMenuSection(theme, 'Pengaturan Toko', [
-            _buildMenuItem(context, theme, TablerIcons.printer, 'Printer & Struk', () => context.push('/printer-settings')),
-            _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () {}),
-            _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () {}),
-          ]),
-          const SizedBox(height: 32),
-          ShadButton.destructive(
-            width: double.infinity,
-            onPressed: () => _handleLogout(context, ref),
-            child: const Text('Keluar Aplikasi'),
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        if (activeStore.value != null)
+          _buildStoreHeader(theme, activeStore.value!),
+        
+        const SizedBox(height: 24),
+        _buildMenuSection(theme, 'Katalog & Stok', [
+          _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
+          _buildMenuItem(context, theme, TablerIcons.category, 'Kategori', () {}),
+        ]),
+        const SizedBox(height: 24),
+        _buildMenuSection(theme, 'Pengaturan Toko', [
+          _buildMenuItem(context, theme, TablerIcons.printer, 'Printer & Struk', () => context.push('/printer-settings')),
+          _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () {}),
+          _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () {}),
+        ]),
+        const SizedBox(height: 32),
+        ShadButton.destructive(
+          width: double.infinity,
+          onPressed: () => _handleLogout(context, ref),
+          child: const Text('Keluar Aplikasi'),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            'Versi 1.0.0',
+            style: theme.textTheme.muted.copyWith(fontSize: 12),
           ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              'Versi 1.0.0',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
