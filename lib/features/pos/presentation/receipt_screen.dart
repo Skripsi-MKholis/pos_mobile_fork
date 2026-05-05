@@ -29,6 +29,10 @@ class ReceiptScreen extends ConsumerWidget {
         backgroundColor: theme.colorScheme.muted,
         elevation: 0,
         title: const Text('Struk Digital', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(TablerIcons.chevron_left),
+          onPressed: () => context.go('/pos'), // After receipt, go back to POS
+        ),
         actions: [
           IconButton(
             icon: const Icon(TablerIcons.printer),

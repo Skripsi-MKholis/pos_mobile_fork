@@ -32,6 +32,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
         title: const Text('Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(TablerIcons.chevron_left),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/pos');
+            }
+          },
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

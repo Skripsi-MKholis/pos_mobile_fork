@@ -62,7 +62,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.product == null ? 'Tambah Produk' : 'Edit Produk', style: const TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: Text(widget.product == null ? 'Tambah Produk' : 'Edit Produk', style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: IconButton(
+          icon: const Icon(TablerIcons.chevron_left),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/products');
+            }
+          },
+        ),
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

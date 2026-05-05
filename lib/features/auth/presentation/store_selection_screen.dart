@@ -15,16 +15,27 @@ class StoreSelectionScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
+      appBar: AppBar(
+        title: const Text('Pilih Toko', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: theme.colorScheme.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(TablerIcons.chevron_left),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
+        ),
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Pilih Toko',
-                style: theme.textTheme.h2.copyWith(fontWeight: FontWeight.bold),
-              ),
               const SizedBox(height: 8),
               Text(
                 'Pilih outlet yang ingin Anda kelola hari ini.',

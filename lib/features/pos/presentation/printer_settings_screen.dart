@@ -4,6 +4,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:go_router/go_router.dart';
 
 class PrinterSettingsScreen extends ConsumerStatefulWidget {
   const PrinterSettingsScreen({super.key});
@@ -46,20 +47,40 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
     final connectedDevice = ref.watch(printerNotifierProvider);
     final theme = ShadTheme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (didPop) return;
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/dashboard');
+        }
+      },
+      child: Scaffold(
         backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        title: const Text('Pengaturan Printer', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          ShadButton.ghost(
-            child: const Icon(TablerIcons.refresh),
-            onPressed: _loadDevices,
+        appBar: AppBar(
+          backgroundColor: theme.colorScheme.background,
+          elevation: 0,
+          title: const Text('Pengaturan Printer', style: TextStyle(fontWeight: FontWeight.bold)),
+          leading: IconButton(
+            icon: const Icon(TablerIcons.chevron_left),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/dashboard');
+              }
+            },
           ),
-        ],
-      ),
-      body: Column(
+          actions: [
+            ShadButton.ghost(
+              child: const Icon(TablerIcons.refresh),
+              onPressed: _loadDevices,
+            ),
+          ],
+        ),
+        body: Column(
         children: [
           _buildStatusHeader(connectedDevice, theme),
           Expanded(
@@ -126,8 +147,9 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildStatusHeader(BluetoothDevice? connectedDevice, ShadThemeData theme) {
     final isConnected = connectedDevice != null;

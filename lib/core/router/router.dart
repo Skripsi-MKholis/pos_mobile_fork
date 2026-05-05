@@ -7,6 +7,7 @@ import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
+import 'package:pos_mobile/features/product/presentation/category_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_form_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/pos_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/payment_screen.dart';
@@ -131,6 +132,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/printer-settings',
         builder: (context, state) => const PrinterSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/categories',
+        builder: (context, state) => const CategoryListScreen(),
       ),
       GoRoute(
         path: '/products',

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:isar/isar.dart';
 
 part 'category_provider.g.dart';
@@ -55,6 +56,54 @@ class CategoryNotifier extends _$CategoryNotifier {
         }
       });
 
+      state = AsyncData(await _fetchLocalCategories());
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> addCategory({required String name, String? description}) async {
+    final activeStore = ref.read(activeStoreProvider).value;
+    if (activeStore == null) return;
+
+    try {
+      await _supabase.from('categories').insert({
+        'store_id': activeStore['id'],
+        'name': name,
+        'description': description,
+      });
+      // Realtime listener will trigger sync
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateCategory({
+    required String supabaseId,
+    required String name,
+    String? description,
+  }) async {
+    try {
+      await _supabase.from('categories').update({
+        'name': name,
+        'description': description,
+      }).eq('id', supabaseId);
+      // Realtime listener will trigger sync
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCategory(String supabaseId) async {
+    try {
+      await _supabase.from('categories').delete().eq('id', supabaseId);
+      
+      // Also delete from local Isar
+      final localCategory = await _isar.collection<Category>().filter().supabaseIdEqualTo(supabaseId).findFirst();
+      if (localCategory != null) {
+        await _isar.writeTxn(() => _isar.collection<Category>().delete(localCategory.id));
+      }
+      
       state = AsyncData(await _fetchLocalCategories());
     } catch (e) {
       rethrow;

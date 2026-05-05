@@ -53,7 +53,7 @@ class AppDrawer extends ConsumerWidget {
                   const SizedBox(height: 20),
                   _buildSectionHeader(theme, 'KATALOG & STOK'),
                   _buildDrawerItem(context, TablerIcons.box, 'Produk', '/products'),
-                  _buildDrawerItem(context, TablerIcons.category, 'Kategori', '/categories', isSoon: true),
+                  _buildDrawerItem(context, TablerIcons.category, 'Kategori', '/categories'),
                   
                   const SizedBox(height: 20),
                   _buildSectionHeader(theme, 'LAPORAN'),
@@ -131,7 +131,13 @@ class AppDrawer extends ConsumerWidget {
             : null,
         onTap: isSoon ? null : () {
           Navigator.pop(context);
-          context.go(route);
+          // Use push for sub-pages so hardware back button works correctly
+          // context.go replaces the whole stack, making hardware back exit the app
+          if (['/dashboard', '/pos', '/transactions', '/reports', '/settings'].contains(route)) {
+            context.go(route);
+          } else {
+            context.push(route);
+          }
         },
       ),
     );
