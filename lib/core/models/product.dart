@@ -9,13 +9,16 @@ class Product {
   @Index(unique: true)
   late String supabaseId;
 
+  late String storeId; // Ditambahkan sesuai Supabase
+
   late String name;
   String? description;
   
   late double price;
+  double? modalPrice; // Ditambahkan (Harga Modal)
   
   @Index()
-  int stock = 0;
+  int stockQuantity = 0; // Diganti dari stock -> stock_quantity
 
   String? sku;
   
@@ -25,7 +28,7 @@ class Product {
   String? imageUrl;
 
   @Index()
-  String? categorySupabaseId;
+  String? categoryId; // Diselaraskan dengan nama di Supabase
 
   DateTime? updatedAt;
 }

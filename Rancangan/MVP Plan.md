@@ -11,13 +11,13 @@ Menyiapkan infrastruktur dasar aplikasi Flutter.
 - [x] **Sistem Autentikasi**: Implementasi layar Login & Register dengan Supabase Auth.
 - [x] **State Management**: Setup Riverpod providers untuk User & Auth state.
 
-## Fase 2: Manajemen Produk & Stok (Mobile View) 📦
+## Fase 2: Manajemen Produk & Stok (Mobile View) (Status: Completed) ✅
 Membangun UI untuk pengelolaan inventaris yang ramah sentuhan.
 
-- [ ] **Katalog Produk**: Daftar produk dengan pencarian cepat dan filter.
-- [ ] **Barcode Scanner**: Integrasi kamera untuk scan SKU produk.
-- [ ] **Product Form**: CRUD produk (Nama, Harga, SKU, Gambar dari Galeri/Kamera).
-- [ ] **Real-time Inventory**: Sinkronisasi stok otomatis via Supabase Realtime.
+- [x] **Katalog Produk**: Daftar produk dengan pencarian cepat dan filter.
+- [x] **Barcode Scanner**: Integrasi kamera untuk scan SKU produk.
+- [x] **Product Form**: CRUD produk (Nama, Harga, SKU, Gambar dari Galeri/Kamera).
+- [x] **Real-time Inventory**: Sinkronisasi stok otomatis via Supabase Realtime.
 
 ## Fase 3: Core POS / Antarmuka Kasir 💳
 Fitur kritikal untuk operasional bisnis di mobile/tablet.

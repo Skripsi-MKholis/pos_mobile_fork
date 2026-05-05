@@ -9,6 +9,8 @@ class Category {
   @Index(unique: true)
   late String supabaseId;
 
+  late String storeId; // Ditambahkan sesuai Supabase
+
   late String name;
   String? description;
 

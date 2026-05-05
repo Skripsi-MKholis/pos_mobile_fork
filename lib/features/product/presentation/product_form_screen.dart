@@ -22,6 +22,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _priceController;
+  late TextEditingController _modalPriceController;
   late TextEditingController _stockController;
   late TextEditingController _barcodeController;
   File? _imageFile;
@@ -31,8 +32,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name);
-    _priceController = TextEditingController(text: widget.product?.price.toString());
-    _stockController = TextEditingController(text: widget.product?.stock.toString());
+    _priceController = TextEditingController(text: widget.product?.price.toString() ?? '0');
+    _modalPriceController = TextEditingController(text: widget.product?.modalPrice?.toString() ?? '0');
+    _stockController = TextEditingController(text: widget.product?.stockQuantity.toString() ?? '0');
     _barcodeController = TextEditingController(text: widget.product?.barcode);
   }
 
@@ -77,7 +79,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       final newProduct = Product()
         ..name = _nameController.text
         ..price = double.parse(_priceController.text)
-        ..stock = int.parse(_stockController.text)
+        ..modalPrice = double.parse(_modalPriceController.text)
+        ..stockQuantity = int.parse(_stockController.text)
         ..barcode = _barcodeController.text;
 
       await ref.read(productNotifierProvider.notifier).addProduct(
@@ -119,9 +122,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               const SizedBox(height: 24),
               _buildTextField('Product Name', _nameController, TablerIcons.package),
               const SizedBox(height: 16),
-              _buildTextField('Price', _priceController, TablerIcons.coin, keyboardType: TextInputType.number),
+              _buildTextField('Selling Price', _priceController, TablerIcons.coin, keyboardType: TextInputType.number),
               const SizedBox(height: 16),
-              _buildTextField('Initial Stock', _stockController, TablerIcons.stack_2, keyboardType: TextInputType.number),
+              _buildTextField('Cost Price (Modal)', _modalPriceController, TablerIcons.cash, keyboardType: TextInputType.number),
+              const SizedBox(height: 16),
+              _buildTextField('Stock Quantity', _stockController, TablerIcons.stack_2, keyboardType: TextInputType.number),
               const SizedBox(height: 16),
               _buildBarcodeField(),
               const SizedBox(height: 32),

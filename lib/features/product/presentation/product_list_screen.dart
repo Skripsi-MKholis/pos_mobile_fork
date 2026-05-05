@@ -105,7 +105,7 @@ class ProductListScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Stock: ${product.stock}',
+                  'Stock: ${product.stockQuantity}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
