@@ -43,23 +43,6 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: theme.colorScheme.background,
-        selectedItemColor: theme.colorScheme.primary,
-        unselectedItemColor: theme.colorScheme.mutedForeground,
-        onTap: (index) {
-          if (index == 1) context.push('/products');
-          if (index == 2) context.push('/pos');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(TablerIcons.layout_dashboard), label: 'Beranda'),
-          BottomNavigationBarItem(icon: Icon(TablerIcons.package), label: 'Produk'),
-          BottomNavigationBarItem(icon: Icon(TablerIcons.shopping_cart), label: 'Kasir'),
-          BottomNavigationBarItem(icon: Icon(TablerIcons.settings), label: 'Pengaturan'),
-        ],
-      ),
     );
   }
 
