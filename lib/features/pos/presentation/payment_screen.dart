@@ -176,7 +176,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = Supabase.instance.client;
-      final cartItems = ref.read(cartNotifierProvider);
+      final cartState = ref.read(cartNotifierProvider);
       
       final userData = await supabase.from('users').select('store_id').eq('id', supabase.auth.currentUser!.id).single();
       final storeId = userData['store_id'];
@@ -189,9 +189,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
         'change_amount': _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
         'status': 'Berhasil',
+        'table_id': cartState.selectedTable?.id,
+        'discount_total': cartState.discountAmount,
+        'voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
       }).select().single();
 
-      final itemsToInsert = cartItems.map((item) => {
+      final itemsToInsert = cartState.items.map((item) => {
         'transaction_id': transaction['id'],
         'product_id': item.product.supabaseId,
         'product_name': item.product.name,

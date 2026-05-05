@@ -27,9 +27,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     final confirmed = await showShadDialog<bool>(
       context: context,
       builder: (context) => ShadDialog.alert(
-        title: const Text('Hapus Produk'),
-        description: Text(
-          'Apakah Anda yakin ingin menghapus "${product.name}"? Tindakan ini tidak dapat dibatalkan.',
+        title: Row(
+          children: [
+            Icon(TablerIcons.alert_triangle, color: Colors.red, size: 24),
+            const SizedBox(width: 8),
+            const Text('Hapus Produk'),
+          ],
+        ),
+        description: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Apakah Anda yakin ingin menghapus "${product.name}"? Tindakan ini tidak dapat dibatalkan.',
+          ),
         ),
         actions: [
           ShadButton.outline(
@@ -37,7 +46,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             onPressed: () => Navigator.of(context).pop(false),
           ),
           ShadButton.destructive(
-            child: const Text('Hapus'),
+            child: const Text('Hapus Permanen'),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -90,14 +99,35 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
-          title: const Text(
-            'Katalog Produk',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Katalog Produk',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              Text(
+                'Kelola inventaris barang Anda',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ],
           ),
           backgroundColor: theme.colorScheme.background,
           elevation: 0,
+          scrolledUnderElevation: 0,
           leading: IconButton(
-            icon: const Icon(TablerIcons.chevron_left),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(TablerIcons.chevron_left, size: 20),
+            ),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -106,15 +136,20 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               }
             },
           ),
+          toolbarHeight: 80,
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: ShadButton(
                 size: ShadButtonSize.sm,
                 backgroundColor: const Color(0xFF98D100), // Lime Green
+                foregroundColor: Colors.black,
                 onPressed: () => context.push('/products/add'),
-                leading: const Icon(TablerIcons.plus, size: 16),
-                child: const Text('Tambah'),
+                leading: const Icon(TablerIcons.plus, size: 18),
+                child: const Text(
+                  'Tambah',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ],
@@ -125,113 +160,132 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             children: [
               const ConnectivityStatusBar(),
               
-              // SUBTITLE AREA
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                child: Text(
-                  'Kelola inventaris barang yang Anda jual.',
-                  style: theme.textTheme.muted,
-                ),
-              ),
+              const SizedBox(height: 8),
 
               // SEARCH & FILTER BAR
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isNarrow = constraints.maxWidth < 450;
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: theme.colorScheme.border.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isNarrow = constraints.maxWidth < 450;
 
-                    final searchInput = ShadInput(
-                      placeholder: const Text('Cari nama atau SKU...'),
-                      leading: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(TablerIcons.search, size: 20),
-                      ),
-                      onChanged: (value) =>
-                          setState(() => _searchQuery = value),
-                    );
+                      final searchInput = ShadInput(
+                        placeholder: const Text('Cari nama atau SKU...'),
+                        leading: const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(TablerIcons.search, size: 20),
+                        ),
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
+                        decoration: ShadDecoration(
+                          border: ShadBorder.none,
+                          color: theme.colorScheme.background,
+                        ),
+                      );
 
-                    final filterRow = Row(
-                      children: [
-                        Expanded(
-                          child: categoriesAsync.when(
-                            data: (categories) => ShadSelect<String>(
-                              placeholder: const Text(
-                                'Semua Kategori',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                              options: [
-                                const ShadOption(
-                                  value: 'all',
-                                  child: Text('Semua Kategori'),
+                      final filterRow = Row(
+                        children: [
+                          Expanded(
+                            child: categoriesAsync.when(
+                              data: (categories) => ShadSelect<String>(
+                                placeholder: const Text(
+                                  'Semua Kategori',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
-                                ...categories.map(
-                                  (c) => ShadOption(
-                                    value: c.supabaseId,
-                                    child: Text(c.name),
+                                options: [
+                                  const ShadOption(
+                                    value: 'all',
+                                    child: Text('Semua Kategori'),
                                   ),
+                                  ...categories.map(
+                                    (c) => ShadOption(
+                                      value: c.supabaseId,
+                                      child: Text(c.name),
+                                    ),
+                                  ),
+                                ],
+                                onChanged: (value) => setState(
+                                  () => _selectedCategory = value == 'all'
+                                      ? null
+                                      : value,
                                 ),
-                              ],
-                              onChanged: (value) => setState(
-                                () => _selectedCategory = value == 'all'
-                                    ? null
-                                    : value,
+                                selectedOptionBuilder: (context, value) => Text(
+                                  value == 'all'
+                                      ? 'Semua'
+                                      : categories
+                                            .firstWhere(
+                                              (c) => c.supabaseId == value,
+                                            )
+                                            .name,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
                               ),
-                              selectedOptionBuilder: (context, value) => Text(
-                                value == 'all'
-                                    ? 'Semua'
-                                    : categories
-                                          .firstWhere(
-                                            (c) => c.supabaseId == value,
-                                          )
-                                          .name,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                              loading: () => const ShadSelect<String>(
+                                placeholder: Text('...'),
+                                options: [],
+                                selectedOptionBuilder: null,
                               ),
-                            ),
-                            loading: () => const ShadSelect<String>(
-                              placeholder: Text('...'),
-                              options: [],
-                              selectedOptionBuilder: null,
-                            ),
-                            error: (err, _) => const ShadSelect<String>(
-                              placeholder: Text('Error'),
-                              options: [],
-                              selectedOptionBuilder: null,
+                              error: (err, _) => const ShadSelect<String>(
+                                placeholder: Text('Error'),
+                                options: [],
+                                selectedOptionBuilder: null,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        ShadButton.outline(
-                          onPressed: () => context.push('/categories'),
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: const Icon(TablerIcons.settings, size: 18),
-                        ),
-                      ],
-                    );
-
-                    if (isNarrow) {
-                      return Column(
-                        children: [
-                          searchInput,
-                          const SizedBox(height: 8),
-                          filterRow,
+                          if (_searchQuery.isNotEmpty || _selectedCategory != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: ShadButton.ghost(
+                                size: ShadButtonSize.sm,
+                                onPressed: () {
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _selectedCategory = null;
+                                  });
+                                },
+                                child: const Icon(TablerIcons.x, size: 18),
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          ShadButton.outline(
+                            onPressed: () => context.push('/categories'),
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            child: const Icon(TablerIcons.category, size: 20),
+                          ),
                         ],
                       );
-                    }
 
-                    return Row(
-                      children: [
-                        Expanded(flex: 2, child: searchInput),
-                        const SizedBox(width: 12),
-                        Expanded(child: filterRow),
-                      ],
-                    );
-                  },
+                      if (isNarrow) {
+                        return Column(
+                          children: [
+                            searchInput,
+                            const SizedBox(height: 12),
+                            filterRow,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          Expanded(flex: 2, child: searchInput),
+                          const SizedBox(width: 12),
+                          Expanded(child: filterRow),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ),
 
@@ -298,17 +352,44 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              TablerIcons.package,
-                              size: 64,
-                              color: theme.colorScheme.muted,
+                            Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                TablerIcons.package_off,
+                                size: 48,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 20),
                             Text(
                               'Produk tidak ditemukan',
                               style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.foreground,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Coba gunakan kata kunci lain atau\ntambah produk baru ke katalog Anda.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: theme.colorScheme.mutedForeground,
                               ),
+                            ),
+                            const SizedBox(height: 24),
+                            ShadButton.outline(
+                              onPressed: () {
+                                setState(() {
+                                  _searchQuery = '';
+                                  _selectedCategory = null;
+                                });
+                              },
+                              child: const Text('Reset Filter'),
                             ),
                           ],
                         ),
@@ -324,33 +405,40 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             // PRODUK
                             Row(
                               children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: theme.colorScheme.muted,
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: product.imageUrl != null
-                                        ? DecorationImage(
-                                            image: NetworkImage(product.imageUrl!),
-                                            fit: BoxFit.cover,
+                                  Container(
+                                    width: 52,
+                                    height: 52,
+                                    decoration: BoxDecoration(
+                                      color: theme.colorScheme.muted,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.05),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                      image: product.imageUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(product.imageUrl!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : (product.localImagePath != null
+                                              ? DecorationImage(
+                                                  image: FileImage(File(product.localImagePath!)),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null),
+                                    ),
+                                    child: (product.imageUrl == null && product.localImagePath == null)
+                                        ? Icon(
+                                            TablerIcons.package,
+                                            color:
+                                                theme.colorScheme.mutedForeground,
+                                            size: 24,
                                           )
-                                        : (product.localImagePath != null
-                                            ? DecorationImage(
-                                                image: FileImage(File(product.localImagePath!)),
-                                                fit: BoxFit.cover,
-                                              )
-                                            : null),
+                                        : null,
                                   ),
-                                  child: (product.imageUrl == null && product.localImagePath == null)
-                                      ? Icon(
-                                          TablerIcons.package,
-                                          color:
-                                              theme.colorScheme.mutedForeground,
-                                          size: 20,
-                                        )
-                                      : null,
-                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -390,30 +478,34 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               ],
                             ),
                             // KATEGORI
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.secondary.withValues(
-                                    alpha: 0.5,
+                             Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
                                   ),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  categoryName,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: theme.colorScheme.primary.withValues(alpha: 0.2),
+                                    ),
                                   ),
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  child: Text(
+                                    categoryName,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
-                            ),
                             // HARGA
                             Text(
                               format.format(product.price),
@@ -426,19 +518,30 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             // STOK
-                            Text(
-                              '${product.stockQuantity}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                                color: product.stockQuantity < 10
-                                    ? Colors.red
-                                    : null,
+                             Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: product.stockQuantity < 10
+                                      ? BoxDecoration(
+                                          color: Colors.red.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        )
+                                      : null,
+                                  child: Text(
+                                    '${product.stockQuantity}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: product.stockQuantity < 10
+                                          ? Colors.red
+                                          : theme.colorScheme.foreground,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
                             // AKSI
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
