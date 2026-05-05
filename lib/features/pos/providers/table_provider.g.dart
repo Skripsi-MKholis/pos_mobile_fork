@@ -6,7 +6,7 @@ part of 'table_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tableNotifierHash() => r'b3b9063cd669302dc5cd124ba81938f55990b47e';
+String _$tableNotifierHash() => r'3344d685a4121f03cbe868eb53d05caabc1b2c66';
 
 /// See also [TableNotifier].
 @ProviderFor(TableNotifier)

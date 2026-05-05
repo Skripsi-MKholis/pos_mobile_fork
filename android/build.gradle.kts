@@ -5,6 +5,17 @@ allprojects {
     }
 }
 
+subprojects {
+    plugins.withType<com.android.build.gradle.BasePlugin>().configureEach {
+        extensions.configure<com.android.build.gradle.BaseExtension> {
+            compileSdkVersion(36)
+        }
+    }
+    tasks.withType<com.android.build.gradle.tasks.VerifyLibraryResourcesTask>().configureEach {
+        enabled = false
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
@@ -20,7 +31,7 @@ subprojects {
 }
 
 subprojects {
-    val fixNamespace = {
+    val fixProject = {
         if (project.hasProperty("android")) {
             val android = project.extensions.findByName("android") as? com.android.build.gradle.BaseExtension
             android?.let {
@@ -36,9 +47,9 @@ subprojects {
     }
 
     if (project.state.executed) {
-        fixNamespace()
+        fixProject()
     } else {
-        project.afterEvaluate { fixNamespace() }
+        project.afterEvaluate { fixProject() }
     }
 }
 
