@@ -2,14 +2,14 @@
 
 Dokumen ini merinci rencana pengembangan bertahap untuk mencapai versi **Minimum Viable Product (MVP)** dari aplikasi Parzello POS versi mobile/tablet. Kami memanfaatkan infrastruktur backend Supabase yang sudah ada namun membangun ulang antarmuka menggunakan Flutter.
 
-## Fase 1: Fondasi & Autentikasi (Status: In Progress) 🔄
+## Fase 1: Fondasi & Autentikasi (Status: Completed) ✅
 Menyiapkan infrastruktur dasar aplikasi Flutter.
 
 - [x] **Inisialisasi Project**: Setup Flutter project dan struktur folder.
-- [ ] **Dependency Setup**: Konfigurasi `pubspec.yaml` (Riverpod, Supabase, GoRouter).
-- [ ] **Supabase Integration**: Inisialisasi Supabase client di Flutter.
-- [ ] **Sistem Autentikasi**: Implementasi layar Login & Register dengan Supabase Auth.
-- [ ] **State Management**: Setup Riverpod providers untuk User & Auth state.
+- [x] **Dependency Setup**: Konfigurasi `pubspec.yaml` (Riverpod, Supabase, GoRouter).
+- [x] **Supabase Integration**: Inisialisasi Supabase client di Flutter.
+- [x] **Sistem Autentikasi**: Implementasi layar Login & Register dengan Supabase Auth.
+- [x] **State Management**: Setup Riverpod providers untuk User & Auth state.
 
 ## Fase 2: Manajemen Produk & Stok (Mobile View) 📦
 Membangun UI untuk pengelolaan inventaris yang ramah sentuhan.
