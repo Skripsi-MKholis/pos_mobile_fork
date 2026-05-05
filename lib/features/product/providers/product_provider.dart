@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:isar/isar.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 part 'product_provider.g.dart';
 
@@ -107,18 +108,23 @@ class ProductNotifier extends _$ProductNotifier {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final path = 'product_images/$fileName';
       
-      await _supabase.storage.from('products').upload(path, imageFile);
+      await _supabase.storage.from('product-images').upload(path, imageFile);
       
-      final imageUrl = _supabase.storage.from('products').getPublicUrl(path);
+      final imageUrl = _supabase.storage.from('product-images').getPublicUrl(path);
       return imageUrl;
     } catch (e) {
+      print('DEBUG: Error upload image: $e');
       return null;
     }
   }
 
   Future<void> saveProduct(Product product, {File? imageFile}) async {
-    final userData = await _supabase.from('users').select('store_id').eq('id', _supabase.auth.currentUser!.id).single();
-    final storeId = userData['store_id'];
+    final activeStore = ref.read(activeStoreProvider).value;
+    final storeId = activeStore?['id'];
+
+    if (storeId == null) {
+      throw Exception('Tidak ada toko aktif yang terpilih.');
+    }
 
     String? imageUrl = product.imageUrl;
     if (imageFile != null) {
@@ -154,5 +160,23 @@ class ProductNotifier extends _$ProductNotifier {
     });
 
     ref.invalidateSelf();
+  }
+
+  Future<void> deleteProduct(String supabaseId) async {
+    try {
+      // 1. Delete from Supabase
+      await _supabase.from('products').delete().eq('id', supabaseId);
+
+      // 2. Delete from Isar
+      await _isar.writeTxn(() async {
+        await _isar.products.filter().supabaseIdEqualTo(supabaseId).deleteAll();
+      });
+
+      // 3. Update state
+      ref.invalidateSelf();
+    } catch (e) {
+      print('DEBUG: Error saat menghapus produk: $e');
+      rethrow;
+    }
   }
 }

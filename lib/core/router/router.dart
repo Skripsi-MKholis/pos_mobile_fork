@@ -19,6 +19,7 @@ import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
+import 'package:pos_mobile/core/models/product.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
@@ -29,14 +30,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Gunakan ref.read di sini agar redirect bersifat reaktif terhadap data terbaru
       // tanpa memicu rebuild instance GoRouter
       final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
-      final isAuthPage = state.matchedLocation == '/login' || state.matchedLocation == '/register';
-      
+      final isAuthPage =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/register';
+
       if (!isLoggedIn) {
         return isAuthPage ? null : '/login';
       }
 
       final activeStoreAsync = ref.read(activeStoreProvider);
-      
+
       // Jika masih loading data toko dari storage, jangan redirect dulu
       if (activeStoreAsync.isLoading) return null;
 
@@ -54,10 +57,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -66,7 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/select-store',
         builder: (context, state) => const StoreSelectionScreen(),
       ),
-      
+
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return ScaffoldWithNavBar(navigationShell: navigationShell);
@@ -144,6 +144,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'add',
             builder: (context, state) => const ProductFormScreen(),
+          ),
+          GoRoute(
+            path: 'edit',
+            builder: (context, state) {
+              final product = state.extra as Product?;
+              return ProductFormScreen(product: product);
+            },
           ),
         ],
       ),

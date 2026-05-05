@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:intl/intl.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -16,6 +18,49 @@ class ProductListScreen extends ConsumerStatefulWidget {
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   String _searchQuery = '';
   String? _selectedCategory;
+
+  Future<void> _showDeleteDialog(Product product) async {
+    final confirmed = await showShadDialog<bool>(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        title: const Text('Hapus Produk'),
+        description: Text(
+          'Apakah Anda yakin ingin menghapus "${product.name}"? Tindakan ini tidak dapat dibatalkan.',
+        ),
+        actions: [
+          ShadButton.outline(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ShadButton.destructive(
+            child: const Text('Hapus'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ref
+            .read(productNotifierProvider.notifier)
+            .deleteProduct(product.supabaseId);
+        if (mounted) {
+          ShadToaster.of(context).show(
+            const ShadToast(description: Text('Produk berhasil dihapus')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ShadToaster.of(context).show(
+            ShadToast.destructive(
+              description: Text('Gagal menghapus produk: $e'),
+            ),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,387 +134,490 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   horizontal: 24,
                   vertical: 8,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: ShadInput(
-                        placeholder: const Text('Cari nama atau SKU...'),
-                        leading: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(TablerIcons.search, size: 20),
-                        ),
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 450;
+
+                    final searchInput = ShadInput(
+                      placeholder: const Text('Cari nama atau SKU...'),
+                      leading: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(TablerIcons.search, size: 20),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: categoriesAsync.when(
-                              data: (categories) => ShadSelect<String>(
-                                placeholder: const Text('Semua Kategori'),
-                                options: [
-                                  const ShadOption(
-                                    value: 'all',
-                                    child: Text('Semua Kategori'),
-                                  ),
-                                  ...categories.map(
-                                    (c) => ShadOption(
-                                      value: c.supabaseId,
-                                      child: Text(c.name),
-                                    ),
-                                  ),
-                                ],
-                                onChanged: (value) => setState(
-                                  () => _selectedCategory = value == 'all'
-                                      ? null
-                                      : value,
-                                ),
-                                selectedOptionBuilder: (context, value) => Text(
-                                  value == 'all'
-                                      ? 'Semua Kategori'
-                                      : categories
-                                            .firstWhere(
-                                              (c) => c.supabaseId == value,
-                                            )
-                                            .name,
-                                ),
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
+                    );
+
+                    final filterRow = Row(
+                      children: [
+                        Expanded(
+                          child: categoriesAsync.when(
+                            data: (categories) => ShadSelect<String>(
+                              placeholder: const Text(
+                                'Semua Kategori',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
-                              loading: () => const ShadSelect<String>(
-                                placeholder: Text('Loading...'),
-                                options: [],
-                                selectedOptionBuilder: null,
+                              options: [
+                                const ShadOption(
+                                  value: 'all',
+                                  child: Text('Semua Kategori'),
+                                ),
+                                ...categories.map(
+                                  (c) => ShadOption(
+                                    value: c.supabaseId,
+                                    child: Text(c.name),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (value) => setState(
+                                () => _selectedCategory = value == 'all'
+                                    ? null
+                                    : value,
                               ),
-                              error: (err, _) => const ShadSelect<String>(
-                                placeholder: Text('Error'),
-                                options: [],
-                                selectedOptionBuilder: null,
+                              selectedOptionBuilder: (context, value) => Text(
+                                value == 'all'
+                                    ? 'Semua'
+                                    : categories
+                                          .firstWhere(
+                                            (c) => c.supabaseId == value,
+                                          )
+                                          .name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
                             ),
+                            loading: () => const ShadSelect<String>(
+                              placeholder: Text('...'),
+                              options: [],
+                              selectedOptionBuilder: null,
+                            ),
+                            error: (err, _) => const ShadSelect<String>(
+                              placeholder: Text('Error'),
+                              options: [],
+                              selectedOptionBuilder: null,
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          ShadButton.outline(
-                            onPressed: () => context.push('/categories'),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: const Icon(TablerIcons.settings, size: 18),
-                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ShadButton.outline(
+                          onPressed: () => context.push('/categories'),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: const Icon(TablerIcons.settings, size: 18),
+                        ),
+                      ],
+                    );
+
+                    if (isNarrow) {
+                      return Column(
+                        children: [
+                          searchInput,
+                          const SizedBox(height: 8),
+                          filterRow,
                         ],
-                      ),
-                    ),
-                  ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(flex: 2, child: searchInput),
+                        const SizedBox(width: 12),
+                        Expanded(child: filterRow),
+                      ],
+                    );
+                  },
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // TABLE HEADER
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        'Produk',
-                        style: theme.textTheme.muted.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Kategori',
-                        style: theme.textTheme.muted.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Harga',
-                        style: theme.textTheme.muted.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Stok',
-                        style: theme.textTheme.muted.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 80,
-                      child: Center(
-                        child: Text(
-                          'Aksi',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Divider(indent: 24, endIndent: 24),
-
-              // PRODUCT LIST
+              // TABLE AREA WITH HORIZONTAL SCROLL
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(productNotifierProvider.notifier).syncProducts(),
-                  child: productsAsync.when(
-                    data: (products) {
-                      final filteredProducts = products.where((p) {
-                        final matchesSearch =
-                            p.name.toLowerCase().contains(
-                              _searchQuery.toLowerCase(),
-                            ) ||
-                            (p.sku?.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ??
-                                false);
-                        final matchesCategory =
-                            _selectedCategory == null ||
-                            p.categoryId == _selectedCategory;
-                        return matchesSearch && matchesCategory;
-                      }).toList();
-
-                      if (filteredProducts.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width:
+                        700, // Increased width to accommodate padding and all columns
+                    child: Column(
+                      children: [
+                        // TABLE HEADER
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 8,
+                          ),
+                          child: Row(
                             children: [
-                              Icon(
-                                TablerIcons.package_off,
-                                size: 64,
-                                color: theme.colorScheme.muted,
+                              const SizedBox(
+                                width: 220,
+                                child: Text(
+                                  'Produk',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Tidak ada produk',
-                                style: TextStyle(
-                                  color: theme.colorScheme.mutedForeground,
+                              const SizedBox(
+                                width: 120,
+                                child: Text(
+                                  'Kategori',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 120,
+                                child: Text(
+                                  'Harga',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 70,
+                                child: Text(
+                                  'Stok',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              const Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'Aksi',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        );
-                      }
+                        ),
+                        const Divider(indent: 24, endIndent: 24),
 
-                      return categoriesAsync.when(
-                        data: (categories) {
-                          final categoryMap = {
-                            for (var c in categories) c.supabaseId: c.name,
-                          };
+                        // PRODUCT LIST
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () => ref
+                                .read(productNotifierProvider.notifier)
+                                .syncProducts(),
+                            child: productsAsync.when(
+                              data: (products) {
+                                final filteredProducts = products.where((p) {
+                                  final matchesSearch =
+                                      p.name.toLowerCase().contains(
+                                        _searchQuery.toLowerCase(),
+                                      ) ||
+                                      (p.sku?.toLowerCase().contains(
+                                            _searchQuery.toLowerCase(),
+                                          ) ??
+                                          false);
+                                  final matchesCategory =
+                                      _selectedCategory == null ||
+                                      p.categoryId == _selectedCategory;
+                                  return matchesSearch && matchesCategory;
+                                }).toList();
 
-                          return ListView.builder(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 8,
-                            ),
-                            itemCount: filteredProducts.length,
-                            itemBuilder: (context, index) {
-                              final product = filteredProducts[index];
-                              final categoryName =
-                                  categoryMap[product.categoryId] ??
-                                  'Tanpa Kategori';
-
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: theme.colorScheme.border
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    // PRODUK COLUMN
-                                    Expanded(
-                                      flex: 3,
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            width: 48,
-                                            height: 48,
-                                            decoration: BoxDecoration(
-                                              color: theme.colorScheme.muted,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              image: product.imageUrl != null
-                                                  ? DecorationImage(
-                                                      image: NetworkImage(
-                                                        product.imageUrl!,
-                                                      ),
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                  : null,
-                                            ),
-                                            child: product.imageUrl == null
-                                                ? Icon(
-                                                    TablerIcons.package,
-                                                    color: theme
-                                                        .colorScheme
-                                                        .mutedForeground,
-                                                    size: 20,
-                                                  )
-                                                : null,
+                                if (filteredProducts.isEmpty) {
+                                  return Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.package_off,
+                                          size: 64,
+                                          color: theme.colorScheme.muted,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Tidak ada produk',
+                                          style: TextStyle(
+                                            color: theme
+                                                .colorScheme
+                                                .mutedForeground,
                                           ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  product.name,
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 14,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                return categoriesAsync.when(
+                                  data: (categories) {
+                                    final categoryMap = {
+                                      for (var c in categories)
+                                        c.supabaseId: c.name,
+                                    };
+
+                                    return ListView.builder(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 8,
+                                      ),
+                                      itemCount: filteredProducts.length,
+                                      itemBuilder: (context, index) {
+                                        final product = filteredProducts[index];
+                                        final categoryName =
+                                            categoryMap[product.categoryId] ??
+                                            'Tanpa Kategori';
+
+                                        return Container(
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              bottom: BorderSide(
+                                                color: theme.colorScheme.border
+                                                    .withValues(alpha: 0.5),
+                                              ),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              // PRODUK COLUMN
+                                              SizedBox(
+                                                width: 220,
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 48,
+                                                      height: 48,
+                                                      decoration: BoxDecoration(
+                                                        color: theme
+                                                            .colorScheme
+                                                            .muted,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        image:
+                                                            product.imageUrl !=
+                                                                null
+                                                            ? DecorationImage(
+                                                                image: NetworkImage(
+                                                                  product
+                                                                      .imageUrl!,
+                                                                ),
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                              )
+                                                            : null,
+                                                      ),
+                                                      child:
+                                                          product.imageUrl ==
+                                                              null
+                                                          ? Icon(
+                                                              TablerIcons
+                                                                  .package,
+                                                              color: theme
+                                                                  .colorScheme
+                                                                  .mutedForeground,
+                                                              size: 20,
+                                                            )
+                                                          : null,
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                            product.name,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  fontSize: 14,
+                                                                ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                          Text(
+                                                            product.sku ??
+                                                                'Tanpa SKU',
+                                                            style: theme
+                                                                .textTheme
+                                                                .muted
+                                                                .copyWith(
+                                                                  fontSize: 11,
+                                                                ),
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              // KATEGORI COLUMN
+                                              SizedBox(
+                                                width: 120,
+                                                child: Center(
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 4,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: theme
+                                                          .colorScheme
+                                                          .secondary
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      categoryName,
+                                                      style: const TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ),
-                                                Text(
-                                                  product.sku ?? 'Tanpa SKU',
-                                                  style: theme.textTheme.muted
-                                                      .copyWith(fontSize: 11),
+                                              ),
+                                              // HARGA COLUMN
+                                              SizedBox(
+                                                width: 120,
+                                                child: Text(
+                                                  format.format(product.price),
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                              // STOK COLUMN
+                                              SizedBox(
+                                                width: 70,
+                                                child: Text(
+                                                  '${product.stockQuantity}',
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 12,
+                                                    color:
+                                                        product.stockQuantity <
+                                                            10
+                                                        ? Colors.red
+                                                        : null,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              // AKSI COLUMN
+                                              Expanded(
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        TablerIcons.edit,
+                                                        size: 18,
+                                                      ),
+                                                      onPressed: () =>
+                                                          context.push(
+                                                            '/products/edit',
+                                                            extra: product,
+                                                          ),
+                                                      padding: EdgeInsets.zero,
+                                                      constraints:
+                                                          const BoxConstraints(),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        TablerIcons.trash,
+                                                        size: 18,
+                                                        color: Colors.red,
+                                                      ),
+                                                      onPressed: () =>
+                                                          _showDeleteDialog(
+                                                              product),
+                                                      padding: EdgeInsets.zero,
+                                                      constraints:
+                                                          const BoxConstraints(),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  loading: () => const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                  error: (err, _) => Center(
+                                    child: Text(
+                                      'Error loading categories: $err',
                                     ),
-                                    // KATEGORI COLUMN
-                                    Expanded(
-                                      flex: 2,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: theme.colorScheme.secondary
-                                              .withValues(alpha: 0.5),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          categoryName,
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                    // HARGA COLUMN
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        format.format(product.price),
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    // STOK COLUMN
-                                    Expanded(
-                                      flex: 1,
-                                      child: Text(
-                                        '${product.stockQuantity}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: product.stockQuantity < 10
-                                              ? Colors.red
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                    // AKSI COLUMN
-                                    SizedBox(
-                                      width: 80,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                              TablerIcons.edit,
-                                              size: 18,
-                                            ),
-                                            onPressed: () => context.push(
-                                              '/products/edit',
-                                              extra: product,
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            icon: const Icon(
-                                              TablerIcons.trash,
-                                              size: 18,
-                                              color: Colors.red,
-                                            ),
-                                            onPressed:
-                                                () {}, // TODO: Implement delete
-                                            padding: EdgeInsets.zero,
-                                            constraints: const BoxConstraints(),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (err, _) => Center(
-                          child: Text('Error loading categories: $err'),
+                                  ),
+                                );
+                              },
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              error: (err, stack) =>
+                                  Center(child: Text('Error: $err')),
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (err, stack) => Center(child: Text('Error: $err')),
+                      ],
+                    ),
                   ),
                 ),
               ),
