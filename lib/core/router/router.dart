@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/product/presentation/product_form_screen.dar
 import 'package:pos_mobile/features/pos/presentation/pos_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/payment_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
+import 'package:pos_mobile/features/pos/presentation/printer_settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -42,6 +43,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             items: extra['items'],
           );
         },
+      ),
+      GoRoute(
+        path: '/printer-settings',
+        builder: (context, state) => const PrinterSettingsScreen(),
       ),
       GoRoute(
         path: '/products',

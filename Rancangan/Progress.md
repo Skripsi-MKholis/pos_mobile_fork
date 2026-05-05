@@ -4,25 +4,26 @@ Dokumen ini mencatat riwayat kemajuan pengembangan aplikasi Parzello POS.
 
 ---
 
-### 📅 5 Mei 2026 - Fase 3: Core POS (Status: 90% Selesai 🚧)
+### 📅 5 Mei 2026 - Fase 4: Integrasi Hardware (Status: 100% Selesai ✅)
 
-#### ✅ Pencapaian:
-1.  **Cart System**: Implementasi `CartNotifier` (Riverpod) untuk manajemen keranjang belanja.
-2.  **Checkout UI**: Layar Kasir interaktif dengan pencarian produk dan grid katalog.
-3.  **Cart Detail**: Modal bottom sheet untuk peninjauan item, edit kuantitas, dan hapus item.
-4.  **Calculation Engine**: Perhitungan otomatis subtotal dan total harga secara lokal.
-5.  **Payment Flow**: Layar pembayaran dengan dukungan metode Tunai & QRIS.
-6.  **Supabase Integration**: Transaksi otomatis tersimpan ke tabel `transactions` dan `transaction_items`.
-7.  **Auto Store ID**: Sistem otomatis mendeteksi `store_id` dan `cashier_id` dari user aktif.
+#### ✅ Pencapaian Hari Ini:
+1.  **Digital Receipt**: Implementasi `ReceiptScreen` untuk ringkasan transaksi pasca-bayar.
+2.  **Bluetooth Permissions**: Konfigurasi izin Bluetooth Scan & Connect untuk Android 12+.
+3.  **Printer Service**: Logika `PrinterService` untuk komunikasi dengan printer thermal 58mm menggunakan protokol ESC/POS.
+4.  **Printer Settings**: Fitur scan dan pairing printer langsung dari aplikasi.
+5.  **Physical Printing**: Tombol cetak fisik di layar struk digital yang terintegrasi dengan status koneksi printer.
 
-#### 🚧 Sedang Dikerjakan:
-- [ ] **Receipt Management**: Menyiapkan tampilan struk digital setelah transaksi berhasil.
-- [ ] Integrasi **Hardware Printer** (Fase 4).
+---
+
+### 📅 5 Mei 2026 - Fase 3: Core POS (Status: 100% Selesai ✅)
+*Semua fitur Checkout, Pembayaran, dan Manajemen Transaksi sudah stabil dan terhubung ke Supabase.*
 
 ### 🛠️ Status Teknis:
-- **Navigation**: Dashboard -> POS -> Cart -> Payment -> Success (Berjalan Lancar).
-- **Database Status**: Transaksi berhasil di-sinkron ke Cloud Supabase.
+- **Dependencies**: Berhasil menambahkan `blue_thermal_printer` dan `esc_pos_utils_plus`.
+- **Database**: Skema transaksi sinkron antara Cloud (Supabase) dan Lokal (Isar).
 
 ### ⏭️ Langkah Selanjutnya:
-1.  **Digital Receipt**: Menambahkan tombol "Cetak Struk" atau "Bagikan Struk" di dialog sukses.
-2.  **Thermal Printer Setup**: Mulai riset library Bluetooth Printer untuk cetak fisik.
+1.  **Fase 5: Adaptive UI & Polish**: 
+    - Menambahkan Micro-animations.
+    - Implementasi Loading Shimmer.
+    - Penyesuaian layout untuk layar Tablet.
