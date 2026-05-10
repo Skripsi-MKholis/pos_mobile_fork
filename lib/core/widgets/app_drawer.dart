@@ -9,118 +9,116 @@ import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class AppDrawer extends ConsumerWidget {
+class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = ShadTheme.of(context);
-    final user = ref.watch(currentUserProvider);
-    final location = GoRouterState.of(context).matchedLocation;
-
+  Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.white,
+      elevation: 0,
       width: MediaQuery.of(context).size.width * 0.8,
-      child: SafeArea(
+      child: const SafeArea(
         child: Column(
           children: [
-            // HEADER - STORE SWITCHER (Optimized via Consumer)
-            const _StoreHeaderSection(),
+            // HEADER - STORE SWITCHER (Self-contained Consumer)
+            _StoreHeaderSection(),
 
-            const Divider(height: 1),
+            Divider(height: 1),
 
-            // MENU ITEMS
+            // MENU ITEMS (Surgical Rebuilds)
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                children: [
-                  _SectionHeader(title: 'ANALYTICS'),
-                  _DrawerItem(
-                    icon: TablerIcons.layout_dashboard,
-                    title: 'Dashboard',
-                    route: '/dashboard',
-                    currentLocation: location,
-                  ),
-                  _DrawerItem(
-                    icon: TablerIcons.chart_dots,
-                    title: 'Analitik',
-                    route: '/reports',
-                    currentLocation: location,
-                  ),
-
-                  const _SectionSpacing(),
-                  _SectionHeader(title: 'OPERASIONAL KASIR'),
-                  _DrawerItem(
-                    icon: TablerIcons.shopping_cart,
-                    title: 'Kasir (POS)',
-                    route: '/pos',
-                    currentLocation: location,
-                  ),
-                  _DrawerItem(
-                    icon: TablerIcons.history,
-                    title: 'Riwayat Transaksi',
-                    route: '/transactions',
-                    currentLocation: location,
-                  ),
-                  _DrawerItem(
-                    icon: TablerIcons.armchair,
-                    title: 'Manajemen Meja',
-                    route: '/tables',
-                    currentLocation: location,
-                    isSoon: true,
-                  ),
-
-                  const _SectionSpacing(),
-                  _SectionHeader(title: 'KATALOG & STOK'),
-                  _DrawerItem(
-                    icon: TablerIcons.box,
-                    title: 'Daftar Produk',
-                    route: '/products',
-                    currentLocation: location,
-                  ),
-                  _DrawerItem(
-                    icon: TablerIcons.category,
-                    title: 'Kategori',
-                    route: '/categories',
-                    currentLocation: location,
-                  ),
-
-                  const _SectionSpacing(),
-                  _SectionHeader(title: 'PENGATURAN'),
-                  _DrawerItem(
-                    icon: TablerIcons.printer,
-                    title: 'Cetak & Struk',
-                    route: '/printer-settings',
-                    currentLocation: location,
-                  ),
-                  _DrawerItem(
-                    icon: TablerIcons.building_store,
-                    title: 'Informasi Toko',
-                    route: '/settings',
-                    currentLocation: location,
-                  ),
-
-                  if (user?.appMetadata['role'] == 'admin') ...[
-                    const _SectionSpacing(),
-                    _SectionHeader(title: 'SUPER ADMIN'),
-                    _DrawerItem(
-                      icon: TablerIcons.shield_check,
-                      title: 'Admin Panel',
-                      route: '/admin',
-                      currentLocation: location,
-                      isSoon: true,
-                    ),
-                  ],
-                ],
-              ),
+              child: _DrawerMenuContent(),
             ),
 
-            const Divider(height: 1),
-            _UserFooter(user: user),
+            Divider(height: 1),
+            _UserFooter(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DrawerMenuContent extends ConsumerWidget {
+  const _DrawerMenuContent();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: [
+        const _SectionHeader(title: 'ANALYTICS'),
+        const _DrawerItem(
+          icon: TablerIcons.layout_dashboard,
+          title: 'Dashboard',
+          route: '/dashboard',
+        ),
+        const _DrawerItem(
+          icon: TablerIcons.chart_dots,
+          title: 'Analitik',
+          route: '/reports',
+        ),
+
+        const _SectionSpacing(),
+        const _SectionHeader(title: 'OPERASIONAL KASIR'),
+        const _DrawerItem(
+          icon: TablerIcons.shopping_cart,
+          title: 'Kasir (POS)',
+          route: '/pos',
+        ),
+        const _DrawerItem(
+          icon: TablerIcons.history,
+          title: 'Riwayat Transaksi',
+          route: '/transactions',
+        ),
+        const _DrawerItem(
+          icon: TablerIcons.armchair,
+          title: 'Manajemen Meja',
+          route: '/tables',
+          isSoon: true,
+        ),
+
+        const _SectionSpacing(),
+        const _SectionHeader(title: 'KATALOG & STOK'),
+        const _DrawerItem(
+          icon: TablerIcons.box,
+          title: 'Daftar Produk',
+          route: '/products',
+        ),
+        const _DrawerItem(
+          icon: TablerIcons.category,
+          title: 'Kategori',
+          route: '/categories',
+        ),
+
+        const _SectionSpacing(),
+        const _SectionHeader(title: 'PENGATURAN'),
+        const _DrawerItem(
+          icon: TablerIcons.printer,
+          title: 'Cetak & Struk',
+          route: '/printer-settings',
+        ),
+        const _DrawerItem(
+          icon: TablerIcons.building_store,
+          title: 'Informasi Toko',
+          route: '/settings',
+        ),
+
+        if (user?.appMetadata['role'] == 'admin') ...[
+          const _SectionSpacing(),
+          const _SectionHeader(title: 'SUPER ADMIN'),
+          const _DrawerItem(
+            icon: TablerIcons.shield_check,
+            title: 'Admin Panel',
+            route: '/admin',
+            isSoon: true,
+          ),
+        ],
+      ],
     );
   }
 }
@@ -171,7 +169,32 @@ class _StoreHeaderSection extends ConsumerWidget {
           ),
         ),
       ),
-      loading: () => const LinearProgressIndicator(),
+      loading: () => Container(
+        height: 84,
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(width: 100, height: 12, color: Colors.black.withOpacity(0.05)),
+                const SizedBox(height: 6),
+                Container(width: 60, height: 8, color: Colors.black.withOpacity(0.05)),
+              ],
+            )
+          ],
+        ),
+      ),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
@@ -257,24 +280,23 @@ class _SectionSpacing extends StatelessWidget {
   Widget build(BuildContext context) => const SizedBox(height: 16);
 }
 
-class _DrawerItem extends StatelessWidget {
+class _DrawerItem extends ConsumerWidget {
   final IconData icon;
   final String title;
   final String route;
-  final String currentLocation;
   final bool isSoon;
 
   const _DrawerItem({
     required this.icon,
     required this.title,
     required this.route,
-    required this.currentLocation,
     this.isSoon = false,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final bool isActive = route.isNotEmpty && currentLocation.startsWith(route);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final location = GoRouterState.of(context).matchedLocation;
+    final bool isActive = route.isNotEmpty && location.startsWith(route);
     final theme = ShadTheme.of(context);
 
     return Padding(
@@ -340,11 +362,12 @@ class _DrawerItem extends StatelessWidget {
 }
 
 class _UserFooter extends ConsumerWidget {
-  final dynamic user;
-  const _UserFooter({this.user});
+  const _UserFooter();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
