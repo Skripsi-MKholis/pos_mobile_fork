@@ -9,6 +9,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -27,52 +28,29 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Ringkasan Toko',
-              style: theme.textTheme.h3.copyWith(
-                color: Colors.black,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1,
-              ),
-            ),
-            Text(
-              DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
-              style: theme.textTheme.muted.copyWith(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.read(analyticsProvider.notifier).fetchAnalytics();
-          ref.read(productNotifierProvider.notifier).syncProducts();
-        },
-        color: Warna.primary,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStatsGrid(
-                analyticsAsync,
-                productsAsync,
-                currencyFormat,
-                theme,
-              ),
-              const SizedBox(height: 32),
-              _buildSalesPerformanceCard(analyticsAsync, theme),
-              const SizedBox(height: 32),
+
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.read(analyticsProvider.notifier).fetchAnalytics();
+            ref.read(productNotifierProvider.notifier).syncProducts();
+          },
+          color: Warna.primary,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildStatsGrid(
+                  analyticsAsync,
+                  productsAsync,
+                  currencyFormat,
+                  theme,
+                ),
+                const SizedBox(height: 24),
+                _buildSalesPerformanceCard(analyticsAsync, theme),
+                const SizedBox(height: 24),
               Text(
                 'AKSES CEPAT',
                 style: theme.textTheme.muted.copyWith(
@@ -81,10 +59,11 @@ class DashboardScreen extends ConsumerWidget {
                   letterSpacing: 2.0,
                 ),
               ),
-              const SizedBox(height: 16),
-              _buildQuickAccessGrid(context, theme),
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 16),
+                _buildQuickAccessGrid(context, theme),
+                const SizedBox(height: 85),
+              ],
+            ),
           ),
         ),
       ),
@@ -105,7 +84,7 @@ class DashboardScreen extends ConsumerWidget {
           TablerIcons.cash,
           'Transaksi',
           'Buka kasir baru',
-          onTap: () => context.push('/pos'),
+          onTap: () => context.go('/pos'),
         ),
         _buildAccessCard(
           theme,
@@ -119,14 +98,14 @@ class DashboardScreen extends ConsumerWidget {
           TablerIcons.chart_dots,
           'Laporan',
           'Analisis performa',
-          onTap: () => context.push('/reports'),
+          onTap: () => context.go('/reports'),
         ),
         _buildAccessCard(
           theme,
           TablerIcons.settings,
           'Pengaturan',
           'Konfigurasi aplikasi',
-          onTap: () => context.push('/settings'),
+          onTap: () => context.go('/settings'),
         ),
       ],
     );
@@ -165,7 +144,11 @@ class DashboardScreen extends ConsumerWidget {
                       color: theme.colorScheme.primary,
                     ),
                   ),
-                  Icon(TablerIcons.arrow_right, size: 14, color: theme.colorScheme.mutedForeground),
+                  Icon(
+                    TablerIcons.arrow_right,
+                    size: 14,
+                    color: theme.colorScheme.mutedForeground,
+                  ),
                 ],
               ),
               const Spacer(),
@@ -177,7 +160,13 @@ class DashboardScreen extends ConsumerWidget {
                   color: theme.colorScheme.foreground,
                 ),
               ),
-              Text(subtitle, style: TextStyle(fontSize: 10, color: theme.colorScheme.mutedForeground)),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: theme.colorScheme.mutedForeground,
+                ),
+              ),
             ],
           ),
         ),
@@ -191,61 +180,62 @@ class DashboardScreen extends ConsumerWidget {
     NumberFormat format,
     ShadThemeData theme,
   ) {
-    return analyticsAsync.when(
-      data: (analytics) {
-        final lowStockCount = productsAsync.when(
-          data: (products) =>
-              products.where((p) => (p.stockQuantity ?? 0) <= 5).length,
-          loading: () => 0,
-          error: (_, __) => 0,
-        );
+    final analytics = analyticsAsync.value;
+    final products = productsAsync.value;
+    final isLoading = analyticsAsync.isLoading;
+    final isProductsLoading = productsAsync.isLoading;
 
-        return GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.4,
-          children: [
-            _buildStatCard(
-              'Omzet Hari Ini',
-              format.format(
-                analytics.dailySales.isEmpty
-                    ? 0
-                    : analytics.dailySales.last['amount'],
-              ),
-              TablerIcons.wallet,
-              theme,
-              accentColor: theme.colorScheme.primary,
-            ),
-            _buildStatCard(
-              'Transaksi Selesai',
-              analytics.totalTransactions.toString(),
-              TablerIcons.shopping_cart,
-              theme,
-            ),
-            _buildStatCard(
-              'Stok Rendah',
-              lowStockCount.toString(),
-              TablerIcons.package,
-              theme,
-              accentColor: const Color(0xFFFF6B00),
-            ),
-            _buildStatCard(
-              'Estimasi Laba Kotor',
-              format.format(
-                analytics.totalRevenue * 0.3,
-              ),
-              TablerIcons.chart_line,
-              theme,
-              accentColor: Colors.teal,
-            ),
-          ],
-        );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Text('Error: $err'),
+    final lowStockCount = products == null
+        ? 0
+        : products.where((p) => (p.stockQuantity ?? 0) <= 5).length;
+    final todayRevenue = analytics == null
+        ? 0
+        : (analytics.dailySales.isEmpty
+            ? 0
+            : analytics.dailySales.last['amount']);
+    final totalTransactions = analytics == null ? 0 : analytics.totalTransactions;
+    final totalRevenue = analytics == null ? 0 : analytics.totalRevenue;
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.4,
+      children: [
+        _buildStatCard(
+          'Omzet Hari Ini',
+          format.format(todayRevenue),
+          TablerIcons.wallet,
+          theme,
+          accentColor: theme.colorScheme.primary,
+          isLoading: isLoading,
+        ),
+        _buildStatCard(
+          'Transaksi Selesai',
+          totalTransactions.toString(),
+          TablerIcons.shopping_cart,
+          theme,
+          isLoading: isLoading,
+        ),
+        _buildStatCard(
+          'Stok Rendah',
+          lowStockCount.toString(),
+          TablerIcons.package,
+          theme,
+          accentColor: const Color(0xFFFF6B00),
+          isLoading: isProductsLoading,
+        ),
+        _buildStatCard(
+          'Estimasi Laba Kotor',
+          format.format(totalRevenue * 0.3),
+          TablerIcons.chart_line,
+          theme,
+          accentColor: Colors.teal,
+          isLoading: isLoading,
+        ),
+      ],
     );
   }
 
@@ -255,6 +245,7 @@ class DashboardScreen extends ConsumerWidget {
     IconData icon,
     ShadThemeData theme, {
     Color? accentColor,
+    bool isLoading = false,
   }) {
     return ShadCard(
       padding: const EdgeInsets.all(16),
@@ -283,14 +274,28 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: accentColor ?? theme.colorScheme.foreground,
+          if (isLoading)
+            Shimmer.fromColors(
+              baseColor: theme.colorScheme.muted.withOpacity(0.5),
+              highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+              child: Container(
+                height: 24,
+                width: 80,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            )
+          else
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: accentColor ?? theme.colorScheme.foreground,
+              ),
             ),
-          ),
           const SizedBox(height: 4),
           Row(
             children: [
@@ -318,43 +323,44 @@ class DashboardScreen extends ConsumerWidget {
     AsyncValue<AnalyticsState> analyticsAsync,
     ShadThemeData theme,
   ) {
-    return analyticsAsync.when(
-      data: (state) => ShadCard(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Performa Penjualan',
-                      style: theme.textTheme.h4.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+    final state = analyticsAsync.value;
+    final isLoading = analyticsAsync.isLoading;
+
+    return ShadCard(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Performa Penjualan',
+                    style: theme.textTheme.h4.copyWith(
+                      fontWeight: FontWeight.w900,
                     ),
-                    Text(
-                      'Tren omzet 7 hari terakhir',
-                      style: theme.textTheme.muted.copyWith(fontSize: 11),
-                    ),
-                  ],
-                ),
-                const Icon(TablerIcons.trending_up, color: Warna.success),
-              ],
-            ),
-            const SizedBox(height: 32),
-            SizedBox(height: 180, child: _buildDashboardChart(state, theme)),
-          ],
-        ),
+                  ),
+                  Text(
+                    'Tren omzet 7 hari terakhir',
+                    style: theme.textTheme.muted.copyWith(fontSize: 11),
+                  ),
+                ],
+              ),
+              const Icon(TablerIcons.trending_up, color: Warna.success),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 180,
+            child: isLoading
+                ? _buildChartSkeleton(theme)
+                : (state != null ? _buildDashboardChart(state, theme) : const SizedBox()),
+          ),
+        ],
       ),
-      loading: () => Container(
-        height: 250,
-        color: theme.colorScheme.muted.withOpacity(0.1),
-      ),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -406,5 +412,42 @@ class DashboardScreen extends ConsumerWidget {
         maxY: maxY * 1.2,
       ),
     ).animate().fadeIn(duration: 800.ms);
+  }
+  Widget _buildStatsSkeleton(ShadThemeData theme) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.4,
+      children: List.generate(
+        4,
+        (index) => Shimmer.fromColors(
+          baseColor: theme.colorScheme.muted.withOpacity(0.5),
+          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartSkeleton(ShadThemeData theme) {
+    return Shimmer.fromColors(
+      baseColor: theme.colorScheme.muted.withOpacity(0.5),
+      highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+      child: Container(
+        height: 250,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
   }
 }

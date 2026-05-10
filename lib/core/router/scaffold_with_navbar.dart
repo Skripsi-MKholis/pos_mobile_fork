@@ -51,6 +51,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+
+        // Jika tidak di tab pertama (Dashboard), kembali ke tab pertama dulu
+        if (widget.navigationShell.currentIndex != 0) {
+          widget.navigationShell.goBranch(0);
+          return;
+        }
         
         final now = DateTime.now();
         final backButtonHasNotBeenPressedRecently = lastPressed == null || 
@@ -68,9 +74,6 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           return;
         }
         
-        // If pressed twice within 2 seconds
-        // You can use SystemNavigator.pop() or just allow the pop by setting canPop to true
-        // But since we are at the root, we want to exit the app.
         await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       },
       child: Scaffold(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
@@ -10,6 +11,9 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -38,6 +42,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true, // Show over bottom bar
       backgroundColor: Colors.transparent,
       builder: (context) => Consumer(
         builder: (context, ref, child) {
@@ -45,7 +50,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           return Container(
             decoration: BoxDecoration(
               color: ShadTheme.of(context).colorScheme.background,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
             ),
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -57,15 +64,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   children: [
                     const Text(
                       'Pilih Meja',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     if (currentTable != null)
                       ShadButton.ghost(
                         onPressed: () {
-                          ref.read(cartNotifierProvider.notifier).selectTable(null);
+                          ref
+                              .read(cartNotifierProvider.notifier)
+                              .selectTable(null);
                           Navigator.pop(context);
                         },
-                        child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                        child: const Text(
+                          'Reset',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
                   ],
                 ),
@@ -79,33 +94,49 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           children: tables.map((table) {
                             final isSelected = currentTable?.id == table.id;
                             final isOccupied = table.status == 'occupied';
-                            
+
                             return InkWell(
-                              onTap: isOccupied ? null : () {
-                                ref.read(cartNotifierProvider.notifier).selectTable(table);
-                                Navigator.pop(context);
-                              },
+                              onTap: isOccupied
+                                  ? null
+                                  : () {
+                                      ref
+                                          .read(cartNotifierProvider.notifier)
+                                          .selectTable(table);
+                                      Navigator.pop(context);
+                                    },
                               child: Container(
                                 width: 80,
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: isSelected 
+                                  color: isSelected
                                       ? const Color(0xFF98D100)
-                                      : (isOccupied ? Colors.red.withValues(alpha: 0.1) : ShadTheme.of(context).colorScheme.muted),
+                                      : (isOccupied
+                                            ? Colors.red.withValues(alpha: 0.1)
+                                            : ShadTheme.of(
+                                                context,
+                                              ).colorScheme.muted),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected 
-                                        ? const Color(0xFF98D100) 
-                                        : (isOccupied ? Colors.red.withValues(alpha: 0.2) : Colors.transparent),
+                                    color: isSelected
+                                        ? const Color(0xFF98D100)
+                                        : (isOccupied
+                                              ? Colors.red.withValues(
+                                                  alpha: 0.2,
+                                                )
+                                              : Colors.transparent),
                                   ),
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      TablerIcons.armchair, 
+                                      TablerIcons.armchair,
                                       size: 24,
-                                      color: isSelected ? Colors.black : (isOccupied ? Colors.red : Colors.grey),
+                                      color: isSelected
+                                          ? Colors.black
+                                          : (isOccupied
+                                                ? Colors.red
+                                                : Colors.grey),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -113,7 +144,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.black : (isOccupied ? Colors.red : null),
+                                        color: isSelected
+                                            ? Colors.black
+                                            : (isOccupied ? Colors.red : null),
                                       ),
                                       textAlign: TextAlign.center,
                                       maxLines: 1,
@@ -147,120 +180,172 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     final cartState = ref.watch(cartNotifierProvider);
     final cartItems = cartState.items;
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
-    final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
     final theme = ShadTheme.of(context);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       behavior: HitTestBehavior.translucent,
       child: Column(
-      children: [
-        // Top Toolbar with Table Selection
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: ShadInput(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  placeholder: const Text('Cari produk...'),
-                  leading: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(TablerIcons.search, size: 20),
+        children: [
+          // Top Toolbar with Table Selection
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ShadInput(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    placeholder: const Text('Cari produk...'),
+                    leading: const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Icon(TablerIcons.search, size: 20),
+                    ),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    trailing: _searchQuery.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                            child: const Icon(TablerIcons.x, size: 18),
+                          )
+                        : null,
                   ),
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  trailing: _searchQuery.isNotEmpty
-                      ? GestureDetector(
-                          onTap: () {
-                            _searchController.clear();
-                            setState(() => _searchQuery = '');
-                          },
-                          child: const Icon(TablerIcons.x, size: 18),
-                        )
-                      : null,
                 ),
-              ),
-              const SizedBox(width: 12),
-              if (cartState.selectedTable != null)
-                ShadButton(
-                  onPressed: () => _showTablePicker(context, ref),
-                  leading: const Icon(TablerIcons.armchair, size: 18, color: Colors.black),
-                  child: Text(
-                    cartState.selectedTable!.name,
-                    style: const TextStyle(color: Colors.black),
+                const SizedBox(width: 12),
+                if (cartState.selectedTable != null)
+                  ShadButton(
+                    onPressed: () => _showTablePicker(context, ref),
+                    leading: const Icon(
+                      TablerIcons.armchair,
+                      size: 18,
+                      color: Colors.black,
+                    ),
+                    child: Text(
+                      cartState.selectedTable!.name,
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                  )
+                else
+                  ShadButton.outline(
+                    onPressed: () => _showTablePicker(context, ref),
+                    leading: const Icon(TablerIcons.armchair, size: 18),
+                    child: const Text('Meja'),
                   ),
-                )
-              else
-                ShadButton.outline(
-                  onPressed: () => _showTablePicker(context, ref),
-                  leading: const Icon(TablerIcons.armchair, size: 18),
-                  child: const Text('Meja'),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-        // Category Selector
-        _buildCategorySelector(categoriesAsync),
-        Expanded(
-          child: productsAsync.when(
-            data: (products) {
-              var filteredProducts = products.where((p) =>
-                  (p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                  (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)) &&
-                  (_selectedCategoryId == null || p.categoryId == _selectedCategoryId)
-              ).toList();
+          // Category Selector
+          _buildCategorySelector(categoriesAsync),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(productNotifierProvider);
+                ref.invalidate(categoryNotifierProvider);
+                await ref.read(productNotifierProvider.future);
+              },
+              color: Warna.primary,
+              backgroundColor: Colors.white,
+              child: productsAsync.when(
+                data: (products) {
+                  var filteredProducts = products
+                      .where(
+                        (p) =>
+                            (p.name.toLowerCase().contains(
+                                  _searchQuery.toLowerCase(),
+                                ) ||
+                                (p.sku?.toLowerCase().contains(
+                                      _searchQuery.toLowerCase(),
+                                    ) ??
+                                    false)) &&
+                            (_selectedCategoryId == null ||
+                                p.categoryId == _selectedCategoryId),
+                      )
+                      .toList();
 
-              // Apply sorting
-              switch (_sortOption) {
-                case 'name_asc':
-                  filteredProducts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-                  break;
-                case 'name_desc':
-                  filteredProducts.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
-                  break;
-                case 'price_asc':
-                  filteredProducts.sort((a, b) => a.price.compareTo(b.price));
-                  break;
-                case 'price_desc':
-                  filteredProducts.sort((a, b) => b.price.compareTo(a.price));
-                  break;
-                case 'stock_desc':
-                  filteredProducts.sort((a, b) => b.stockQuantity.compareTo(a.stockQuantity));
-                  break;
-              }
+                  // Apply sorting
+                  switch (_sortOption) {
+                    case 'name_asc':
+                      filteredProducts.sort(
+                        (a, b) => a.name.toLowerCase().compareTo(
+                          b.name.toLowerCase(),
+                        ),
+                      );
+                      break;
+                    case 'name_desc':
+                      filteredProducts.sort(
+                        (a, b) => b.name.toLowerCase().compareTo(
+                          a.name.toLowerCase(),
+                        ),
+                      );
+                      break;
+                    case 'price_asc':
+                      filteredProducts.sort(
+                        (a, b) => a.price.compareTo(b.price),
+                      );
+                      break;
+                    case 'price_desc':
+                      filteredProducts.sort(
+                        (a, b) => b.price.compareTo(a.price),
+                      );
+                      break;
+                    case 'stock_desc':
+                      filteredProducts.sort(
+                        (a, b) => b.stockQuantity.compareTo(a.stockQuantity),
+                      );
+                      break;
+                  }
 
-              if (filteredProducts.isEmpty) {
-                return const Center(child: Text('Produk tidak ditemukan'));
-              }
+                  if (filteredProducts.isEmpty) {
+                    return const Center(child: Text('Produk tidak ditemukan'));
+                  }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts[index];
-                  final cartItem = cartItems.firstWhere(
-                    (item) => item.product.supabaseId == product.supabaseId,
-                    orElse: () => CartItem(product: product, quantity: 0),
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(16),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.8,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                    itemCount: filteredProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      final cartItem = cartItems.firstWhere(
+                        (item) => item.product.supabaseId == product.supabaseId,
+                        orElse: () => CartItem(product: product, quantity: 0),
+                      );
+
+                      return _buildProductCard(
+                        context,
+                        product,
+                        cartItem,
+                        cartNotifier,
+                        currencyFormat,
+                      );
+                    },
                   );
-
-                  return _buildProductCard(context, product, cartItem, cartNotifier, currencyFormat);
                 },
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error: $err')),
+                loading: () => _buildProductSkeleton(context),
+                error: (err, stack) => Center(child: Text('Error: $err')),
+              ),
+            ),
           ),
-        ),
-        if (cartItems.isNotEmpty) _buildCartSummary(context, cartNotifier, currencyFormat),
-      ],
-    ),
+          if (cartItems.isNotEmpty)
+            _buildCartSummary(context, cartNotifier, currencyFormat),
+
+          if (cartItems.isEmpty)
+            // Spacer for Floating Bottom Bar
+            const SizedBox(height: 90),
+        ],
+      ),
     );
   }
 
@@ -280,7 +365,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           ],
         ),
       ),
-      loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      loading: () => const SizedBox(
+        height: 40,
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
       error: (_, __) => const SizedBox.shrink(),
     );
   }
@@ -288,7 +376,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   Widget _buildCategoryChip(String? id, String name) {
     final isSelected = _selectedCategoryId == id;
     final theme = ShadTheme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: InkWell(
@@ -298,10 +386,14 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF98D100) : theme.colorScheme.muted,
+            color: isSelected
+                ? const Color(0xFF98D100)
+                : theme.colorScheme.muted,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? const Color(0xFF98D100) : theme.colorScheme.border,
+              color: isSelected
+                  ? const Color(0xFF98D100)
+                  : theme.colorScheme.border,
             ),
           ),
           child: Text(
@@ -323,6 +415,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       onTap: () {
         showModalBottomSheet(
           context: context,
+          useRootNavigator: true, // Show over bottom bar
           backgroundColor: Colors.transparent,
           builder: (context) => _buildSortBottomSheet(),
         );
@@ -334,11 +427,13 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         decoration: BoxDecoration(
           color: theme.colorScheme.muted,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: theme.colorScheme.border,
-          ),
+          border: Border.all(color: theme.colorScheme.border),
         ),
-        child: Icon(TablerIcons.arrows_sort, size: 18, color: theme.colorScheme.foreground),
+        child: Icon(
+          TablerIcons.arrows_sort,
+          size: 18,
+          color: theme.colorScheme.foreground,
+        ),
       ),
     );
   }
@@ -371,17 +466,19 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              ...options.map((opt) => ListTile(
-                title: Text(opt['label']!),
-                contentPadding: EdgeInsets.zero,
-                trailing: _sortOption == opt['value'] 
-                    ? const Icon(TablerIcons.check, color: Color(0xFF98D100)) 
-                    : null,
-                onTap: () {
-                  setState(() => _sortOption = opt['value']!);
-                  Navigator.pop(context);
-                },
-              )),
+              ...options.map(
+                (opt) => ListTile(
+                  title: Text(opt['label']!),
+                  contentPadding: EdgeInsets.zero,
+                  trailing: _sortOption == opt['value']
+                      ? const Icon(TablerIcons.check, color: Color(0xFF98D100))
+                      : null,
+                  onTap: () {
+                    setState(() => _sortOption = opt['value']!);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
               const SizedBox(height: 32),
             ],
           ),
@@ -390,15 +487,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
   }
 
-  Widget _buildProductCard(BuildContext context, dynamic product, CartItem cartItem, CartNotifier cartNotifier, NumberFormat format) {
+  Widget _buildProductCard(
+    BuildContext context,
+    dynamic product,
+    CartItem cartItem,
+    CartNotifier cartNotifier,
+    NumberFormat format,
+  ) {
     final theme = ShadTheme.of(context);
     final isLowStock = product.stockQuantity < 10;
-    
+
     return ShadCard(
       padding: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: product.stockQuantity > 0 ? () => cartNotifier.addItem(product) : null,
+        onTap: product.stockQuantity > 0
+            ? () => cartNotifier.addItem(product)
+            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -410,11 +515,20 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     decoration: BoxDecoration(
                       color: theme.colorScheme.muted,
                       image: product.imageUrl != null
-                          ? DecorationImage(image: NetworkImage(product.imageUrl!), fit: BoxFit.cover)
+                          ? DecorationImage(
+                              image: NetworkImage(product.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
                           : null,
                     ),
                     child: product.imageUrl == null
-                        ? const Center(child: Icon(TablerIcons.package, size: 40, color: Colors.grey))
+                        ? const Center(
+                            child: Icon(
+                              TablerIcons.package,
+                              size: 40,
+                              color: Colors.grey,
+                            ),
+                          )
                         : null,
                   ),
                   if (cartItem.quantity > 0)
@@ -422,7 +536,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF98D100),
                           borderRadius: BorderRadius.circular(20),
@@ -449,14 +566,21 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.orange.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: const Text(
                           'Stok Menipis',
-                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     )
@@ -467,7 +591,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         child: const Center(
                           child: Text(
                             'HABIS',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
                           ),
                         ),
                       ),
@@ -481,9 +609,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.name, 
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), 
-                    maxLines: 2, 
+                    product.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
@@ -491,17 +622,17 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        format.format(product.price), 
+                        format.format(product.price),
                         style: TextStyle(
-                          color: theme.colorScheme.primary, 
-                          fontSize: 14, 
+                          color: theme.colorScheme.primary,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                       Text(
                         '${product.stockQuantity} pcs',
                         style: TextStyle(
-                          fontSize: 11, 
+                          fontSize: 11,
                           color: theme.colorScheme.mutedForeground,
                         ),
                       ),
@@ -516,13 +647,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
   }
 
-  Widget _buildCartSummary(BuildContext context, CartNotifier cartNotifier, NumberFormat format) {
+  Widget _buildCartSummary(
+    BuildContext context,
+    CartNotifier cartNotifier,
+    NumberFormat format,
+  ) {
     final theme = ShadTheme.of(context);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         color: theme.colorScheme.background,
-        boxShadow: [BoxShadow(color: theme.colorScheme.foreground.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -5))],
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.foreground.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Row(
@@ -534,11 +675,17 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 children: [
                   Text(
                     'Total Belanja',
-                    style: TextStyle(color: theme.colorScheme.mutedForeground, fontSize: 12),
+                    style: TextStyle(
+                      color: theme.colorScheme.mutedForeground,
+                      fontSize: 12,
+                    ),
                   ),
                   Text(
                     format.format(cartNotifier.totalAmount),
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -549,6 +696,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 FocusScope.of(context).unfocus();
                 showModalBottomSheet(
                   context: context,
+                  useRootNavigator: true, // Show over bottom bar
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const CartDetailSheet(),
@@ -557,6 +705,30 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               child: const Text('Cek Detail'),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductSkeleton(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.8,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: 6,
+      itemBuilder: (context, index) => Shimmer.fromColors(
+        baseColor: theme.colorScheme.muted.withOpacity(0.5),
+        highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
     );

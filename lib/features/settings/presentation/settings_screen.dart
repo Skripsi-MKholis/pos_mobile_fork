@@ -61,7 +61,7 @@ class SettingsScreen extends ConsumerWidget {
                       style: theme.textTheme.muted.copyWith(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                     ),
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 85),
                 ],
               ),
             ),
