@@ -22,38 +22,43 @@ const StoreSchema = CollectionSchema(
       name: r'address',
       type: IsarType.string,
     ),
-    r'logoUrl': PropertySchema(
+    r'inviteCode': PropertySchema(
       id: 1,
+      name: r'inviteCode',
+      type: IsarType.string,
+    ),
+    r'logoUrl': PropertySchema(
+      id: 2,
       name: r'logoUrl',
       type: IsarType.string,
     ),
     r'metadata': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'metadata',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'ownerId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'ownerId',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'phone',
       type: IsarType.string,
     ),
     r'supabaseId': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'supabaseId',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -99,6 +104,12 @@ int _storeEstimateSize(
     }
   }
   {
+    final value = object.inviteCode;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.logoUrl;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -129,13 +140,14 @@ void _storeSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.address);
-  writer.writeString(offsets[1], object.logoUrl);
-  writer.writeString(offsets[2], object.metadata);
-  writer.writeString(offsets[3], object.name);
-  writer.writeString(offsets[4], object.ownerId);
-  writer.writeString(offsets[5], object.phone);
-  writer.writeString(offsets[6], object.supabaseId);
-  writer.writeDateTime(offsets[7], object.updatedAt);
+  writer.writeString(offsets[1], object.inviteCode);
+  writer.writeString(offsets[2], object.logoUrl);
+  writer.writeString(offsets[3], object.metadata);
+  writer.writeString(offsets[4], object.name);
+  writer.writeString(offsets[5], object.ownerId);
+  writer.writeString(offsets[6], object.phone);
+  writer.writeString(offsets[7], object.supabaseId);
+  writer.writeDateTime(offsets[8], object.updatedAt);
 }
 
 Store _storeDeserialize(
@@ -147,13 +159,14 @@ Store _storeDeserialize(
   final object = Store(
     address: reader.readStringOrNull(offsets[0]),
     id: id,
-    logoUrl: reader.readStringOrNull(offsets[1]),
-    metadata: reader.readStringOrNull(offsets[2]),
-    name: reader.readString(offsets[3]),
-    ownerId: reader.readString(offsets[4]),
-    phone: reader.readStringOrNull(offsets[5]),
-    supabaseId: reader.readString(offsets[6]),
-    updatedAt: reader.readDateTimeOrNull(offsets[7]),
+    inviteCode: reader.readStringOrNull(offsets[1]),
+    logoUrl: reader.readStringOrNull(offsets[2]),
+    metadata: reader.readStringOrNull(offsets[3]),
+    name: reader.readString(offsets[4]),
+    ownerId: reader.readString(offsets[5]),
+    phone: reader.readStringOrNull(offsets[6]),
+    supabaseId: reader.readString(offsets[7]),
+    updatedAt: reader.readDateTimeOrNull(offsets[8]),
   );
   return object;
 }
@@ -172,14 +185,16 @@ P _storeDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
-    case 6:
       return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
+      return (reader.readString(offset)) as P;
+    case 8:
       return (reader.readDateTimeOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -568,6 +583,152 @@ extension StoreQueryFilter on QueryBuilder<Store, Store, QFilterCondition> {
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'inviteCode',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'inviteCode',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'inviteCode',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'inviteCode',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'inviteCode',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'inviteCode',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> inviteCodeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'inviteCode',
+        value: '',
       ));
     });
   }
@@ -1483,6 +1644,18 @@ extension StoreQuerySortBy on QueryBuilder<Store, Store, QSortBy> {
     });
   }
 
+  QueryBuilder<Store, Store, QAfterSortBy> sortByInviteCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'inviteCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> sortByInviteCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'inviteCode', Sort.desc);
+    });
+  }
+
   QueryBuilder<Store, Store, QAfterSortBy> sortByLogoUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'logoUrl', Sort.asc);
@@ -1593,6 +1766,18 @@ extension StoreQuerySortThenBy on QueryBuilder<Store, Store, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Store, Store, QAfterSortBy> thenByInviteCode() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'inviteCode', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> thenByInviteCodeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'inviteCode', Sort.desc);
+    });
+  }
+
   QueryBuilder<Store, Store, QAfterSortBy> thenByLogoUrl() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'logoUrl', Sort.asc);
@@ -1686,6 +1871,13 @@ extension StoreQueryWhereDistinct on QueryBuilder<Store, Store, QDistinct> {
     });
   }
 
+  QueryBuilder<Store, Store, QDistinct> distinctByInviteCode(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'inviteCode', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Store, Store, QDistinct> distinctByLogoUrl(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1745,6 +1937,12 @@ extension StoreQueryProperty on QueryBuilder<Store, Store, QQueryProperty> {
   QueryBuilder<Store, String?, QQueryOperations> addressProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'address');
+    });
+  }
+
+  QueryBuilder<Store, String?, QQueryOperations> inviteCodeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'inviteCode');
     });
   }
 

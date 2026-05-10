@@ -15,6 +15,7 @@ class Store {
   String? logoUrl;
   
   late String ownerId;
+  String? inviteCode;
   
   // Settings or other metadata as JSON string if needed
   String? metadata;
@@ -29,6 +30,7 @@ class Store {
     this.phone,
     this.logoUrl,
     required this.ownerId,
+    this.inviteCode,
     this.metadata,
     this.updatedAt,
   });
@@ -42,6 +44,7 @@ class Store {
       phone: map['phone'],
       logoUrl: map['logo_url'],
       ownerId: map['owner_id'] ?? '',
+      inviteCode: map['invite_code'],
       updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
     );
   }
@@ -54,6 +57,7 @@ class Store {
       'phone': phone,
       'logo_url': logoUrl,
       'owner_id': ownerId,
+      'invite_code': inviteCode,
       'updated_at': updatedAt?.toIso8601String(),
     };
   }

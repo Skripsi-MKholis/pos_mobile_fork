@@ -7,6 +7,7 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -28,25 +29,25 @@ class SettingsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (activeStore.value != null)
-                    _buildStoreHeader(theme, activeStore.value!)
+                    _buildStoreHeader(context, theme, activeStore.value!)
                         .animate()
                         .fadeIn(duration: 400.ms)
                         .slideX(begin: 0.1, end: 0),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'KATALOG & STOK', [
                     _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
-                    _buildMenuItem(context, theme, TablerIcons.category, 'Kategori Produk', () {}),
+                    _buildMenuItem(context, theme, TablerIcons.category, 'Kategori Produk', () => context.push('/categories')),
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'PENGATURAN TOKO', [
                     _buildMenuItem(context, theme, TablerIcons.printer, 'Printer & Struk', () => context.push('/printer-settings')),
-                    _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () {}),
-                    _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () {}),
+                    _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () => context.push('/store-info')),
+                    _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () => context.push('/staff-management')),
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'AKUN & KEAMANAN', [
                     _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () => context.push('/profile')),
-                    _buildMenuItem(context, theme, TablerIcons.lock, 'Ganti Kata Sandi', () {}),
+                    _buildMenuItem(context, theme, TablerIcons.lock, 'Ganti Kata Sandi', () => context.push('/setup-password')),
                   ]),
                   const SizedBox(height: 48),
                   ShadButton.destructive(
@@ -98,7 +99,7 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStoreHeader(ShadThemeData theme, Map<String, dynamic> store) {
+  Widget _buildStoreHeader(BuildContext context, ShadThemeData theme, Map<String, dynamic> store) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -111,11 +112,25 @@ class SettingsScreen extends ConsumerWidget {
           Container(
             height: 50,
             width: 50,
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: Warna.primary,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(TablerIcons.building_store, color: Colors.black, size: 24),
+            child: store['logo_url'] != null && (store['logo_url'] as String).isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: store['logo_url'],
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => const Icon(TablerIcons.building_store, color: Colors.black, size: 24),
+                  )
+                : const Icon(TablerIcons.building_store, color: Colors.black, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -137,7 +152,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ShadButton.outline(
             size: ShadButtonSize.sm,
-            onPressed: () {},
+            onPressed: () => context.push('/select-store'),
             child: const Text('Ganti'),
           ),
         ],
