@@ -1,22 +1,507 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:tabler_icons/tabler_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:ui';
 
-class TransactionHistoryScreen extends StatelessWidget {
+class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
 
   @override
+  ConsumerState<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
+}
+
+class _TransactionHistoryScreenState
+    extends ConsumerState<TransactionHistoryScreen> {
+  String _searchQuery = '';
+  String _filterStatus = 'Semua';
+  final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.8) {
+      ref.read(transactionHistoryProvider.notifier).fetchMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final historyAsync = ref.watch(transactionHistoryProvider);
     final theme = ShadTheme.of(context);
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final dateFormat = DateFormat('HH:mm');
+    final dateFullFormat = DateFormat('dd MMM yyyy');
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(transactionHistoryProvider.notifier).refresh(),
+        color: Warna.primary,
+        backgroundColor: Colors.white,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(theme),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: _buildSummaryCards(historyAsync, currencyFormat),
+              ),
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _FilterHeaderDelegate(
+                child: _buildFilters(theme),
+              ),
+            ),
+            historyAsync.when(
+              data: (state) {
+                final transactions = state.transactions;
+                final filtered = transactions.where((tx) {
+                  final matchesSearch =
+                      tx['id'].toString().toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ) ||
+                      tx['payment_method'].toString().toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          );
+                  final matchesStatus =
+                      _filterStatus == 'Semua' || tx['status'] == _filterStatus;
+                  return matchesSearch && matchesStatus;
+                }).toList();
+
+                if (filtered.isEmpty && !state.isLoadingMore) {
+                  return SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(theme),
+                  );
+                }
+
+                // Group by date
+                final Map<String, List<Map<String, dynamic>>> grouped = {};
+                for (var tx in filtered) {
+                  final dateStr = dateFullFormat.format(
+                    DateTime.parse(tx['created_at']),
+                  );
+                  grouped.putIfAbsent(dateStr, () => []).add(tx);
+                }
+
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    if (index == grouped.length) {
+                      return state.hasMore
+                          ? _buildLoadingIndicator()
+                          : const SizedBox(height: 100);
+                    }
+
+                    final date = grouped.keys.elementAt(index);
+                    final dailyTransactions = grouped[date]!;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.muted.withOpacity(0.3),
+                          ),
+                          child: Text(
+                            date == dateFullFormat.format(DateTime.now())
+                                ? 'HARI INI'
+                                : date.toUpperCase(),
+                            style: theme.textTheme.small.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: theme.colorScheme.mutedForeground,
+                              letterSpacing: 2.0,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                        ...dailyTransactions.map(
+                          (tx) => _buildTransactionCard(
+                            tx,
+                            currencyFormat,
+                            dateFormat,
+                            theme,
+                          ),
+                        ),
+                      ],
+                    );
+                  }, childCount: grouped.length + 1),
+                );
+              },
+              loading: () => _buildSkeleton(theme),
+              error: (err, stack) => SliverFillRemaining(
+                child: Center(
+                  child: Text('Terjadi kesalahan: $err', style: theme.textTheme.muted),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ShadThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history, size: 64, color: theme.colorScheme.mutedForeground),
+          Icon(
+            TablerIcons.receipt_off,
+            size: 48,
+            color: theme.colorScheme.mutedForeground.withOpacity(0.5),
+          ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
           const SizedBox(height: 16),
-          Text('Segera Hadir', style: theme.textTheme.h4),
-          Text('Halaman riwayat transaksi sedang disiapkan.', style: theme.textTheme.muted),
+          Text(
+            'Tidak ada transaksi',
+            style: theme.textTheme.muted,
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildLoadingIndicator() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 40),
+      child: Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Warna.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkeleton(ShadThemeData theme) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Container(
+            height: 80,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.muted.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        childCount: 8,
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar(ShadThemeData theme) {
+    return SliverAppBar(
+      expandedHeight: 100,
+      floating: false,
+      pinned: true,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: FlexibleSpaceBar(
+        titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        centerTitle: false,
+        title: Text(
+          'Riwayat',
+          style: theme.textTheme.h3.copyWith(
+            color: Colors.black,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+          ),
+        ),
+      ),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, color: theme.colorScheme.border.withOpacity(0.5)),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(
+    AsyncValue<TransactionHistoryState> historyAsync,
+    NumberFormat format,
+  ) {
+    return historyAsync.when(
+      data: (state) {
+        final transactions = state.transactions;
+        final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final todayTransactions = transactions
+            .where((tx) => tx['created_at'].toString().startsWith(today))
+            .toList();
+        final totalRevenue = todayTransactions.fold(
+          0.0,
+          (sum, tx) => sum + (tx['total_amount'] as num).toDouble(),
+        );
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'Omzet Hari Ini',
+                format.format(totalRevenue),
+                Warna.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Transaksi',
+                todayTransactions.length.toString(),
+                Warna.primary,
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const SizedBox(height: 100),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, Color color) {
+    final theme = ShadTheme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.border.withOpacity(0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.small.copyWith(
+              color: theme.colorScheme.mutedForeground,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: theme.textTheme.h4.copyWith(
+              fontWeight: FontWeight.w900,
+              color: Colors.black,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 4,
+            width: 24,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters(ShadThemeData theme) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Column(
+        children: [
+          ShadInput(
+            controller: _searchController,
+            placeholder: const Text('Cari transaksi...'),
+            leading: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(TablerIcons.search, size: 16, color: Colors.grey),
+            ),
+            onChanged: (val) => setState(() => _searchQuery = val),
+            decoration: ShadDecoration(
+              border: ShadBorder.all(
+                color: theme.colorScheme.border.withOpacity(0.5),
+                width: 1,
+              ),
+              color: theme.colorScheme.muted.withOpacity(0.2),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: ['Semua', 'Berhasil', 'Pending', 'Batal'].map((status) {
+                final isSelected = _filterStatus == status;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() => _filterStatus = status),
+                    child: AnimatedContainer(
+                      duration: 200.ms,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected ? Warna.primary : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected ? Warna.primary : theme.colorScheme.border,
+                        ),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: isSelected ? Colors.black : theme.colorScheme.mutedForeground,
+                          fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard(
+    Map<String, dynamic> tx,
+    NumberFormat format,
+    DateFormat timeFormat,
+    ShadThemeData theme,
+  ) {
+    final status = tx['status'] ?? 'Berhasil';
+    final paymentMethod = tx['payment_method'] ?? 'Tunai';
+    final items = tx['transaction_items'] as List? ?? [];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            context.push(
+              '/receipt',
+              extra: {'transaction': tx, 'items': items},
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: theme.colorScheme.border.withOpacity(0.3),
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '#${tx['id'].toString().substring(0, 8).toUpperCase()}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${timeFormat.format(DateTime.parse(tx['created_at']))} \u2022 $paymentMethod',
+                        style: theme.textTheme.muted.copyWith(fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      format.format(tx['total_amount']),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      status.toUpperCase(),
+                      style: TextStyle(
+                        color: status == 'Berhasil' 
+                            ? Warna.primary.withOpacity(0.8) 
+                            : (status == 'Pending' ? Colors.orange : Colors.red),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _FilterHeaderDelegate({required this.child});
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return child;
+  }
+
+  @override
+  double get maxExtent => 130;
+
+  @override
+  double get minExtent => 130;
+
+  @override
+  bool shouldRebuild(covariant _FilterHeaderDelegate oldDelegate) {
+    return false;
   }
 }

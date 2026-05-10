@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -31,7 +32,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       appBar: AppBar(
         backgroundColor: theme.colorScheme.background,
         elevation: 0,
-        title: const Text('Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        title: Text(
+          'Pembayaran',
+          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
           icon: const Icon(TablerIcons.chevron_left),
           onPressed: () {
@@ -44,40 +49,66 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildTotalCard(total, currencyFormat),
-            const SizedBox(height: 32),
-            const Text('Metode Pembayaran', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            Text(
+              'Metode Pembayaran',
+              style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
             _buildPaymentMethodSelector(),
             if (_paymentMethod == 'Tunai') ...[
-              const SizedBox(height: 32),
-              const Text('Uang Tunai Diterima', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const SizedBox(height: 12),
+              const SizedBox(height: 24),
+              Text(
+                'Uang Tunai Diterima',
+                style: theme.textTheme.p.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
               ShadInput(
                 controller: _cashController,
                 keyboardType: TextInputType.number,
                 placeholder: const Text('Masukkan jumlah uang...'),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                leading: const Padding(padding: EdgeInsets.all(12), child: Text('Rp', style: TextStyle(fontSize: 18, color: Colors.grey))),
+                style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                leading: Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    'Rp',
+                    style: theme.textTheme.p.copyWith(color: theme.colorScheme.mutedForeground, fontWeight: FontWeight.bold),
+                  ),
+                ),
                 onChanged: (value) => setState(() {}),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               _buildQuickCashButtons(total),
             ],
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             _buildChangeSummary(total, currencyFormat),
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
             ShadButton(
               size: ShadButtonSize.lg,
+              width: double.infinity,
+              backgroundColor: Warna.primary,
               onPressed: _isLoading ? null : () => _processPayment(total),
-              child: _isLoading 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('Konfirmasi & Simpan Transaksi'),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : Text(
+                      'Konfirmasi & Simpan Transaksi',
+                      style: theme.textTheme.p.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -86,14 +117,45 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   Widget _buildTotalCard(double total, NumberFormat format) {
     final theme = ShadTheme.of(context);
-    return ShadCard(
-      backgroundColor: theme.colorScheme.muted,
-      padding: const EdgeInsets.all(32),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Warna.primary,
+            Warna.primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Warna.primary.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         children: [
-          Text('TOTAL TAGIHAN', style: TextStyle(letterSpacing: 1.5, fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.mutedForeground)),
-          const SizedBox(height: 12),
-          Text(format.format(total), style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+          Text(
+            'TOTAL TAGIHAN',
+            style: theme.textTheme.small.copyWith(
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.bold,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            format.format(total),
+            style: theme.textTheme.h2.copyWith(
+              fontSize: 32,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
@@ -112,17 +174,43 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   Widget _methodTile(String method, IconData icon) {
     final isSelected = _paymentMethod == method;
     final theme = ShadTheme.of(context);
-    return InkWell(
-      onTap: () => setState(() => _paymentMethod = method),
-      child: ShadCard(
-        backgroundColor: isSelected ? theme.colorScheme.primary : theme.colorScheme.card,
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          children: [
-            Icon(icon, color: isSelected ? theme.colorScheme.primaryForeground : theme.colorScheme.foreground),
-            const SizedBox(height: 8),
-            Text(method, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? theme.colorScheme.primaryForeground : theme.colorScheme.foreground)),
-          ],
+    final popController = PopController();
+
+    return PopEffect(
+      controller: popController,
+      child: InkWell(
+        onTap: () {
+          popController.pop();
+          setState(() => _paymentMethod = method);
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: isSelected ? Warna.primary : theme.colorScheme.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? Warna.primary : theme.colorScheme.border,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 24,
+                color: isSelected ? Colors.white : theme.colorScheme.foreground,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                method,
+                style: theme.textTheme.small.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.white : theme.colorScheme.foreground,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -132,42 +220,82 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final suggestions = [total, 50000.0, 100000.0];
     return Wrap(
       spacing: 8,
-      children: suggestions.map((val) => ShadButton.outline(
-        onPressed: () => setState(() => _cashController.text = val.toInt().toString()),
-        child: Text(NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp ').format(val)),
-      )).toList(),
+      runSpacing: 8,
+      children: suggestions.map((val) {
+        return ShadButton.outline(
+          onPressed: () => setState(() => _cashController.text = val.toInt().toString()),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Text(
+            NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp ').format(val),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        );
+      }).toList(),
     );
   }
 
   Widget _buildChangeSummary(double total, NumberFormat format) {
     if (_paymentMethod != 'Tunai') return const SizedBox.shrink();
-    
+
     final cash = double.tryParse(_cashController.text) ?? 0;
     final change = cash - total;
+    final isNegative = cash > 0 && change < 0;
+    final isSufficient = cash > 0 && change >= 0;
 
     final theme = ShadTheme.of(context);
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       decoration: BoxDecoration(
-        color: change >= 0 ? theme.colorScheme.muted : Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: change >= 0 ? theme.colorScheme.border : Colors.red.shade200),
+        color: isNegative
+            ? Warna.destructive.withOpacity(0.05)
+            : (isSufficient ? Warna.success.withOpacity(0.05) : theme.colorScheme.muted),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isNegative
+              ? Warna.destructive
+              : (isSufficient ? Warna.success : theme.colorScheme.border),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Kembalian', style: TextStyle(fontWeight: FontWeight.w600)),
-          Text(
-            change >= 0 ? format.format(change) : 'Uang Kurang',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: change >= 0 ? Colors.green.shade700 : Colors.red.shade700),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Kembalian',
+                style: theme.textTheme.small.copyWith(
+                  color: theme.colorScheme.mutedForeground,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                isNegative ? 'Uang Kurang' : (cash == 0 ? '-' : format.format(change)),
+                style: theme.textTheme.p.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isNegative
+                      ? Warna.destructive
+                      : (isSufficient ? Warna.success : theme.colorScheme.foreground),
+                ),
+              ),
+            ],
           ),
+          if (isSufficient)
+            const Icon(TablerIcons.check, color: Warna.success, size: 20)
+          else if (isNegative)
+            const Icon(TablerIcons.alert_circle, color: Warna.destructive, size: 20),
         ],
       ),
     );
   }
 
+
+
   Future<void> _processPayment(double totalAmount) async {
-    final cash = double.tryParse(_cashController.text) ?? 0;
+    final cartState = ref.read(cartNotifierProvider);
+    final cash = double.tryParse(_cashController.text.replaceAll('.', '')) ?? 0;
     if (_paymentMethod == 'Tunai' && cash < totalAmount) {
       ShadToaster.of(context).show(const ShadToast(description: Text('Uang tunai tidak mencukupi')));
       return;
@@ -176,12 +304,48 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = Supabase.instance.client;
-      final cartState = ref.read(cartNotifierProvider);
       
-      final userData = await supabase.from('users').select('store_id').eq('id', supabase.auth.currentUser!.id).single();
-      final storeId = userData['store_id'];
+      // Ambil Store ID dari provider yang sudah ada
+      final activeStore = ref.read(activeStoreProvider).value;
+      final storeId = activeStore?['id'];
+      
+      if (storeId == null) {
+        throw 'Toko aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.';
+      }
 
-      final transaction = await supabase.from('transactions').insert({
+      final itemsToProcess = cartState.items.map((item) => {
+        'product_id': item.product.supabaseId,
+        'product_name': item.product.name,
+        'unit_price': item.product.price,
+        'quantity': item.quantity,
+        'subtotal': item.subtotal,
+      }).toList();
+
+      // Gunakan RPC untuk memproses transaksi secara atomik (header + items + stock update)
+      // Ini juga menghindari masalah RLS pada tabel individual karena RPC didefinisikan sebagai SECURITY DEFINER
+      final response = await supabase.rpc('create_transaction_v3', params: {
+        'p_store_id': storeId,
+        'p_cashier_id': supabase.auth.currentUser!.id,
+        'p_total_amount': totalAmount,
+        'p_payment_method': _paymentMethod,
+        'p_discount_total': cartState.discountAmount,
+        'p_voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
+        'p_table_id': cartState.selectedTable?.id,
+        'p_items': itemsToProcess,
+        'p_status': 'Berhasil',
+        'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
+        'p_change_amount': _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
+      });
+
+      if (response == null || (response is Map && response['success'] == false)) {
+        throw response?['error'] ?? 'Terjadi kesalahan saat memproses transaksi.';
+      }
+
+      final transactionId = response['transaction_id'];
+
+      // Konstruksi map transaksi untuk keperluan UI/Receipt tanpa fetch ulang
+      final transactionMap = {
+        'id': transactionId,
         'store_id': storeId,
         'cashier_id': supabase.auth.currentUser!.id,
         'total_amount': totalAmount,
@@ -192,22 +356,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'table_id': cartState.selectedTable?.id,
         'discount_total': cartState.discountAmount,
         'voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
-      }).select().single();
-
-      final itemsToInsert = cartState.items.map((item) => {
-        'transaction_id': transaction['id'],
-        'product_id': item.product.supabaseId,
-        'product_name': item.product.name,
-        'unit_price': item.product.price,
-        'quantity': item.quantity,
-        'subtotal': item.subtotal,
-      }).toList();
-
-      await supabase.from('transaction_items').insert(itemsToInsert);
+        'created_at': DateTime.now().toIso8601String(),
+      };
 
       if (mounted) {
         ref.read(cartNotifierProvider.notifier).clearCart();
-        _showSuccessDialog(transaction, itemsToInsert);
+        _showSuccessDialog(transactionMap, itemsToProcess);
       }
     } catch (e) {
       if (mounted) {
@@ -219,29 +373,73 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   void _showSuccessDialog(Map<String, dynamic> transaction, List<Map<String, dynamic>> items) {
+    final theme = ShadTheme.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => ShadDialog(
-        title: const Text('Pembayaran Berhasil'),
-        description: const Text('Transaksi Anda telah berhasil dicatat ke sistem.'),
-        actions: [
-          ShadButton.outline(
-            onPressed: () => context.go('/dashboard'),
-            child: const Text('Ke Dashboard'),
+        title: Center(
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Warna.success.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  TablerIcons.check,
+                  color: Warna.success,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Pembayaran Berhasil',
+                style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
-          ShadButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.push('/receipt', extra: {
-                'transaction': transaction,
-                'items': items,
-              });
-            },
-            child: const Text('Lihat Struk'),
+        ),
+        description: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Text(
+            'Transaksi Anda telah berhasil dicatat ke sistem. Silakan pilih langkah selanjutnya.',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.muted,
+          ),
+        ),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: ShadButton.outline(
+                  onPressed: () => context.go('/dashboard'),
+                  child: const Text('Ke Dashboard'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ShadButton(
+                  backgroundColor: Warna.primary,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/receipt', extra: {
+                      'transaction': transaction,
+                      'items': items,
+                    });
+                  },
+                  child: const Text(
+                    'Lihat Struk',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 }
+

@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
-import 'package:intl/intl.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
-import 'package:pos_mobile/core/models/table.dart';
+import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/models/category.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -21,10 +20,20 @@ class POSScreen extends ConsumerStatefulWidget {
 
 class _POSScreenState extends ConsumerState<POSScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  String? _selectedCategoryId;
+  String _sortOption = 'name_asc';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
 
   Future<void> _showTablePicker(BuildContext context, WidgetRef ref) async {
-    final tablesAsync = ref.read(tableNotifierProvider);
+    FocusScope.of(context).unfocus();
     final currentTable = ref.read(cartNotifierProvider).selectedTable;
 
     showModalBottomSheet(
@@ -128,19 +137,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           );
         },
       ),
-    );
+    ).then((_) => _searchFocusNode.unfocus());
   }
 
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productNotifierProvider);
+    final categoriesAsync = ref.watch(categoryNotifierProvider);
     final cartState = ref.watch(cartNotifierProvider);
     final cartItems = cartState.items;
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
     final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final theme = ShadTheme.of(context);
 
-    return Column(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: Column(
       children: [
         // Top Toolbar with Table Selection
         Padding(
@@ -150,62 +163,72 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Expanded(
                 child: ShadInput(
                   controller: _searchController,
+                  focusNode: _searchFocusNode,
                   placeholder: const Text('Cari produk...'),
                   leading: const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Icon(TablerIcons.search, size: 20),
                   ),
                   onChanged: (value) => setState(() => _searchQuery = value),
+                  trailing: _searchQuery.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                          child: const Icon(TablerIcons.x, size: 18),
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 12),
-              InkWell(
-                onTap: () => _showTablePicker(context, ref),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: cartState.selectedTable != null 
-                        ? const Color(0xFF98D100).withValues(alpha: 0.1)
-                        : theme.colorScheme.muted,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: cartState.selectedTable != null 
-                          ? const Color(0xFF98D100)
-                          : theme.colorScheme.border,
-                    ),
+              if (cartState.selectedTable != null)
+                ShadButton(
+                  onPressed: () => _showTablePicker(context, ref),
+                  leading: const Icon(TablerIcons.armchair, size: 18, color: Colors.black),
+                  child: Text(
+                    cartState.selectedTable!.name,
+                    style: const TextStyle(color: Colors.black),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        TablerIcons.armchair, 
-                        size: 20,
-                        color: cartState.selectedTable != null 
-                            ? const Color(0xFF98D100)
-                            : theme.colorScheme.foreground,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        cartState.selectedTable?.name ?? 'Meja',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: cartState.selectedTable != null 
-                              ? const Color(0xFF98D100)
-                              : theme.colorScheme.foreground,
-                        ),
-                      ),
-                    ],
-                  ),
+                )
+              else
+                ShadButton.outline(
+                  onPressed: () => _showTablePicker(context, ref),
+                  leading: const Icon(TablerIcons.armchair, size: 18),
+                  child: const Text('Meja'),
                 ),
-              ),
             ],
           ),
         ),
+        // Category Selector
+        _buildCategorySelector(categoriesAsync),
         Expanded(
           child: productsAsync.when(
             data: (products) {
-              final filteredProducts = products.where((p) =>
-                  p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                  (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)).toList();
+              var filteredProducts = products.where((p) =>
+                  (p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                  (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)) &&
+                  (_selectedCategoryId == null || p.categoryId == _selectedCategoryId)
+              ).toList();
+
+              // Apply sorting
+              switch (_sortOption) {
+                case 'name_asc':
+                  filteredProducts.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                  break;
+                case 'name_desc':
+                  filteredProducts.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+                  break;
+                case 'price_asc':
+                  filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+                  break;
+                case 'price_desc':
+                  filteredProducts.sort((a, b) => b.price.compareTo(a.price));
+                  break;
+                case 'stock_desc':
+                  filteredProducts.sort((a, b) => b.stockQuantity.compareTo(a.stockQuantity));
+                  break;
+              }
 
               if (filteredProducts.isEmpty) {
                 return const Center(child: Text('Produk tidak ditemukan'));
@@ -215,9 +238,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.8,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
                 ),
                 itemCount: filteredProducts.length,
                 itemBuilder: (context, index) {
@@ -237,30 +260,219 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         ),
         if (cartItems.isNotEmpty) _buildCartSummary(context, cartNotifier, currencyFormat),
       ],
+    ),
+    );
+  }
+
+  Widget _buildCategorySelector(AsyncValue<List<Category>> categoriesAsync) {
+    return categoriesAsync.when(
+      data: (categories) => Container(
+        height: 40,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          children: [
+            _buildSortButton(),
+            const SizedBox(width: 8),
+            _buildCategoryChip(null, 'Semua'),
+            ...categories.map((c) => _buildCategoryChip(c.supabaseId, c.name)),
+          ],
+        ),
+      ),
+      loading: () => const SizedBox(height: 40, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildCategoryChip(String? id, String name) {
+    final isSelected = _selectedCategoryId == id;
+    final theme = ShadTheme.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: InkWell(
+        onTap: () => setState(() => _selectedCategoryId = id),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF98D100) : theme.colorScheme.muted,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF98D100) : theme.colorScheme.border,
+            ),
+          ),
+          child: Text(
+            name,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? Colors.black : theme.colorScheme.foreground,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortButton() {
+    final theme = ShadTheme.of(context);
+    return InkWell(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (context) => _buildSortBottomSheet(),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.muted,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: theme.colorScheme.border,
+          ),
+        ),
+        child: Icon(TablerIcons.arrows_sort, size: 18, color: theme.colorScheme.foreground),
+      ),
+    );
+  }
+
+  Widget _buildSortBottomSheet() {
+    final theme = ShadTheme.of(context);
+    final options = [
+      {'label': 'Nama (A-Z)', 'value': 'name_asc'},
+      {'label': 'Nama (Z-A)', 'value': 'name_desc'},
+      {'label': 'Harga Terendah', 'value': 'price_asc'},
+      {'label': 'Harga Tertinggi', 'value': 'price_desc'},
+      {'label': 'Stok Terbanyak', 'value': 'stock_desc'},
+    ];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Urutkan Berdasarkan',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ...options.map((opt) => ListTile(
+                title: Text(opt['label']!),
+                contentPadding: EdgeInsets.zero,
+                trailing: _sortOption == opt['value'] 
+                    ? const Icon(TablerIcons.check, color: Color(0xFF98D100)) 
+                    : null,
+                onTap: () {
+                  setState(() => _sortOption = opt['value']!);
+                  Navigator.pop(context);
+                },
+              )),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildProductCard(BuildContext context, dynamic product, CartItem cartItem, CartNotifier cartNotifier, NumberFormat format) {
     final theme = ShadTheme.of(context);
+    final isLowStock = product.stockQuantity < 10;
+    
     return ShadCard(
       padding: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => cartNotifier.addItem(product),
+        onTap: product.stockQuantity > 0 ? () => cartNotifier.addItem(product) : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.muted,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                  image: product.imageUrl != null
-                      ? DecorationImage(image: NetworkImage(product.imageUrl!), fit: BoxFit.cover)
-                      : null,
-                ),
-                child: product.imageUrl == null
-                    ? const Center(child: Icon(TablerIcons.package, size: 40, color: Colors.grey))
-                    : null,
+              child: Stack(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.muted,
+                      image: product.imageUrl != null
+                          ? DecorationImage(image: NetworkImage(product.imageUrl!), fit: BoxFit.cover)
+                          : null,
+                    ),
+                    child: product.imageUrl == null
+                        ? const Center(child: Icon(TablerIcons.package, size: 40, color: Colors.grey))
+                        : null,
+                  ),
+                  if (cartItem.quantity > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF98D100),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${cartItem.quantity}',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  if (isLowStock && product.stockQuantity > 0)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Stok Menipis',
+                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    )
+                  else if (product.stockQuantity <= 0)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        child: const Center(
+                          child: Text(
+                            'HABIS',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(
@@ -268,31 +480,33 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    product.name, 
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), 
+                    maxLines: 2, 
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 4),
-                  Text(format.format(product.price), style: TextStyle(color: theme.colorScheme.mutedForeground, fontSize: 13, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 8),
-                  if (cartItem.quantity > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.foreground,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${cartItem.quantity}x',
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        format.format(product.price), 
                         style: TextStyle(
-                          color: theme.colorScheme.background,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary, 
+                          fontSize: 14, 
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    )
-                  else
-                    Text(
-                      'Stok: ${product.stockQuantity}',
-                      style: TextStyle(fontSize: 11, color: theme.colorScheme.mutedForeground),
-                    ),
+                      Text(
+                        '${product.stockQuantity} pcs',
+                        style: TextStyle(
+                          fontSize: 11, 
+                          color: theme.colorScheme.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -332,12 +546,13 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             const SizedBox(width: 16),
             ShadButton(
               onPressed: () {
+                FocusScope.of(context).unfocus();
                 showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const CartDetailSheet(),
-                );
+                ).then((_) => _searchFocusNode.unfocus());
               },
               child: const Text('Cek Detail'),
             ),

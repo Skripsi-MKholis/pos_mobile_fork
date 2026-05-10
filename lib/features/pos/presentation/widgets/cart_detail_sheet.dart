@@ -70,19 +70,59 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
     final format = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      padding: EdgeInsets.only(
+        left: 24, 
+        right: 24, 
+        top: 12, 
+        bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+          Center(
+            child: Container(
+              width: 48,
+              height: 5,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Detail Pesanan', style: theme.textTheme.h3),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Detail Pesanan', style: theme.textTheme.h3.copyWith(fontSize: 22)),
+                  if (cartState.selectedTable != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(TablerIcons.armchair, size: 14, color: theme.colorScheme.mutedForeground),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Meja: ${cartState.selectedTable!.name}',
+                            style: TextStyle(
+                              color: theme.colorScheme.mutedForeground,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
               ShadButton.ghost(
                 size: ShadButtonSize.sm,
                 onPressed: () => Navigator.pop(context),
@@ -90,30 +130,20 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
               ),
             ],
           ),
-          if (cartState.selectedTable != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  Icon(TablerIcons.armchair, size: 16, color: theme.colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Meja: ${cartState.selectedTable!.name}',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           const SizedBox(height: 24),
           if (cartItems.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40),
+              padding: const EdgeInsets.symmetric(vertical: 60),
               child: Column(
                 children: [
-                  Icon(TablerIcons.shopping_cart_off, size: 48, color: Colors.grey.shade300),
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.muted,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(TablerIcons.shopping_cart_off, size: 40, color: theme.colorScheme.mutedForeground),
+                  ),
                   const SizedBox(height: 16),
                   Text('Keranjang masih kosong', style: theme.textTheme.muted),
                 ],
@@ -121,43 +151,77 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
             )
           else ...[
             ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.35),
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
               child: ListView.builder(
                 shrinkWrap: true,
+                padding: EdgeInsets.zero,
                 itemCount: cartItems.length,
                 itemBuilder: (context, index) {
                   final item = cartItems[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade100),
+                    ),
                     child: Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                              Text('${item.quantity} x ${format.format(item.product.price)}', 
-                                style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                              Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              const SizedBox(height: 4),
+                              Text(format.format(item.product.price), 
+                                style: TextStyle(color: theme.colorScheme.mutedForeground, fontSize: 12)),
                             ],
                           ),
                         ),
-                        Text(format.format(item.subtotal), style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 12),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            ShadButton.outline(
-                              size: ShadButtonSize.sm,
-                              padding: EdgeInsets.zero,
-                              onPressed: () => ref.read(cartNotifierProvider.notifier).updateQuantity(item.product.supabaseId, item.quantity - 1),
-                              leading: const Icon(TablerIcons.minus, size: 16),
-                            ),
-                            const SizedBox(width: 4),
-                            ShadButton.outline(
-                              size: ShadButtonSize.sm,
-                              padding: EdgeInsets.zero,
-                              onPressed: () => ref.read(cartNotifierProvider.notifier).updateQuantity(item.product.supabaseId, item.quantity + 1),
-                              leading: const Icon(TablerIcons.plus, size: 16),
+                            Text(format.format(item.subtotal), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                            const SizedBox(height: 8),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => ref.read(cartNotifierProvider.notifier).updateQuantity(item.product.supabaseId, item.quantity - 1),
+                                      borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: Icon(TablerIcons.minus, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 36,
+                                    alignment: Alignment.center,
+                                    child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  ),
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => ref.read(cartNotifierProvider.notifier).updateQuantity(item.product.supabaseId, item.quantity + 1),
+                                      borderRadius: const BorderRadius.horizontal(right: Radius.circular(10)),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(10),
+                                        child: Icon(TablerIcons.plus, size: 18),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -167,52 +231,69 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                 },
               ),
             ),
-            const Divider(),
             const SizedBox(height: 16),
             
             // Voucher Section
             if (cartState.appliedVoucher == null)
-              Row(
-                children: [
-                  Expanded(
-                    child: ShadInput(
-                      controller: _voucherController,
-                      placeholder: const Text('Kode Voucher'),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ShadButton(
-                    onPressed: _isValidating ? null : _applyVoucher,
-                    child: _isValidating 
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Text('Pakai'),
-                  ),
-                ],
-              )
-            else
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF98D100).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF98D100).withValues(alpha: 0.3)),
+                  color: theme.colorScheme.muted,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(TablerIcons.ticket, color: Color(0xFF98D100)),
-                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ShadInput(
+                        controller: _voucherController,
+                        placeholder: const Text('Punya kode voucher?'),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: ShadDecoration(
+                          border: ShadBorder.none,
+                          focusedBorder: ShadBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ShadButton(
+                      onPressed: _isValidating ? null : _applyVoucher,
+                      child: _isValidating 
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Text('Pakai'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF98D100).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF98D100).withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF98D100),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(TablerIcons.ticket, color: Colors.black, size: 20),
+                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Voucher: ${cartState.appliedVoucher!.code}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           Text(
-                            'Diskon ${format.format(cartState.discountAmount)}',
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            'Hemat ${format.format(cartState.discountAmount)}',
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w500),
                           ),
                         ],
                       ),
@@ -226,51 +307,74 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
               ),
             if (_voucherError != null)
               Padding(
-                padding: const EdgeInsets.only(top: 4, left: 4),
-                child: Text(_voucherError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                padding: const EdgeInsets.only(top: 8, left: 4),
+                child: Row(
+                  children: [
+                    const Icon(TablerIcons.alert_circle, color: Colors.red, size: 14),
+                    const SizedBox(width: 4),
+                    Text(_voucherError!, style: const TextStyle(color: Colors.red, fontSize: 12)),
+                  ],
+                ),
               ),
               
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             
-            // Summary
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Subtotal', style: theme.textTheme.muted),
-                Text(format.format(cartState.subtotal)),
-              ],
-            ),
-            if (cartState.discountAmount > 0) ...[
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // Summary Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade100),
+              ),
+              child: Column(
                 children: [
-                  Text('Diskon Voucher', style: theme.textTheme.muted),
-                  Text('- ${format.format(cartState.discountAmount)}', style: const TextStyle(color: Colors.red)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Subtotal', style: TextStyle(color: theme.colorScheme.mutedForeground)),
+                      Text(format.format(cartState.subtotal), style: const TextStyle(fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                  if (cartState.discountAmount > 0) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Diskon Voucher', style: TextStyle(color: theme.colorScheme.mutedForeground)),
+                        Text('- ${format.format(cartState.discountAmount)}', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ],
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(height: 1),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total Bayar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(format.format(cartState.totalAmount), 
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.black)),
+                    ],
+                  ),
                 ],
               ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total Bayar', style: theme.textTheme.large.copyWith(fontWeight: FontWeight.w800)),
-                Text(format.format(cartState.totalAmount), 
-                  style: theme.textTheme.h3.copyWith(color: Colors.black, fontWeight: FontWeight.w900)),
-              ],
             ),
             
             const SizedBox(height: 24),
             ShadButton(
               size: ShadButtonSize.lg,
+              width: double.infinity,
               onPressed: () {
                 Navigator.pop(context);
                 context.push('/payment');
               },
-              child: const Text('Lanjut Pembayaran'),
+              child: const Text('Lanjut Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ],
+      ),
       ),
     );
   }
