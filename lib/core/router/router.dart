@@ -18,6 +18,7 @@ import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
@@ -165,6 +166,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
     ],
   );

@@ -5,6 +5,9 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -13,161 +16,406 @@ class AppDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
     final user = ref.watch(currentUserProvider);
-    final activeStoreAsync = ref.watch(activeStoreProvider);
-    final storesAsync = ref.watch(userStoresProvider);
+    final location = GoRouterState.of(context).matchedLocation;
 
     return Drawer(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: Colors.white,
+      width: MediaQuery.of(context).size.width * 0.8,
       child: SafeArea(
         child: Column(
           children: [
-            // HEADER - STORE SWITCHER
-            activeStoreAsync.when(
-              data: (activeStore) => _StoreSwitcherHeader(
-                activeStore: activeStore,
-                storesAsync: storesAsync,
-              ),
-              loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const SizedBox.shrink(),
-            ),
+            // HEADER - STORE SWITCHER (Optimized via Consumer)
+            const _StoreHeaderSection(),
 
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            const SizedBox(height: 12),
+            const Divider(height: 1),
 
             // MENU ITEMS
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.only(bottom: 24),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 children: [
-                  _buildSectionHeader(theme, 'ANALYTICS'),
-                  _buildDrawerItem(context, TablerIcons.layout_dashboard, 'Dashboard', '/dashboard'),
-                  
-                  const SizedBox(height: 20),
-                  _buildSectionHeader(theme, 'OPERASIONAL KASIR'),
-                  _buildDrawerItem(context, TablerIcons.shopping_cart, 'Kasir (POS)', '/pos'),
-                  _buildDrawerItem(context, TablerIcons.armchair, 'Manajemen Meja', '/tables', isSoon: true),
-                  _buildDrawerItem(context, TablerIcons.settings_2, 'Konfigurasi Meja', '/table-config', isSoon: true),
-                  _buildDrawerItem(context, TablerIcons.calendar_event, 'Reservasi', '/reservations', isSoon: true),
-                  _buildDrawerItem(context, TablerIcons.tools_kitchen_2, 'Dapur (KDS)', '/kds', isSoon: true),
-                  
-                  const SizedBox(height: 20),
-                  _buildSectionHeader(theme, 'KATALOG & STOK'),
-                  _buildDrawerItem(context, TablerIcons.box, 'Produk', '/products'),
-                  _buildDrawerItem(context, TablerIcons.category, 'Kategori', '/categories'),
-                  
-                  const SizedBox(height: 20),
-                  _buildSectionHeader(theme, 'LAPORAN'),
-                  _buildDrawerItem(context, TablerIcons.report_money, 'Laba Rugi', '/reports/profit-loss', isSoon: true),
-                  _buildDrawerItem(context, TablerIcons.history, 'Riwayat Transaksi', '/transactions'),
-                  
-                  const SizedBox(height: 20),
-                  _buildSectionHeader(theme, 'PENGATURAN'),
-                  _buildDrawerItem(context, TablerIcons.printer, 'Cetak & Struk', '/printer-settings'),
-                  _buildDrawerItem(context, TablerIcons.building_store, 'Informasi Toko', '/settings/store', isSoon: true),
-                  _buildDrawerItem(context, TablerIcons.settings, 'Modul & Fitur', '/settings/modules', isSoon: true),
-                  
-                  if (user?.appMetadata['role'] == 'admin') ...[
-                    const SizedBox(height: 20),
-                    _buildSectionHeader(theme, 'SUPER ADMIN'),
-                    _buildDrawerItem(context, TablerIcons.shield_check, 'Admin Dashboard', '/admin/dashboard', isSoon: true),
-                  ],
+                  _SectionHeader(title: 'ANALYTICS'),
+                  _DrawerItem(
+                    icon: TablerIcons.layout_dashboard,
+                    title: 'Dashboard',
+                    route: '/dashboard',
+                    currentLocation: location,
+                  ),
+                  _DrawerItem(
+                    icon: TablerIcons.chart_dots,
+                    title: 'Analitik',
+                    route: '/reports',
+                    currentLocation: location,
+                  ),
 
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Divider(height: 1, indent: 16, endIndent: 16),
+                  const _SectionSpacing(),
+                  _SectionHeader(title: 'OPERASIONAL KASIR'),
+                  _DrawerItem(
+                    icon: TablerIcons.shopping_cart,
+                    title: 'Kasir (POS)',
+                    route: '/pos',
+                    currentLocation: location,
                   ),
-                  _buildDrawerItem(
-                    context, 
-                    TablerIcons.logout, 
-                    'Keluar', 
-                    '', 
-                    color: Colors.red,
-                    onTap: () => _showLogoutConfirm(context, ref),
+                  _DrawerItem(
+                    icon: TablerIcons.history,
+                    title: 'Riwayat Transaksi',
+                    route: '/transactions',
+                    currentLocation: location,
                   ),
+                  _DrawerItem(
+                    icon: TablerIcons.armchair,
+                    title: 'Manajemen Meja',
+                    route: '/tables',
+                    currentLocation: location,
+                    isSoon: true,
+                  ),
+
+                  const _SectionSpacing(),
+                  _SectionHeader(title: 'KATALOG & STOK'),
+                  _DrawerItem(
+                    icon: TablerIcons.box,
+                    title: 'Daftar Produk',
+                    route: '/products',
+                    currentLocation: location,
+                  ),
+                  _DrawerItem(
+                    icon: TablerIcons.category,
+                    title: 'Kategori',
+                    route: '/categories',
+                    currentLocation: location,
+                  ),
+
+                  const _SectionSpacing(),
+                  _SectionHeader(title: 'PENGATURAN'),
+                  _DrawerItem(
+                    icon: TablerIcons.printer,
+                    title: 'Cetak & Struk',
+                    route: '/printer-settings',
+                    currentLocation: location,
+                  ),
+                  _DrawerItem(
+                    icon: TablerIcons.building_store,
+                    title: 'Informasi Toko',
+                    route: '/settings',
+                    currentLocation: location,
+                  ),
+
+                  if (user?.appMetadata['role'] == 'admin') ...[
+                    const _SectionSpacing(),
+                    _SectionHeader(title: 'SUPER ADMIN'),
+                    _DrawerItem(
+                      icon: TablerIcons.shield_check,
+                      title: 'Admin Panel',
+                      route: '/admin',
+                      currentLocation: location,
+                      isSoon: true,
+                    ),
+                  ],
                 ],
               ),
             ),
 
             const Divider(height: 1),
-            _buildUserFooter(context, ref, theme, user),
+            _UserFooter(user: user),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildSectionHeader(ShadThemeData theme, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      child: Text(
-        title,
-        style: theme.textTheme.muted.copyWith(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.1,
-        ),
-      ),
-    );
-  }
+class _StoreHeaderSection extends ConsumerWidget {
+  const _StoreHeaderSection();
 
-  Widget _buildDrawerItem(
-    BuildContext context, 
-    IconData icon, 
-    String title, 
-    String route, {
-    bool isSoon = false, 
-    Color? color,
-    VoidCallback? onTap,
-  }) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final activeStoreAsync = ref.watch(activeStoreProvider);
+    final storesAsync = ref.watch(userStoresProvider); // Watch to ensure data is fetched
     final theme = ShadTheme.of(context);
-    final bool isActive = route.isNotEmpty && GoRouterState.of(context).matchedLocation == route;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        tileColor: isActive ? theme.colorScheme.primary : null,
-        leading: Icon(
-          icon,
-          size: 20,
-          color: isActive ? Colors.white : (color ?? theme.colorScheme.mutedForeground),
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.list.copyWith(
-            color: isActive ? Colors.white : (color ?? theme.colorScheme.foreground),
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+    return activeStoreAsync.when(
+      data: (store) => Container(
+        padding: const EdgeInsets.all(20),
+        child: InkWell(
+          onTap: () {
+            _showStoreSwitcher(context, ref, storesAsync);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              _StoreIcon(logoUrl: store?['logo_url']),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      store?['name'] ?? 'Pilih Toko',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Tap untuk ganti outlet',
+                      style: theme.textTheme.muted.copyWith(fontSize: 10),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(TablerIcons.chevron_down, size: 16, color: Colors.black26),
+            ],
           ),
         ),
-        trailing: isSoon
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(4),
+      ),
+      loading: () => const LinearProgressIndicator(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  void _showStoreSwitcher(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<Map<String, dynamic>>> storesAsync,
+  ) {
+    showShadSheet(
+      context: context,
+      side: ShadSheetSide.bottom,
+      builder: (context) => ShadSheet(
+        title: const Text('Pilih Toko / Outlet'),
+        description: const Text('Pilih toko yang ingin Anda kelola sekarang.'),
+        child: Material(
+          color: Colors.transparent,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: storesAsync.when(
+              data: (stores) => stores.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Center(child: Text('Tidak ada toko ditemukan')),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ...stores.map(
+                          (s) => ListTile(
+                            leading: _StoreIcon(logoUrl: s['logo_url'], size: 32),
+                            title: Text(s['name'] ?? ''),
+                            onTap: () {
+                              ref.read(activeStoreProvider.notifier).selectStore(s);
+                              Navigator.pop(context);
+                              Navigator.pop(context); // Close drawer too
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+              loading: () => const Padding(
+                padding: EdgeInsets.all(40),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (err, _) => Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(child: Text('Gagal memuat: $err')),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.5,
+          color: Colors.black38,
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionSpacing extends StatelessWidget {
+  const _SectionSpacing();
+  @override
+  Widget build(BuildContext context) => const SizedBox(height: 16);
+}
+
+class _DrawerItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String route;
+  final String currentLocation;
+  final bool isSoon;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.title,
+    required this.route,
+    required this.currentLocation,
+    this.isSoon = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isActive = route.isNotEmpty && currentLocation.startsWith(route);
+    final theme = ShadTheme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          dense: true,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          selected: isActive,
+          selectedTileColor: Warna.primary.withOpacity(0.1),
+          leading: Icon(
+            icon,
+            size: 20,
+            color: isActive ? Warna.primary : Colors.black45,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              color: isActive ? Colors.black : Colors.black87,
+              fontSize: 14,
+              fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
+            ),
+          ),
+          trailing: isSoon
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'SOON',
+                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.w900),
+                  ),
+                )
+              : null,
+          onTap: isSoon
+              ? null
+              : () {
+                  Navigator.pop(context);
+                  if ([
+                    '/dashboard',
+                    '/pos',
+                    '/transactions',
+                    '/reports',
+                    '/settings',
+                  ].contains(route)) {
+                    context.go(route);
+                  } else {
+                    context.push(route);
+                  }
+                },
+        ),
+      ),
+    );
+  }
+}
+
+class _UserFooter extends ConsumerWidget {
+  final dynamic user;
+  const _UserFooter({this.user});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                context.push('/profile');
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Warna.primary,
+                      child: Text(
+                        user?.email?[0].toUpperCase() ?? 'U',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.email?.split('@')[0] ?? 'User',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            user?.email ?? '',
+                            style: const TextStyle(fontSize: 10, color: Colors.black45),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Text('Soon', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
-              )
-            : null,
-        onTap: isSoon ? null : (onTap ?? () {
-          Navigator.pop(context);
-          if (['/dashboard', '/pos', '/transactions', '/reports', '/settings'].contains(route)) {
-            context.go(route);
-          } else {
-            context.push(route);
-          }
-        }),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(
+              TablerIcons.logout,
+              size: 18,
+              color: Colors.redAccent,
+            ),
+            onPressed: () => _handleLogout(context, ref),
+          ),
+        ],
       ),
     );
   }
 
-  void _showLogoutConfirm(BuildContext context, WidgetRef ref) {
+  void _handleLogout(BuildContext context, WidgetRef ref) {
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Konfirmasi Keluar'),
-        description: const Text('Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.'),
+        description: const Text('Apakah Anda yakin ingin keluar?'),
         actions: [
           ShadButton.outline(
             onPressed: () => Navigator.pop(context),
@@ -184,237 +432,47 @@ class AppDrawer extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildUserFooter(BuildContext context, WidgetRef ref, ShadThemeData theme, dynamic user) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _showUserMenu(context, ref, theme),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
-                child: Center(
-                  child: Text(
-                    user?.email?[0].toUpperCase() ?? 'U',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.email?.split('@')[0] ?? 'User',
-                      style: theme.textTheme.h4.copyWith(fontSize: 15, fontWeight: FontWeight.bold),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      user?.email ?? '',
-                      style: theme.textTheme.muted.copyWith(fontSize: 11),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Icon(TablerIcons.dots_vertical, size: 16, color: theme.colorScheme.mutedForeground),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showUserMenu(BuildContext context, WidgetRef ref, ShadThemeData theme) {
-    showShadDialog(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: const Text('Akun Pengguna'),
-        description: const Text('Kelola sesi Anda di perangkat ini.'),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(TablerIcons.logout, color: Colors.red),
-              title: const Text('Keluar Aplikasi', style: TextStyle(color: Colors.red)),
-              onTap: () {
-                ref.read(authProvider.notifier).signOut();
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-class _StoreSwitcherHeader extends StatefulWidget {
-  final Map<String, dynamic>? activeStore;
-  final AsyncValue<List<Map<String, dynamic>>> storesAsync;
+class _StoreIcon extends StatelessWidget {
+  final String? logoUrl;
+  final double size;
 
-  const _StoreSwitcherHeader({required this.activeStore, required this.storesAsync});
-
-  @override
-  State<_StoreSwitcherHeader> createState() => _StoreSwitcherHeaderState();
-}
-
-class _StoreSwitcherHeaderState extends State<_StoreSwitcherHeader> {
-  final controller = ShadPopoverController();
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
+  const _StoreIcon({this.logoUrl, this.size = 44});
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-
-    return Consumer(
-      builder: (context, ref, child) => ShadPopover(
-        controller: controller,
-        popover: (context) => Container(
-          width: 250,
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('Stores', style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold)),
-              ),
-              widget.storesAsync.when(
-                data: (stores) => Column(
-                  children: [
-                    ...stores.map((store) {
-                      final isActive = store['id'] == widget.activeStore?['id'];
-                      return ListTile(
-                        leading: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(color: theme.colorScheme.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: (store['logo_url'] != null && store['logo_url'].toString().isNotEmpty == true)
-                                ? Image.network(
-                                    store['logo_url'],
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => Icon(TablerIcons.building_store, size: 16, color: theme.colorScheme.primary),
-                                  )
-                                : Icon(TablerIcons.building_store, size: 16, color: theme.colorScheme.primary),
-                          ),
-                        ),
-                        title: Text(store['name'], style: theme.textTheme.list.copyWith(fontSize: 14)),
-                        trailing: isActive ? Icon(TablerIcons.check, size: 16, color: theme.colorScheme.primary) : null,
-                        onTap: () {
-                          ref.read(activeStoreProvider.notifier).selectStore(store);
-                          controller.hide();
-                          Navigator.pop(context);
-                        },
-                      );
-                    }),
-                    const Divider(),
-                    ListTile(
-                      leading: const Icon(TablerIcons.layout_grid, size: 18),
-                      title: const Text('Lihat Semua Toko', style: TextStyle(fontSize: 13)),
-                      onTap: () {
-                        controller.hide();
-                        context.push('/select-store');
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(TablerIcons.plus, size: 18),
-                      title: const Text('Tambah Toko / Outlet', style: TextStyle(fontSize: 13)),
-                      onTap: () {},
-                    ),
-                  ],
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Padding(padding: EdgeInsets.all(8.0), child: Text('Gagal memuat toko')),
-              ),
-            ],
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.background,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => controller.toggle(),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(18),
-                        child: (widget.activeStore?['logo_url'] != null && widget.activeStore?['logo_url'].toString().isNotEmpty == true)
-                            ? Image.network(
-                                widget.activeStore?['logo_url'],
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(TablerIcons.building_store, color: Colors.white, size: 20),
-                              )
-                            : const Icon(TablerIcons.building_store, color: Colors.white, size: 20),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.activeStore?['name'] ?? 'Pilih Toko',
-                            style: theme.textTheme.h4.copyWith(fontSize: 15, fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text('Outlet Active', style: theme.textTheme.muted.copyWith(fontSize: 11)),
-                        ],
-                      ),
-                    ),
-                    Icon(TablerIcons.chevron_down, size: 16, color: theme.colorScheme.mutedForeground),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+    return Container(
+      height: size,
+      width: size,
+      decoration: BoxDecoration(
+        color: Warna.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(size * 0.22),
+        border: Border.all(color: Warna.primary.withOpacity(0.2), width: 1),
       ),
+      clipBehavior: Clip.antiAlias,
+      child: logoUrl != null && logoUrl!.isNotEmpty
+          ? CachedNetworkImage(
+              imageUrl: logoUrl!,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Center(
+                child: SizedBox(
+                  width: size * 0.4,
+                  height: size * 0.4,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              errorWidget: (context, url, error) => Icon(
+                TablerIcons.building_store,
+                color: Colors.black,
+                size: size * 0.5,
+              ),
+            )
+          : Icon(
+              TablerIcons.building_store,
+              color: Colors.black,
+              size: size * 0.5,
+            ),
     );
   }
 }

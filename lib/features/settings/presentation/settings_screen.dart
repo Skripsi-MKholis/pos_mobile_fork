@@ -45,7 +45,7 @@ class SettingsScreen extends ConsumerWidget {
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'AKUN & KEAMANAN', [
-                    _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () {}),
+                    _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () => context.push('/profile')),
                     _buildMenuItem(context, theme, TablerIcons.lock, 'Ganti Kata Sandi', () {}),
                   ]),
                   const SizedBox(height: 48),
