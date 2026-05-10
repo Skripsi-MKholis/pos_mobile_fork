@@ -7,6 +7,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 
 class ScaffoldWithNavBar extends ConsumerStatefulWidget {
   const ScaffoldWithNavBar({
@@ -73,9 +74,10 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       },
       child: Scaffold(
+        extendBody: true,
         drawer: const AppDrawer(),
         appBar: AppBar(
-          backgroundColor: theme.colorScheme.background,
+          backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
           title: Text(
@@ -97,43 +99,59 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         ),
         body: widget.navigationShell,
         bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.background,
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 20,
-                color: Colors.black.withOpacity(.1),
-              )
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8),
-              child: GNav(
-                rippleColor: theme.colorScheme.primary.withOpacity(0.1),
-                hoverColor: theme.colorScheme.primary.withOpacity(0.05),
-                gap: 6,
-                activeColor: theme.colorScheme.primary,
-                iconSize: 22,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                duration: const Duration(milliseconds: 400),
-                tabBackgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                color: theme.colorScheme.mutedForeground,
-                tabs: navItems.map((item) => GButton(
-                  icon: item['icon'],
-                  text: item['label'],
-                  textStyle: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+          height: 100, // Extra height to allow floating
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 24,
+                child: Container(
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.9), // Dark floating bar
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 20,
+                        color: Colors.black.withOpacity(.2),
+                        offset: const Offset(0, 10),
+                      )
+                    ],
                   ),
-                )).toList(),
-                selectedIndex: widget.navigationShell.currentIndex,
-                onTabChange: (index) {
-                  widget.navigationShell.goBranch(index);
-                },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: GNav(
+                      rippleColor: Colors.white10,
+                      hoverColor: Colors.white10,
+                      gap: 4,
+                      activeColor: Colors.white,
+                      iconSize: 20,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      duration: const Duration(milliseconds: 300),
+                      tabBackgroundColor: Warna.primary.withOpacity(0.8),
+                      color: Colors.white54,
+                      tabs: navItems
+                          .map((item) => GButton(
+                                icon: item['icon'],
+                                text: item['label'],
+                                textStyle: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ))
+                          .toList(),
+                      selectedIndex: widget.navigationShell.currentIndex,
+                      onTabChange: (index) {
+                        widget.navigationShell.goBranch(index);
+                      },
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
