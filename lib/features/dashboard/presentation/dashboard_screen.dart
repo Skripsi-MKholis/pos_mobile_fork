@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/features/reports/providers/analytics_provider.dart';
+import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -10,36 +16,77 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
+    final analyticsAsync = ref.watch(analyticsProvider);
+    final productsAsync = ref.watch(productNotifierProvider);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // KONFIGURASI & AKSES CEPAT
-          Text(
-            'KONFIGURASI & AKSES CEPAT',
-            style: theme.textTheme.muted.copyWith(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Ringkasan Toko',
+              style: theme.textTheme.h3.copyWith(
+                color: Colors.black,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1,
+              ),
             ),
+            Text(
+              DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(analyticsProvider.notifier).fetchAnalytics();
+          ref.read(productNotifierProvider.notifier).syncProducts();
+        },
+        color: Warna.primary,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStatsGrid(
+                analyticsAsync,
+                productsAsync,
+                currencyFormat,
+                theme,
+              ),
+              const SizedBox(height: 32),
+              _buildSalesPerformanceCard(analyticsAsync, theme),
+              const SizedBox(height: 32),
+              Text(
+                'AKSES CEPAT',
+                style: theme.textTheme.muted.copyWith(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildQuickAccessGrid(context, theme),
+              const SizedBox(height: 40),
+            ],
           ),
-          const SizedBox(height: 12),
-          _buildQuickAccessGrid(context, theme),
-
-          const SizedBox(height: 24),
-
-          // STATS GRID
-          _buildStatsGrid(context, theme),
-
-          const SizedBox(height: 24),
-
-          // SALES PERFORMANCE
-          _buildSalesPerformanceCard(context, theme),
-
-          const SizedBox(height: 20),
-        ],
+        ),
       ),
     );
   }
@@ -55,33 +102,31 @@ class DashboardScreen extends ConsumerWidget {
       children: [
         _buildAccessCard(
           theme,
-          TablerIcons.settings_automation,
-          'Modul & Fitur',
-          'Sesuaikan alat POS',
-          onTap: () => context.push('/settings/modules'),
-        ),
-        _buildAccessCard(
-          theme,
           TablerIcons.cash,
-          'Buka Kasir',
-          'Transaksi baru',
+          'Transaksi',
+          'Buka kasir baru',
           onTap: () => context.push('/pos'),
         ),
         _buildAccessCard(
           theme,
           TablerIcons.package,
-          'Kelola Stok',
-          'Input produk baru',
-          backgroundColor: const Color(0xFFFF6B00), // Orange from web
-          isInverse: true,
+          'Produk',
+          'Kelola stok barang',
           onTap: () => context.push('/products'),
         ),
         _buildAccessCard(
           theme,
-          TablerIcons.armchair,
-          'Monitoring Meja',
-          'Status okupansi',
-          onTap: () => context.push('/tables'),
+          TablerIcons.chart_dots,
+          'Laporan',
+          'Analisis performa',
+          onTap: () => context.push('/reports'),
+        ),
+        _buildAccessCard(
+          theme,
+          TablerIcons.settings,
+          'Pengaturan',
+          'Konfigurasi aplikasi',
+          onTap: () => context.push('/settings'),
         ),
       ],
     );
@@ -92,19 +137,10 @@ class DashboardScreen extends ConsumerWidget {
     IconData icon,
     String title,
     String subtitle, {
-    Color? backgroundColor,
-    bool isInverse = false,
     VoidCallback? onTap,
   }) {
-    final bg = backgroundColor ?? theme.colorScheme.card;
-    final textColor = isInverse ? Colors.white : theme.colorScheme.foreground;
-    final subColor = isInverse
-        ? Colors.white70
-        : theme.colorScheme.mutedForeground;
-
     return ShadCard(
       padding: EdgeInsets.zero,
-      backgroundColor: bg,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -120,20 +156,16 @@ class DashboardScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: isInverse
-                          ? Colors.white24
-                          : theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       icon,
                       size: 18,
-                      color: isInverse
-                          ? Colors.white
-                          : theme.colorScheme.primary,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
-                  Icon(TablerIcons.arrow_right, size: 14, color: subColor),
+                  Icon(TablerIcons.arrow_right, size: 14, color: theme.colorScheme.mutedForeground),
                 ],
               ),
               const Spacer(),
@@ -142,10 +174,10 @@ class DashboardScreen extends ConsumerWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
-                  color: textColor,
+                  color: theme.colorScheme.foreground,
                 ),
               ),
-              Text(subtitle, style: TextStyle(fontSize: 10, color: subColor)),
+              Text(subtitle, style: TextStyle(fontSize: 10, color: theme.colorScheme.mutedForeground)),
             ],
           ),
         ),
@@ -153,51 +185,75 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsGrid(BuildContext context, ShadThemeData theme) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
-      children: [
-        _buildStatCard(
-          theme,
-          'Total Pendapatan Hari Ini',
-          'Rp 0',
-          TablerIcons.wallet,
-          accentColor: theme.colorScheme.primary,
-        ),
-        _buildStatCard(
-          theme,
-          'Transaksi Selesai',
-          '0',
-          TablerIcons.shopping_cart,
-        ),
-        _buildStatCard(
-          theme,
-          'Stok Rendah',
-          '0',
-          TablerIcons.package,
-          accentColor: const Color(0xFFFF6B00),
-        ),
-        _buildStatCard(
-          theme,
-          'Estimasi Laba Kotor',
-          'Rp 0',
-          TablerIcons.chart_line,
-          accentColor: Colors.teal,
-        ),
-      ],
+  Widget _buildStatsGrid(
+    AsyncValue<AnalyticsState> analyticsAsync,
+    AsyncValue<List<dynamic>> productsAsync,
+    NumberFormat format,
+    ShadThemeData theme,
+  ) {
+    return analyticsAsync.when(
+      data: (analytics) {
+        final lowStockCount = productsAsync.when(
+          data: (products) =>
+              products.where((p) => (p.stockQuantity ?? 0) <= 5).length,
+          loading: () => 0,
+          error: (_, __) => 0,
+        );
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1.4,
+          children: [
+            _buildStatCard(
+              'Omzet Hari Ini',
+              format.format(
+                analytics.dailySales.isEmpty
+                    ? 0
+                    : analytics.dailySales.last['amount'],
+              ),
+              TablerIcons.wallet,
+              theme,
+              accentColor: theme.colorScheme.primary,
+            ),
+            _buildStatCard(
+              'Transaksi Selesai',
+              analytics.totalTransactions.toString(),
+              TablerIcons.shopping_cart,
+              theme,
+            ),
+            _buildStatCard(
+              'Stok Rendah',
+              lowStockCount.toString(),
+              TablerIcons.package,
+              theme,
+              accentColor: const Color(0xFFFF6B00),
+            ),
+            _buildStatCard(
+              'Estimasi Laba Kotor',
+              format.format(
+                analytics.totalRevenue * 0.3,
+              ),
+              TablerIcons.chart_line,
+              theme,
+              accentColor: Colors.teal,
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Text('Error: $err'),
     );
   }
 
   Widget _buildStatCard(
-    ShadThemeData theme,
     String title,
     String value,
-    IconData icon, {
+    IconData icon,
+    ShadThemeData theme, {
     Color? accentColor,
   }) {
     return ShadCard(
@@ -258,118 +314,97 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSalesPerformanceCard(BuildContext context, ShadThemeData theme) {
-    return ShadCard(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sales Performance',
-                    style: theme.textTheme.h4.copyWith(fontSize: 16),
-                  ),
-                  Text(
-                    'Revenue and Order flow',
-                    style: theme.textTheme.muted.copyWith(fontSize: 11),
-                  ),
+  Widget _buildSalesPerformanceCard(
+    AsyncValue<AnalyticsState> analyticsAsync,
+    ShadThemeData theme,
+  ) {
+    return analyticsAsync.when(
+      data: (state) => ShadCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Performa Penjualan',
+                      style: theme.textTheme.h4.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      'Tren omzet 7 hari terakhir',
+                      style: theme.textTheme.muted.copyWith(fontSize: 11),
+                    ),
+                  ],
+                ),
+                const Icon(TablerIcons.trending_up, color: Warna.success),
+              ],
+            ),
+            const SizedBox(height: 32),
+            SizedBox(height: 180, child: _buildDashboardChart(state, theme)),
+          ],
+        ),
+      ),
+      loading: () => Container(
+        height: 250,
+        color: theme.colorScheme.muted.withOpacity(0.1),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildDashboardChart(AnalyticsState state, ShadThemeData theme) {
+    if (state.dailySales.isEmpty) return const SizedBox();
+
+    final maxY = state.dailySales.fold<double>(
+      0,
+      (max, e) => e['amount'] > max ? (e['amount'] as num).toDouble() : max,
+    );
+
+    return LineChart(
+      LineChartData(
+        gridData: const FlGridData(show: false),
+        titlesData: const FlTitlesData(
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        borderData: FlBorderData(show: false),
+        lineBarsData: [
+          LineChartBarData(
+            spots: state.dailySales.asMap().entries.map((e) {
+              return FlSpot(
+                e.key.toDouble(),
+                (e.value['amount'] as num).toDouble(),
+              );
+            }).toList(),
+            isCurved: true,
+            color: theme.colorScheme.primary,
+            barWidth: 3,
+            isStrokeCapRound: true,
+            dotData: const FlDotData(show: false),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  theme.colorScheme.primary.withOpacity(0.2),
+                  theme.colorScheme.primary.withOpacity(0.0),
                 ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: const Text(
-                  'Last 30 days',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-          // CHART PLACEHOLDER
-          SizedBox(
-            height: 150,
-            width: double.infinity,
-            child: CustomPaint(
-              painter: SimpleChartPainter(theme.colorScheme.primary),
             ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ['Apr 7', 'Apr 17', 'Apr 27', 'May 5']
-                .map(
-                  (d) => Text(
-                    d,
-                    style: theme.textTheme.muted.copyWith(fontSize: 10),
-                  ),
-                )
-                .toList(),
-          ),
         ],
+        minY: 0,
+        maxY: maxY * 1.2,
       ),
-    );
+    ).animate().fadeIn(duration: 800.ms);
   }
-}
-
-class SimpleChartPainter extends CustomPainter {
-  final Color color;
-  SimpleChartPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [color.withOpacity(0.3), color.withOpacity(0.0)],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    final path = Path();
-    path.moveTo(0, size.height * 0.8);
-    path.quadraticBezierTo(
-      size.width * 0.2,
-      size.height * 0.85,
-      size.width * 0.4,
-      size.height * 0.7,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.6,
-      size.height * 0.5,
-      size.width * 0.7,
-      size.height * 0.1,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.8,
-      size.height * 0.5,
-      size.width * 0.9,
-      size.height * 0.75,
-    );
-    path.lineTo(size.width, size.height * 0.8);
-
-    final fillPath = Path.from(path);
-    fillPath.lineTo(size.width, size.height);
-    fillPath.lineTo(0, size.height);
-    fillPath.close();
-
-    canvas.drawPath(fillPath, fillPaint);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
