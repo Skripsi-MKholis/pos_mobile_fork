@@ -20,7 +20,7 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 );
 
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$authHash() => r'40b256cf933636b513e8f5e874aa60096363b1f9';
+String _$authHash() => r'397b0a6c86d1d25dd5b07ec1834cb66f0fd05f25';
 
 /// See also [Auth].
 @ProviderFor(Auth)

@@ -26,11 +26,13 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/onboarding',
     refreshListenable: _RouterRefreshNotifier(ref),
     redirect: (context, state) {
       // Gunakan ref.read di sini agar redirect bersifat reaktif terhadap data terbaru
@@ -39,6 +41,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthPage =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
+
+      final isFirstRunAsync = ref.read(onboardingNotifierProvider);
+
+      if (isFirstRunAsync.isLoading) return null;
+
+      final isFirstRun = isFirstRunAsync.value ?? true;
+
+      if (isFirstRun) {
+        if (state.matchedLocation != '/onboarding') {
+          return '/onboarding';
+        }
+        return null;
+      } else {
+        if (state.matchedLocation == '/onboarding') {
+          return '/login';
+        }
+      }
 
       if (!isLoggedIn) {
         return isAuthPage ? null : '/login';
@@ -65,6 +84,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
@@ -197,5 +220,6 @@ class _RouterRefreshNotifier extends ChangeNotifier {
     // Memantau perubahan tanpa merebuild notifier itu sendiri
     ref.listen(authProvider, (_, __) => notifyListeners());
     ref.listen(activeStoreProvider, (_, __) => notifyListeners());
+    ref.listen(onboardingNotifierProvider, (_, __) => notifyListeners());
   }
 }
