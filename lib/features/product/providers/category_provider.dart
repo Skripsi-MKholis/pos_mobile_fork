@@ -17,7 +17,13 @@ class CategoryNotifier extends _$CategoryNotifier {
 
   @override
   Future<List<Category>> build() async {
-    final channel = _listenToRealtimeChanges();
+    final activeStoreAsync = ref.watch(activeStoreProvider);
+    final activeStore = activeStoreAsync.value;
+    final storeId = activeStore?['id'];
+
+    if (storeId == null) return [];
+
+    final channel = _listenToRealtimeChanges(storeId);
     ref.onDispose(() {
       _supabase.removeChannel(channel);
     });
@@ -31,16 +37,21 @@ class CategoryNotifier extends _$CategoryNotifier {
 
     // Trigger initial background sync
     Future.microtask(() => syncCategories());
-    return _fetchLocalCategories();
+    return _fetchLocalCategories(storeId);
   }
 
-  RealtimeChannel _listenToRealtimeChanges() {
+  RealtimeChannel _listenToRealtimeChanges(String storeId) {
     return _supabase
-        .channel('public:categories')
+        .channel('public:categories:store:$storeId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'categories',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'store_id',
+            value: storeId,
+          ),
           callback: (payload) async {
             await syncCategories();
           },
@@ -48,23 +59,31 @@ class CategoryNotifier extends _$CategoryNotifier {
         .subscribe();
   }
 
-  Future<List<Category>> _fetchLocalCategories() async {
+  Future<List<Category>> _fetchLocalCategories(String storeId) async {
     return _isar
         .collection<Category>()
         .where()
         .filter()
+        .storeIdEqualTo(storeId)
         .isDeletedEqualTo(false)
         .findAll();
   }
 
   Future<void> syncCategories() async {
     try {
+      final activeStore = ref.read(activeStoreProvider).value;
+      final storeId = activeStore?['id'];
+      if (storeId == null) return;
+
       final isOnline =
           ref.read(connectivityNotifierProvider).value ==
           ConnectivityStatus.online;
       if (!isOnline) return;
 
-      final response = await _supabase.from('categories').select();
+      final response = await _supabase
+          .from('categories')
+          .select()
+          .eq('store_id', storeId);
 
       final categories = (response as List)
           .map(
@@ -101,7 +120,7 @@ class CategoryNotifier extends _$CategoryNotifier {
         }
       });
 
-      state = AsyncData(await _fetchLocalCategories());
+      state = AsyncData(await _fetchLocalCategories(storeId));
     } catch (e) {
       rethrow;
     }

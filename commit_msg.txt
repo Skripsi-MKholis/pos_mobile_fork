@@ -1,0 +1,22 @@
+feat: sync dashboard & reports analytics with time filtering and add pos clear cart
+
+Dashboard & Analytics Enhancements:
+- Added dynamic time range filters (Today, This Week, This Month) to the Dashboard.
+- Synchronized Reports screen UI with Dashboard (now showing 4 stat cards: Revenue, Transactions, Low Stock, and Active Products).
+- Updated AnalyticsNotifier to support store-based filtering and custom date ranges.
+- Implemented dynamic labels for stat cards that update based on the selected time filter.
+- Added interactive navigation to stat cards; clicking Low Stock or Active Products now redirects to the Inventory page.
+
+POS (Cashier) Improvements:
+- Added a "Clear Cart" button (Trash icon) in the bottom summary bar for quick cart reset.
+- Refined POS UI with improved button layouts and destructive color coding for the clear action.
+- Fixed an issue where the cart items were not correctly accessed from the notifier state.
+
+UI/UX & Visual Polish:
+- Redesigned the "Smart Analytics" button with a Gemini-inspired premium look (rainbow outline and gradient icon).
+- Standardized the visual style of stat cards across the app using ShadCard components.
+
+Multi-Store & System:
+- Improved store isolation to ensure products and categories only reflect the active store.
+- Enhanced session management by clearing active store state upon entering the Store Selection screen.
+- Restored and fixed several undefined variables and missing methods across presentation files.

@@ -19,7 +19,13 @@ class ProductNotifier extends _$ProductNotifier {
 
   @override
   Future<List<Product>> build() async {
-    final channel = _listenToRealtimeChanges();
+    final activeStoreAsync = ref.watch(activeStoreProvider);
+    final activeStore = activeStoreAsync.value;
+    final storeId = activeStore?['id'];
+
+    if (storeId == null) return [];
+
+    final channel = _listenToRealtimeChanges(storeId);
     ref.onDispose(() {
       _supabase.removeChannel(channel);
     });
@@ -33,16 +39,21 @@ class ProductNotifier extends _$ProductNotifier {
 
     // Trigger initial background sync
     Future.microtask(() => syncProducts());
-    return _fetchLocalProducts();
+    return _fetchLocalProducts(storeId);
   }
 
-  RealtimeChannel _listenToRealtimeChanges() {
+  RealtimeChannel _listenToRealtimeChanges(String storeId) {
     return _supabase
-        .channel('public:products')
+        .channel('public:products:store:$storeId')
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'products',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'store_id',
+            value: storeId,
+          ),
           callback: (payload) async {
             if (payload.newRecord.isNotEmpty) {
               final data = payload.newRecord;
@@ -92,18 +103,29 @@ class ProductNotifier extends _$ProductNotifier {
     );
   }
 
-  Future<List<Product>> _fetchLocalProducts() async {
-    return _isar.products.where().filter().isDeletedEqualTo(false).findAll();
+  Future<List<Product>> _fetchLocalProducts(String storeId) async {
+    return _isar.products
+        .where()
+        .filter()
+        .storeIdEqualTo(storeId)
+        .isDeletedEqualTo(false)
+        .findAll();
   }
-
   Future<void> syncProducts() async {
     try {
+      final activeStore = ref.read(activeStoreProvider).value;
+      final storeId = activeStore?['id'];
+      if (storeId == null) return;
+
       final isOnline =
           ref.read(connectivityNotifierProvider).value ==
           ConnectivityStatus.online;
       if (!isOnline) return;
 
-      final response = await _supabase.from('products').select();
+      final response = await _supabase
+          .from('products')
+          .select()
+          .eq('store_id', storeId);
       final products = (response as List)
           .map((data) => _mapSupabaseToProduct(data))
           .toList();
@@ -130,7 +152,7 @@ class ProductNotifier extends _$ProductNotifier {
         }
       });
 
-      state = AsyncData(await _fetchLocalProducts());
+      state = AsyncData(await _fetchLocalProducts(storeId));
     } catch (e) {
       rethrow;
     }

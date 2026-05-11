@@ -7,6 +7,7 @@ import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
@@ -219,25 +220,44 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                if (cartState.selectedTable != null)
-                  ShadButton(
-                    onPressed: () => _showTablePicker(context, ref),
-                    leading: const Icon(
-                      TablerIcons.armchair,
-                      size: 18,
-                      color: Colors.black,
-                    ),
-                    child: Text(
-                      cartState.selectedTable!.name,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  )
-                else
-                  ShadButton.outline(
-                    onPressed: () => _showTablePicker(context, ref),
-                    leading: const Icon(TablerIcons.armchair, size: 18),
-                    child: const Text('Meja'),
-                  ),
+                productsAsync.when(
+                  data: (products) {
+                    final activeStoreAsync = ref.watch(activeStoreProvider);
+                    final activeStore = activeStoreAsync.value;
+                    final settings =
+                        activeStore?['settings'] as Map<String, dynamic>?;
+                    final features =
+                        settings?['features'] as Map<String, dynamic>?;
+                    final hasTables =
+                        features?['tables'] ??
+                        true; // Default to true if not specified
+
+                    if (!hasTables) return const SizedBox.shrink();
+
+                    if (cartState.selectedTable != null) {
+                      return ShadButton(
+                        onPressed: () => _showTablePicker(context, ref),
+                        leading: const Icon(
+                          TablerIcons.armchair,
+                          size: 18,
+                          color: Colors.black,
+                        ),
+                        child: Text(
+                          cartState.selectedTable!.name,
+                          style: const TextStyle(color: Colors.black),
+                        ),
+                      );
+                    } else {
+                      return ShadButton.outline(
+                        onPressed: () => _showTablePicker(context, ref),
+                        leading: const Icon(TablerIcons.armchair, size: 18),
+                        child: const Text('Meja'),
+                      );
+                    }
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
               ],
             ),
           ),
@@ -302,8 +322,68 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       break;
                   }
 
+                  if (products.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            TablerIcons.package,
+                            size: 80,
+                            color: Colors.grey[200],
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Belum ada produk',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Tambahkan produk pertama Anda untuk\nmulai berjualan.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          const SizedBox(height: 24),
+                          ShadButton(
+                            onPressed: () => context.push('/products/add'),
+                            leading: const Icon(TablerIcons.plus, size: 18),
+                            child: const Text('Tambah Produk'),
+                          ),
+                          const SizedBox(height: 12),
+                          ShadButton.outline(
+                            onPressed: () => context.push('/products'),
+                            leading: const Icon(TablerIcons.settings, size: 18),
+                            child: const Text('Kelola Produk'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   if (filteredProducts.isEmpty) {
-                    return const Center(child: Text('Produk tidak ditemukan'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            TablerIcons.search_off,
+                            size: 48,
+                            color: Colors.grey[300],
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Produk tidak ditemukan',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   }
 
                   return GridView.builder(
@@ -691,6 +771,24 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               ),
             ),
             const SizedBox(width: 16),
+            if (cartNotifier.totalItems > 0) ...[
+              ShadIconButton.outline(
+                onPressed: () => cartNotifier.clearCart(),
+                icon: const Icon(
+                  TablerIcons.trash,
+                  size: 18,
+                  color: Colors.red,
+                ),
+                width: 48,
+                decoration: ShadDecoration(
+                  border: ShadBorder.all(
+                    color: theme.colorScheme.destructive,
+                    width: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             ShadButton(
               onPressed: () {
                 FocusScope.of(context).unfocus();

@@ -8,6 +8,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ReportsScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class ReportsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsAsync = ref.watch(analyticsProvider);
+    final productsAsync = ref.watch(productNotifierProvider);
     final theme = ShadTheme.of(context);
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
@@ -39,9 +41,11 @@ class ReportsScreen extends ConsumerWidget {
                   children: [
                     _buildSmartAnalyticsButton(context, theme),
                     const SizedBox(height: 24),
+                    _buildTimeFilter(ref, theme),
+                    const SizedBox(height: 24),
                     analyticsAsync.when(
                       data: (state) =>
-                          _buildAnalyticsContent(state, currencyFormat, theme),
+                          _buildAnalyticsContent(context, state, productsAsync, currencyFormat, theme),
                       loading: () => _buildLoadingState(theme),
                       error: (err, _) => Center(child: Text('Error: $err')),
                     ),
@@ -81,88 +85,121 @@ class ReportsScreen extends ConsumerWidget {
 
   Widget _buildSmartAnalyticsButton(BuildContext context, ShadThemeData theme) {
     return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Warna.primary, Warna.primary.withOpacity(0.7)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Warna.primary.withOpacity(0.3),
-                blurRadius: 15,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => context.push('/reports/smart'),
-              borderRadius: BorderRadius.circular(20),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        TablerIcons.sparkles,
-                        color: Colors.black,
-                        size: 28,
-                      ),
+      padding: const EdgeInsets.all(1.5), // Border thickness
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF4285F4), // Google Blue
+            Color(0xFF9B72CB), // Purple
+            Color(0xFFD96570), // Red/Pink
+            Color(0xFFF4AF5F), // Yellow/Orange
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22.5),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => context.push('/reports/smart'),
+            borderRadius: BorderRadius.circular(22.5),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFF4285F4),
+                        Color(0xFF9B72CB),
+                        Color(0xFFD96570),
+                      ],
+                    ).createShader(bounds),
+                    child: const Icon(
+                      TablerIcons.sparkles,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Smart Analitik',
-                            style: theme.textTheme.h4.copyWith(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w900,
-                            ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Smart Analitik',
+                          style: theme.textTheme.h4.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            letterSpacing: -0.5,
                           ),
-                          Text(
-                            'Dapatkan prediksi & saran stok otomatis',
-                            style: theme.textTheme.muted.copyWith(
-                              color: Colors.black54,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        Text(
+                          'Prediksi stok & tren dengan AI',
+                          style: theme.textTheme.muted.copyWith(
+                            fontSize: 11,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const Icon(TablerIcons.chevron_right, color: Colors.black),
-                  ],
-                ),
+                  ),
+                  Icon(
+                    TablerIcons.chevron_right,
+                    color: theme.colorScheme.mutedForeground,
+                    size: 18,
+                  ),
+                ],
               ),
             ),
           ),
-        )
-        .animate(onPlay: (c) => c.repeat(reverse: true))
-        .shimmer(duration: 3.seconds, color: Colors.white.withOpacity(0.2));
+        ),
+      ),
+    ).animate(onPlay: (c) => c.repeat())
+     .shimmer(duration: 3.seconds, color: Colors.blue.withOpacity(0.05));
   }
 
   Widget _buildAnalyticsContent(
+    BuildContext context,
     AnalyticsState state,
+    AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
     ShadThemeData theme,
   ) {
+    String revenueLabel = 'Omzet Hari Ini';
+    String txLabel = 'Transaksi Hari Ini';
+    String trendLabel = 'TREN PENJUALAN (HARI INI)';
+
+    switch (state.timeRange) {
+      case AnalyticsTimeRange.today:
+        revenueLabel = 'Omzet Hari Ini';
+        txLabel = 'Transaksi Hari Ini';
+        trendLabel = 'TREN PENJUALAN (HARI INI)';
+        break;
+      case AnalyticsTimeRange.week:
+        revenueLabel = 'Omzet Minggu Ini';
+        txLabel = 'Transaksi Minggu Ini';
+        trendLabel = 'TREN PENJUALAN (7 HARI)';
+        break;
+      case AnalyticsTimeRange.month:
+        revenueLabel = 'Omzet Bulan Ini';
+        txLabel = 'Transaksi Bulan Ini';
+        trendLabel = 'TREN PENJUALAN (BULAN INI)';
+        break;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildStatsGrid(state, format, theme),
+        _buildStatsGrid(context, state, productsAsync, format, theme, revenueLabel, txLabel),
         const SizedBox(height: 32),
         Text(
-          'TREN PENJUALAN (7 HARI)',
+          trendLabel,
           style: theme.textTheme.small.copyWith(
             fontWeight: FontWeight.w900,
             color: theme.colorScheme.mutedForeground,
@@ -190,69 +227,149 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildStatsGrid(
+    BuildContext context,
     AnalyticsState state,
+    AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
     ShadThemeData theme,
+    String revenueLabel,
+    String txLabel,
   ) {
-    return Row(
+    final products = productsAsync.value;
+    final isLoading = state.isLoading;
+    final isProductsLoading = productsAsync.isLoading;
+
+    final lowStockCount = products == null
+        ? 0
+        : products.where((p) => (p.stockQuantity ?? 0) <= 5).length;
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.4,
       children: [
-        Expanded(
-          child: _buildStatCard(
-            'Total Omzet',
-            format.format(state.totalRevenue),
-            theme,
-          ),
+        _buildStatCard(
+          revenueLabel,
+          format.format(state.totalRevenue),
+          TablerIcons.wallet,
+          theme,
+          accentColor: theme.colorScheme.primary,
+          isLoading: isLoading,
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            'Transaksi',
-            state.totalTransactions.toString(),
-            theme,
-          ),
+        _buildStatCard(
+          txLabel,
+          state.totalTransactions.toString(),
+          TablerIcons.shopping_cart,
+          theme,
+          isLoading: isLoading,
+        ),
+        _buildStatCard(
+          'Stok Rendah',
+          lowStockCount.toString(),
+          TablerIcons.package,
+          theme,
+          accentColor: const Color(0xFFFF6B00),
+          isLoading: isProductsLoading,
+          onTap: () => context.go('/inventory'),
+        ),
+        _buildStatCard(
+          'Produk Aktif',
+          (products?.length ?? 0).toString(),
+          TablerIcons.box,
+          theme,
+          isLoading: isProductsLoading,
+          onTap: () => context.go('/inventory'),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, ShadThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.border.withOpacity(0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.small.copyWith(
-              color: theme.colorScheme.mutedForeground,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
-            ),
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    ShadThemeData theme, {
+    Color? accentColor,
+    bool isLoading = false,
+    VoidCallback? onTap,
+  }) {
+    return ShadCard(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: accentColor ?? theme.colorScheme.mutedForeground,
+                  ),
+                ],
+              ),
+              const Spacer(),
+              if (isLoading)
+                Shimmer.fromColors(
+                  baseColor: theme.colorScheme.muted.withOpacity(0.5),
+                  highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                  child: Container(
+                    height: 24,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  value,
+                  style: theme.textTheme.h4.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: accentColor ?? theme.colorScheme.foreground,
+                  ),
+                ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    TablerIcons.chart_arrows_vertical,
+                    size: 10,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Real-time data',
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.h4.copyWith(
-              fontWeight: FontWeight.w900,
-              color: Colors.black,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            height: 4,
-            width: 24,
-            decoration: BoxDecoration(
-              color: Warna.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -417,6 +534,80 @@ class ReportsScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTimeFilter(WidgetRef ref, ShadThemeData theme) {
+    final analytics = ref.watch(analyticsProvider).value;
+    final currentRange = analytics?.timeRange ?? AnalyticsTimeRange.week;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildFilterChip(
+            ref,
+            'Hari Ini',
+            AnalyticsTimeRange.today,
+            currentRange == AnalyticsTimeRange.today,
+          ),
+          _buildFilterChip(
+            ref,
+            'Minggu Ini',
+            AnalyticsTimeRange.week,
+            currentRange == AnalyticsTimeRange.week,
+          ),
+          _buildFilterChip(
+            ref,
+            'Bulan Ini',
+            AnalyticsTimeRange.month,
+            currentRange == AnalyticsTimeRange.month,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+    WidgetRef ref,
+    String label,
+    AnalyticsTimeRange range,
+    bool isSelected,
+  ) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => ref.read(analyticsProvider.notifier).fetchAnalytics(range),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.black : Colors.grey[600],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

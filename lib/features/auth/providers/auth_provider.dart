@@ -1,6 +1,7 @@
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'auth_provider.g.dart';
 
@@ -18,10 +19,11 @@ class Auth extends _$Auth {
     );
   }
 
-  Future<void> signUp(String email, String password) async {
+  Future<void> signUp(String email, String password, {Map<String, dynamic>? data}) async {
     await Supabase.instance.client.auth.signUp(
       email: email,
       password: password,
+      data: data,
     );
   }
 
@@ -47,6 +49,8 @@ class Auth extends _$Auth {
   }
 
   Future<void> signOut() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('active_store_id');
     await Supabase.instance.client.auth.signOut();
     await GoogleSignIn().signOut();
   }

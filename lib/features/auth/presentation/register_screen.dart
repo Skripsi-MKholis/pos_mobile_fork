@@ -33,6 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       await ref.read(authProvider.notifier).signUp(
             _emailController.text.trim(),
             _passwordController.text.trim(),
+            data: {'full_name': _nameController.text.trim()},
           );
       if (mounted) {
         ShadToaster.of(context).show(

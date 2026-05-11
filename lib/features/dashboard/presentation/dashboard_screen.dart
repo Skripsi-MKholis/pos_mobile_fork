@@ -9,6 +9,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -42,7 +43,12 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildHeader(theme),
+                const SizedBox(height: 24),
+                _buildTimeFilter(ref, theme),
+                const SizedBox(height: 16),
                 _buildStatsGrid(
+                  context,
                   analyticsAsync,
                   productsAsync,
                   currencyFormat,
@@ -60,7 +66,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
                 const SizedBox(height: 16),
-                _buildQuickAccessGrid(context, theme),
+                _buildQuickAccessGrid(context, theme, ref),
                 const SizedBox(height: 85),
               ],
             ),
@@ -70,7 +76,16 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickAccessGrid(BuildContext context, ShadThemeData theme) {
+  Widget _buildQuickAccessGrid(BuildContext context, ShadThemeData theme, WidgetRef ref) {
+    final activeStoreAsync = ref.watch(activeStoreProvider);
+    final activeStore = activeStoreAsync.value;
+    final settings = activeStore?['settings'] as Map<String, dynamic>?;
+    final features = settings?['features'] as Map<String, dynamic>?;
+    final businessModel = settings?['business_model'] as String?;
+    
+    final hasTables = features?['tables'] == true;
+    final hasKds = features?['kds'] == true;
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -93,6 +108,22 @@ class DashboardScreen extends ConsumerWidget {
           'Kelola stok barang',
           onTap: () => context.push('/products'),
         ),
+        if (hasTables)
+          _buildAccessCard(
+            theme,
+            TablerIcons.armchair,
+            'Manajemen Meja',
+            'Atur layout meja',
+            onTap: () => context.push('/tables'), // Assuming this route exists
+          ),
+        if (hasKds)
+          _buildAccessCard(
+            theme,
+            TablerIcons.device_desktop,
+            'Monitor Dapur',
+            'KDS Display',
+            onTap: () => context.push('/kds'), // Assuming this route exists
+          ),
         _buildAccessCard(
           theme,
           TablerIcons.chart_dots,
@@ -175,6 +206,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildStatsGrid(
+    BuildContext context,
     AsyncValue<AnalyticsState> analyticsAsync,
     AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
@@ -188,13 +220,28 @@ class DashboardScreen extends ConsumerWidget {
     final lowStockCount = products == null
         ? 0
         : products.where((p) => (p.stockQuantity ?? 0) <= 5).length;
-    final todayRevenue = analytics == null
-        ? 0
-        : (analytics.dailySales.isEmpty
-            ? 0
-            : analytics.dailySales.last['amount']);
     final totalTransactions = analytics == null ? 0 : analytics.totalTransactions;
     final totalRevenue = analytics == null ? 0 : analytics.totalRevenue;
+
+    final range = analytics?.timeRange ?? AnalyticsTimeRange.week;
+    
+    String revenueLabel = 'Omzet Hari Ini';
+    String txLabel = 'Transaksi Selesai';
+
+    switch (range) {
+      case AnalyticsTimeRange.today:
+        revenueLabel = 'Omzet Hari Ini';
+        txLabel = 'Transaksi Hari Ini';
+        break;
+      case AnalyticsTimeRange.week:
+        revenueLabel = 'Omzet Minggu Ini';
+        txLabel = 'Transaksi Minggu Ini';
+        break;
+      case AnalyticsTimeRange.month:
+        revenueLabel = 'Omzet Bulan Ini';
+        txLabel = 'Transaksi Bulan Ini';
+        break;
+    }
 
     return GridView.count(
       shrinkWrap: true,
@@ -205,15 +252,15 @@ class DashboardScreen extends ConsumerWidget {
       childAspectRatio: 1.4,
       children: [
         _buildStatCard(
-          'Omzet Hari Ini',
-          format.format(todayRevenue),
+          revenueLabel,
+          format.format(totalRevenue),
           TablerIcons.wallet,
           theme,
           accentColor: theme.colorScheme.primary,
           isLoading: isLoading,
         ),
         _buildStatCard(
-          'Transaksi Selesai',
+          txLabel,
           totalTransactions.toString(),
           TablerIcons.shopping_cart,
           theme,
@@ -226,16 +273,114 @@ class DashboardScreen extends ConsumerWidget {
           theme,
           accentColor: const Color(0xFFFF6B00),
           isLoading: isProductsLoading,
+          onTap: () => context.go('/inventory'),
         ),
         _buildStatCard(
-          'Estimasi Laba Kotor',
-          format.format(totalRevenue * 0.3),
-          TablerIcons.chart_line,
+          'Produk Aktif',
+          (products?.length ?? 0).toString(),
+          TablerIcons.box,
           theme,
-          accentColor: Colors.teal,
-          isLoading: isLoading,
+          isLoading: isProductsLoading,
+          onTap: () => context.go('/inventory'),
         ),
       ],
+    );
+  }
+
+  Widget _buildHeader(ShadThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'DASHBOARD',
+          style: theme.textTheme.muted.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2.0,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Ringkasan Performa',
+          style: theme.textTheme.h3.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeFilter(WidgetRef ref, ShadThemeData theme) {
+    final analytics = ref.watch(analyticsProvider).value;
+    final currentRange = analytics?.timeRange ?? AnalyticsTimeRange.week;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildFilterChip(
+            ref,
+            'Hari Ini',
+            AnalyticsTimeRange.today,
+            currentRange == AnalyticsTimeRange.today,
+          ),
+          _buildFilterChip(
+            ref,
+            'Minggu Ini',
+            AnalyticsTimeRange.week,
+            currentRange == AnalyticsTimeRange.week,
+          ),
+          _buildFilterChip(
+            ref,
+            'Bulan Ini',
+            AnalyticsTimeRange.month,
+            currentRange == AnalyticsTimeRange.month,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(
+    WidgetRef ref,
+    String label,
+    AnalyticsTimeRange range,
+    bool isSelected,
+  ) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => ref.read(analyticsProvider.notifier).fetchAnalytics(range),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? Colors.black : Colors.grey[600],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -246,75 +391,82 @@ class DashboardScreen extends ConsumerWidget {
     ShadThemeData theme, {
     Color? accentColor,
     bool isLoading = false,
+    VoidCallback? onTap,
   }) {
     return ShadCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.muted.copyWith(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                  Icon(
+                    icon,
+                    size: 14,
+                    color: accentColor ?? theme.colorScheme.mutedForeground,
+                  ),
+                ],
               ),
-              Icon(
-                icon,
-                size: 14,
-                color: accentColor ?? theme.colorScheme.mutedForeground,
+              const Spacer(),
+              if (isLoading)
+                Shimmer.fromColors(
+                  baseColor: theme.colorScheme.muted.withOpacity(0.5),
+                  highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                  child: Container(
+                    height: 24,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                )
+              else
+                Text(
+                  value,
+                  style: theme.textTheme.h4.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: accentColor ?? theme.colorScheme.foreground,
+                  ),
+                ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    TablerIcons.chart_arrows_vertical,
+                    size: 10,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Real-time data',
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const Spacer(),
-          if (isLoading)
-            Shimmer.fromColors(
-              baseColor: theme.colorScheme.muted.withOpacity(0.5),
-              highlightColor: theme.colorScheme.muted.withOpacity(0.2),
-              child: Container(
-                height: 24,
-                width: 80,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            )
-          else
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: accentColor ?? theme.colorScheme.foreground,
-              ),
-            ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                TablerIcons.chart_arrows_vertical,
-                size: 10,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Real-time data',
-                style: TextStyle(
-                  fontSize: 8,
-                  color: theme.colorScheme.mutedForeground,
-                ),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

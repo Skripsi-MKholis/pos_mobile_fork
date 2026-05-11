@@ -47,6 +47,13 @@ class _DrawerMenuContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     
+    final activeStoreAsync = ref.watch(activeStoreProvider);
+    final activeStore = activeStoreAsync.value;
+    final settings = activeStore?['settings'] as Map<String, dynamic>?;
+    final features = settings?['features'] as Map<String, dynamic>?;
+    
+    final hasTables = features?['tables'] == true;
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -75,12 +82,12 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Riwayat Transaksi',
           route: '/transactions',
         ),
-        const _DrawerItem(
-          icon: TablerIcons.armchair,
-          title: 'Manajemen Meja',
-          route: '/tables',
-          isSoon: true,
-        ),
+        if (hasTables)
+          const _DrawerItem(
+            icon: TablerIcons.armchair,
+            title: 'Manajemen Meja',
+            route: '/tables',
+          ),
 
         const _SectionSpacing(),
         const _SectionHeader(title: 'KATALOG & STOK'),
@@ -232,6 +239,40 @@ class _StoreHeaderSection extends ConsumerWidget {
                               Navigator.pop(context);
                               Navigator.pop(context); // Close drawer too
                             },
+                          ),
+                        ),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.pop(context); // Close sheet
+                              Navigator.pop(context); // Close drawer
+                              context.go('/select-store');
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: Warna.primary.withOpacity(0.1),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(TablerIcons.settings, size: 20, color: Colors.black87),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Kelola / Tambah Toko',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),

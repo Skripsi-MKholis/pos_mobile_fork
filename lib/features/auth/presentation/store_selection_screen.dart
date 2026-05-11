@@ -7,11 +7,25 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
-class StoreSelectionScreen extends ConsumerWidget {
+class StoreSelectionScreen extends ConsumerStatefulWidget {
   const StoreSelectionScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StoreSelectionScreen> createState() => _StoreSelectionScreenState();
+}
+
+class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Clear active store when entering this screen
+    Future.microtask(() {
+      ref.read(activeStoreProvider.notifier).clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final storesAsync = ref.watch(userStoresProvider);
@@ -161,15 +175,11 @@ class StoreSelectionScreen extends ConsumerWidget {
 
                   const SizedBox(height: 12),
 
-                  // Register New Store Button
+                   // Register New Store Button
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () {
-                        ShadToaster.of(context).show(const ShadToast(
-                          description: Text('Fitur pendaftaran toko segera hadir!'),
-                        ));
-                      },
+                      onPressed: () => context.push('/create-store'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         side: BorderSide(color: primaryColor, width: 1.5),
@@ -203,8 +213,8 @@ class StoreSelectionScreen extends ConsumerWidget {
     Map<String, dynamic> store,
     Color primaryColor,
   ) {
-    // Simulasi peran untuk demo sesuai gambar
-    final bool isOwner = store['role'] == 'owner' || store['id'] == 'owner-demo-id';
+    final String role = store['user_role'] ?? 'Staff';
+    final bool isOwner = role.toLowerCase() == 'owner';
     
     return Container(
       decoration: BoxDecoration(
@@ -270,7 +280,7 @@ class StoreSelectionScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text.rich(
                         TextSpan(
-                          text: isOwner ? 'OWNER' : 'KARYAWAN',
+                          text: role.toUpperCase(),
                           style: TextStyle(
                             color: primaryColor,
                             fontWeight: FontWeight.bold,

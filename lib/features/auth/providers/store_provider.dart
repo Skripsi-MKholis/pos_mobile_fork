@@ -15,12 +15,19 @@ class ActiveStore extends _$ActiveStore {
 
   @override
   FutureOr<Map<String, dynamic>?> build() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return null;
+
     final prefs = await SharedPreferences.getInstance();
     final savedId = prefs.getString(_storageKey);
     
     if (savedId != null) {
-      // 1. Try Isar first (Works offline)
-      final localStore = await _isar.stores.filter().supabaseIdEqualTo(savedId).findFirst();
+      // 1. Try Isar first
+      final localStore = await _isar.stores.filter()
+          .supabaseIdEqualTo(savedId)
+          .and()
+          .group((q) => q.ownerIdEqualTo(user.id).or().userRoleIsNotNull())
+          .findFirst();
       
       // 2. If online, update from Supabase
       final connectivity = ref.read(connectivityNotifierProvider).value;
@@ -58,6 +65,55 @@ class ActiveStore extends _$ActiveStore {
     state = AsyncData(storeMap);
   }
 
+  Future<void> createStore({
+    required String name,
+    required String address,
+    required String businessType,
+  }) async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) throw 'User not authenticated';
+
+    // 1. Insert into stores
+    final storeResponse = await supabase.from('stores').insert({
+      'name': name,
+      'address': address,
+      'business_type': businessType,
+      'owner_id': user.id,
+      'settings': {
+        'features': {
+          'kds': businessType == 'Restaurant' || businessType == 'Cafe',
+          'tables': businessType == 'Restaurant',
+          'customers': true,
+          'promotions': true,
+          'reservations': businessType == 'Restaurant',
+        },
+        'operational': {
+          'business_model': businessType.toLowerCase(),
+        }
+      }
+    }).select().single();
+
+    final storeId = storeResponse['id'];
+
+    // 2. Insert into store_members
+    await supabase.from('store_members').insert({
+      'user_id': user.id,
+      'store_id': storeId,
+      'role': 'Owner',
+      'status': 'active',
+    });
+
+    // 3. Update users table
+    await supabase.from('users').update({'store_id': storeId}).eq('id', user.id);
+
+    // 4. Select the store
+    await selectStore(storeResponse);
+    
+    // 5. Refresh user stores list
+    ref.invalidate(userStoresProvider);
+  }
+
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
@@ -81,34 +137,24 @@ Future<List<Map<String, dynamic>>> userStores(UserStoresRef ref) async {
   // 2. If online, fetch from Supabase and sync
   if (connectivity == ConnectivityStatus.online) {
     try {
-      final memberStoreData = await supabase
+      final response = await supabase
           .from('store_members')
-          .select('store_id')
+          .select('role, stores:stores(*)')
           .eq('user_id', user.id);
       
-      final memberStoreIds = (memberStoreData as List)
-          .map((m) => m['store_id'] as String)
-          .toList();
+      final stores = (response as List).map((item) {
+        final storeMap = Map<String, dynamic>.from(item['stores']);
+        storeMap['user_role'] = item['role']; // Add role to the store map
+        return storeMap;
+      }).toList();
 
-      List<dynamic> remoteStores;
-      if (memberStoreIds.isNotEmpty) {
-        remoteStores = await supabase
-            .from('stores')
-            .select()
-            .or('id.in.(${memberStoreIds.join(',')}),owner_id.eq.${user.id}');
-      } else {
-        remoteStores = await supabase
-            .from('stores')
-            .select()
-            .eq('owner_id', user.id);
-      }
-
-      final stores = List<Map<String, dynamic>>.from(remoteStores);
-
-      // Save all to Isar
+      // Save all to Isar (Note: Isar model might need user_role if we want it offline)
       await isar.writeTxn(() async {
         for (var s in stores) {
-          await isar.stores.putBySupabaseId(Store.fromMap(s));
+          final storeObj = Store.fromMap(s);
+          // We can use settings or a dedicated field in Store model for role
+          // For now, let's just save the store itself.
+          await isar.stores.putBySupabaseId(storeObj);
         }
       });
 

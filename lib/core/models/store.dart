@@ -1,4 +1,5 @@
 import 'package:isar/isar.dart';
+import 'dart:convert';
 
 part 'store.g.dart';
 
@@ -17,8 +18,9 @@ class Store {
   late String ownerId;
   String? inviteCode;
   
-  // Settings or other metadata as JSON string if needed
-  String? metadata;
+  // Settings or other metadata as JSON string
+  String? settings;
+  String? userRole;
 
   DateTime? updatedAt;
 
@@ -31,7 +33,8 @@ class Store {
     this.logoUrl,
     required this.ownerId,
     this.inviteCode,
-    this.metadata,
+    this.settings,
+    this.userRole,
     this.updatedAt,
   });
 
@@ -45,6 +48,8 @@ class Store {
       logoUrl: map['logo_url'],
       ownerId: map['owner_id'] ?? '',
       inviteCode: map['invite_code'],
+      settings: map['settings'] != null ? jsonEncode(map['settings']) : null,
+      userRole: map['user_role'],
       updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
     );
   }
@@ -58,6 +63,8 @@ class Store {
       'logo_url': logoUrl,
       'owner_id': ownerId,
       'invite_code': inviteCode,
+      'settings': settings != null ? jsonDecode(settings!) : null,
+      'user_role': userRole,
       'updated_at': updatedAt?.toIso8601String(),
     };
   }

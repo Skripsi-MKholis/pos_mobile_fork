@@ -6,6 +6,7 @@ import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/setup_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/create_store_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/category_list_screen.dart';
@@ -49,10 +50,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (activeStoreAsync.isLoading) return null;
 
       final hasSelectedStore = activeStoreAsync.value != null;
-      final isSelectingStore = state.matchedLocation == '/select-store';
+      final isOnboardingPage =
+          state.matchedLocation == '/select-store' ||
+          state.matchedLocation == '/create-store';
 
       if (!hasSelectedStore) {
-        return isSelectingStore ? null : '/select-store';
+        return isOnboardingPage ? null : '/select-store';
       }
 
       if (hasSelectedStore && isAuthPage) {
@@ -74,6 +77,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/select-store',
         builder: (context, state) => const StoreSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/create-store',
+        builder: (context, state) => const CreateStoreScreen(),
       ),
 
       StatefulShellRoute.indexedStack(
