@@ -520,6 +520,203 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
     }
   }
 
+  Future<void> _updateStaff(
+    String memberId,
+    String role,
+    String status,
+  ) async {
+    final supabase = sb.Supabase.instance.client;
+
+    try {
+      await supabase.from('store_members').update({
+        'role': role,
+        'status': status,
+      }).eq('id', memberId);
+
+      ref.invalidate(staffListProvider);
+
+      if (mounted) {
+        ShadToaster.of(context).show(
+          const ShadToast(
+            title: Text('Berhasil'),
+            description: Text('Data staf berhasil diperbarui!'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ShadToaster.of(context).show(
+          ShadToast.destructive(
+            title: const Text('Error'),
+            description: Text('Gagal memperbarui staf: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteStaff(String memberId) async {
+    final supabase = sb.Supabase.instance.client;
+
+    try {
+      await supabase.from('store_members').delete().eq('id', memberId);
+
+      ref.invalidate(staffListProvider);
+
+      if (mounted) {
+        ShadToaster.of(context).show(
+          const ShadToast(
+            title: Text('Berhasil'),
+            description: Text('Staf berhasil dihapus dari toko!'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ShadToaster.of(context).show(
+          ShadToast.destructive(
+            title: const Text('Error'),
+            description: Text('Gagal menghapus staf: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showEditStaffModal(Map<String, dynamic> staff) {
+    String selectedRole = staff['role'];
+    String selectedStatus = staff['status'];
+
+    showShadDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return ShadDialog(
+            title: const Text('Edit Data Staf'),
+            description: Text('Ubah peran atau status untuk ${staff['name']}.'),
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Role / Peran',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ShadSelect<String>(
+                    placeholder: const Text('Pilih Role'),
+                    initialValue: selectedRole,
+                    options: [
+                      ShadOption(
+                        value: 'Karyawan',
+                        child: const Text('Karyawan (Kasir)'),
+                      ),
+                      ShadOption(
+                        value: 'Owner',
+                        child: const Text('Owner (Pemilik)'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setModalState(() => selectedRole = value);
+                      }
+                    },
+                    selectedOptionBuilder: (context, value) => Text(
+                      value == 'Karyawan'
+                          ? 'Karyawan (Kasir)'
+                          : 'Owner (Pemilik)',
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Status',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  ShadSelect<String>(
+                    placeholder: const Text('Pilih Status'),
+                    initialValue: selectedStatus,
+                    options: [
+                      ShadOption(
+                        value: 'active',
+                        child: const Text('Aktif'),
+                      ),
+                      ShadOption(
+                        value: 'pending',
+                        child: const Text('Pending'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setModalState(() => selectedStatus = value);
+                      }
+                    },
+                    selectedOptionBuilder: (context, value) => Text(
+                      value == 'active' ? 'Aktif' : 'Pending',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              ShadButton.outline(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Batal'),
+              ),
+              ShadButton(
+                backgroundColor: Warna.primary,
+                hoverBackgroundColor: Warna.primary.withValues(alpha: 0.8),
+                onPressed: () async {
+                  await _updateStaff(
+                    staff['id'],
+                    selectedRole,
+                    selectedStatus,
+                  );
+                  if (mounted) Navigator.of(context).pop();
+                },
+                child: const Text(
+                  'Simpan Perubahan',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showDeleteStaffDialog(Map<String, dynamic> staff) {
+    showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: const Text('Hapus Staf'),
+        description: Text(
+          'Apakah Anda yakin ingin menghapus ${staff['name']} dari toko? Tindakan ini tidak dapat dibatalkan.',
+        ),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          ShadButton.destructive(
+            onPressed: () async {
+              await _deleteStaff(staff['id']);
+              if (mounted) Navigator.of(context).pop();
+            },
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStaffItem(ShadThemeData theme, Map<String, dynamic> staff) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -610,7 +807,7 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
                 children: [
                   ShadButton.ghost(
                     size: ShadButtonSize.sm,
-                    onPressed: () {},
+                    onPressed: () => _showEditStaffModal(staff),
                     leading: const Icon(
                       TablerIcons.edit,
                       size: 18,
@@ -619,19 +816,21 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
                     child: const Text('Edit'),
                   ),
                   const SizedBox(width: 4),
-                  ShadButton.ghost(
-                    size: ShadButtonSize.sm,
-                    onPressed: () {},
-                    leading: const Icon(
-                      TablerIcons.trash,
-                      size: 18,
-                      color: Colors.redAccent,
+                  if (staff['user_id'] !=
+                      sb.Supabase.instance.client.auth.currentUser?.id)
+                    ShadButton.ghost(
+                      size: ShadButtonSize.sm,
+                      onPressed: () => _showDeleteStaffDialog(staff),
+                      leading: const Icon(
+                        TablerIcons.trash,
+                        size: 18,
+                        color: Colors.redAccent,
+                      ),
+                      child: const Text(
+                        'Hapus',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
                     ),
-                    child: const Text(
-                      'Hapus',
-                      style: TextStyle(color: Colors.redAccent),
-                    ),
-                  ),
                 ],
               ),
             ],
@@ -689,10 +888,14 @@ final staffListProvider = FutureProvider<List<Map<String, dynamic>>>((
   return (response as List).map((item) {
     final user = item['users'] as Map<String, dynamic>;
     return {
+      'id': item['id'],
+      'user_id': item['user_id'],
       'name': user['full_name'] ?? 'No Name',
       'email': user['email'] ?? 'No Email',
       'role': item['role'] ?? 'Karyawan',
-      'status': item['status'] == 'active' ? 'Aktif' : 'Pending',
+      'status': item['status'] ?? 'active',
+      'display_status': item['status'] == 'active' ? 'Aktif' : 'Pending',
     };
   }).toList();
 });
+
