@@ -85,6 +85,11 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Riwayat Transaksi',
           route: '/transactions',
         ),
+        const _DrawerItem(
+          icon: TablerIcons.device_desktop_analytics,
+          title: 'Monitoring Meja',
+          route: '/table-monitoring',
+        ),
         if (hasTables || isAdmin)
           const _DrawerItem(
             icon: TablerIcons.table,

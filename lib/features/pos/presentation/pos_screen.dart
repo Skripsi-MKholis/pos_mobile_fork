@@ -5,6 +5,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
@@ -12,7 +13,8 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
+import 'package:pos_mobile/core/models/product.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
@@ -97,14 +99,62 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             final isOccupied = table.status == 'occupied';
 
                             return InkWell(
-                              onTap: isOccupied
-                                  ? null
-                                  : () {
-                                      ref
-                                          .read(cartNotifierProvider.notifier)
-                                          .selectTable(table);
-                                      Navigator.pop(context);
-                                    },
+                              onTap: () async {
+                                if (isOccupied) {
+                                  final confirmed = await showShadDialog<bool>(
+                                    context: context,
+                                    builder: (context) => ShadDialog(
+                                      title: const Text('Meja Terisi'),
+                                      description: const Text('Meja ini sedang digunakan. Ingin menambah pesanan ke meja ini?'),
+                                      actions: [
+                                        ShadButton.outline(
+                                          onPressed: () => Navigator.pop(context, false),
+                                          child: const Text('Batal'),
+                                        ),
+                                        ShadButton(
+                                          backgroundColor: Warna.primary,
+                                          onPressed: () => Navigator.pop(context, true),
+                                          child: const Text('Tambah Pesanan', style: TextStyle(color: Colors.black)),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (confirmed == true) {
+                                    // Load existing items for this table
+                                    final monitoring = ref.read(tableMonitoringProvider).value;
+                                    final tableOrder = monitoring?.firstWhere((o) => o.table.id == table.id);
+                                    
+                                    if (tableOrder != null && tableOrder.transaction != null) {
+                                      final products = ref.read(productNotifierProvider).value ?? [];
+                                      final List<CartItem> items = [];
+                                      
+                                      for (var item in tableOrder.items) {
+                                        final product = products.firstWhere(
+                                          (p) => p.supabaseId == item['product_id'],
+                                          orElse: () => Product(
+                                            supabaseId: item['product_id'],
+                                            storeId: item['store_id'] ?? '',
+                                            name: item['product_name'],
+                                            price: (item['unit_price'] as num).toDouble(),
+                                            stockQuantity: 0,
+                                          ),
+                                        );
+                                        items.add(CartItem(product: product, quantity: item['quantity']));
+                                      }
+                                      
+                                      ref.read(cartNotifierProvider.notifier).clearCart();
+                                      ref.read(cartNotifierProvider.notifier).setItems(items);
+                                    }
+                                    
+                                    ref.read(cartNotifierProvider.notifier).selectTable(table);
+                                    if (context.mounted) Navigator.pop(context);
+                                  }
+                                } else {
+                                  ref.read(cartNotifierProvider.notifier).selectTable(table);
+                                  Navigator.pop(context);
+                                }
+                              },
                               child: Container(
                                 width: 80,
                                 padding: const EdgeInsets.all(12),

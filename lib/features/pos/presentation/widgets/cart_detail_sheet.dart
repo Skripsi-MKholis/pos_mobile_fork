@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/providers/voucher_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
@@ -363,14 +364,58 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
             ),
             
             const SizedBox(height: 24),
-            ShadButton(
-              size: ShadButtonSize.lg,
-              width: double.infinity,
-              onPressed: () {
-                Navigator.pop(context);
-                context.push('/payment');
-              },
-              child: const Text('Lanjut Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                if (cartState.selectedTable != null) ...[
+                  Expanded(
+                    child: ShadButton.outline(
+                      size: ShadButtonSize.lg,
+                      onPressed: () async {
+                        try {
+                          await ref.read(tableMonitoringProvider.notifier).saveOrderToTable(
+                                table: cartState.selectedTable!,
+                                items: cartState.items,
+                                totalAmount: cartState.totalAmount,
+                                discountTotal: cartState.discountAmount,
+                                voucherInfo: cartState.appliedVoucher?.toMap(),
+                              );
+                          ref.read(cartNotifierProvider.notifier).clearCart();
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ShadToaster.of(context).show(
+                              const ShadToast(
+                                title: Text('Pesanan Disimpan'),
+                                description: Text('Pesanan berhasil disimpan ke meja.'),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            ShadToaster.of(context).show(
+                              ShadToast.destructive(
+                                title: const Text('Gagal Menyimpan'),
+                                description: Text(e.toString()),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Simpan ke Meja'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: ShadButton(
+                    size: ShadButtonSize.lg,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.push('/payment');
+                    },
+                    child: const Text('Lanjut Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
           ],
         ],

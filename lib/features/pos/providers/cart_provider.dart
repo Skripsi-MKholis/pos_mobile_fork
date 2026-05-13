@@ -64,6 +64,10 @@ class CartNotifier extends _$CartNotifier {
     state = state.copyWith(clearVoucher: true);
   }
 
+  void setItems(List<CartItem> items) {
+    state = state.copyWith(items: items);
+  }
+
   void clearCart() {
     state = CartState();
   }

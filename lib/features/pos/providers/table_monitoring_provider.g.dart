@@ -1,26 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'table_provider.dart';
+part of 'table_monitoring_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tableNotifierHash() => r'a45ef423da8cf46d8f3e6be4a86eb7f1df96db3c';
+String _$tableMonitoringHash() => r'1849cb71583d26e38f230629c5fb640c940190f8';
 
-/// See also [TableNotifier].
-@ProviderFor(TableNotifier)
-final tableNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<TableNotifier, List<TableModel>>.internal(
-  TableNotifier.new,
-  name: r'tableNotifierProvider',
+/// See also [TableMonitoring].
+@ProviderFor(TableMonitoring)
+final tableMonitoringProvider = AutoDisposeAsyncNotifierProvider<
+    TableMonitoring, List<TableOrder>>.internal(
+  TableMonitoring.new,
+  name: r'tableMonitoringProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$tableNotifierHash,
+      : _$tableMonitoringHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$TableNotifier = AutoDisposeAsyncNotifier<List<TableModel>>;
+typedef _$TableMonitoring = AutoDisposeAsyncNotifier<List<TableOrder>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

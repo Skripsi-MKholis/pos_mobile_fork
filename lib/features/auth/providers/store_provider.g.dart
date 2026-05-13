@@ -22,7 +22,7 @@ final userStoresProvider =
 
 typedef UserStoresRef
     = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
-String _$activeStoreHash() => r'eb23e4f81b135cfaa344e98abc0aefb197079f15';
+String _$activeStoreHash() => r'4646dc521bd4b08ea2de256ee48907858e727c7f';
 
 /// See also [ActiveStore].
 @ProviderFor(ActiveStore)

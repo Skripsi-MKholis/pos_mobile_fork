@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -360,6 +361,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       };
 
       if (mounted) {
+        if (cartState.selectedTable != null) {
+          await ref.read(tableMonitoringProvider.notifier).handleTableTransactionComplete(
+                tableId: cartState.selectedTable!.id,
+                paidItems: cartState.items,
+              );
+        }
         ref.read(cartNotifierProvider.notifier).clearCart();
         _showSuccessDialog(transactionMap, itemsToProcess);
       }
