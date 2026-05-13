@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:pos_mobile/firebase_options.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -10,6 +12,9 @@ import 'package:pos_mobile/core/providers/sync_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   await IsarService.init();
 
