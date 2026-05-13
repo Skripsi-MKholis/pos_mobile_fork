@@ -81,6 +81,25 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/dashboard';
       }
 
+      // Role-based Access Control (RBAC)
+      final role = activeStoreAsync.value?['user_role']?.toString().toLowerCase();
+      final isOwner = role == 'owner' || Supabase.instance.client.auth.currentUser?.appMetadata['role'] == 'admin';
+
+      if (!isOwner) {
+        final restrictedRoutes = [
+          '/reports',
+          '/products',
+          '/categories',
+          '/staff-management',
+          '/store-info',
+        ];
+        
+        final isRestricted = restrictedRoutes.any((route) => state.matchedLocation.startsWith(route));
+        if (isRestricted) {
+          return '/dashboard';
+        }
+      }
+
       return null;
     },
     routes: [

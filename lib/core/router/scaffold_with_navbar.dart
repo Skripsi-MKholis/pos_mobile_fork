@@ -7,6 +7,7 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 
 class ScaffoldWithNavBar extends ConsumerStatefulWidget {
@@ -22,30 +23,56 @@ class ScaffoldWithNavBar extends ConsumerStatefulWidget {
 }
 
 class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? lastPressed;
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final user = ref.watch(currentUserProvider);
-    final isAdmin = user?.appMetadata['role'] == 'admin';
+    final role = ref.watch(userRoleProvider);
+    final isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
-    // Tentukan item navigasi berdasarkan Role
+    // Reset ke Dashboard saat ganti toko
+    ref.listen(activeStoreProvider, (previous, next) {
+      if (previous?.value != null && next.value != null) {
+        if (previous?.value?['id'] != next.value?['id']) {
+          widget.navigationShell.goBranch(0);
+        }
+      }
+    });
+
+    // Tentukan item navigasi berdasarkan Role dengan pemetaan Branch yang eksplisit
     final List<Map<String, dynamic>> navItems = isAdmin 
       ? [
-          {'icon': TablerIcons.chart_pie, 'label': 'Home'},
-          {'icon': TablerIcons.building_store, 'label': 'Toko'},
-          {'icon': TablerIcons.report_money, 'label': 'Laporan'},
-          {'icon': TablerIcons.users, 'label': 'User'},
-          {'icon': TablerIcons.menu_2, 'label': 'Menu'},
+          {'icon': TablerIcons.chart_pie, 'label': 'Home', 'branch': 0},
+          {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
+          {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
+          {'icon': TablerIcons.report_money, 'label': 'Laporan', 'branch': 3},
+          {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
         ]
       : [
-          {'icon': TablerIcons.layout_dashboard, 'label': 'Dashboard'},
-          {'icon': TablerIcons.shopping_cart, 'label': 'Kasir'},
-          {'icon': TablerIcons.history, 'label': 'History'},
-          {'icon': TablerIcons.chart_dots, 'label': 'Analitik'},
-          {'icon': TablerIcons.menu_2, 'label': 'Menu'},
+          {'icon': TablerIcons.layout_dashboard, 'label': 'Home', 'branch': 0},
+          {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
+          {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
+          {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
         ];
+
+    // Judul AppBar berdasarkan branch yang aktif (bukan berdasarkan index bottom bar)
+    final String pageTitle;
+    switch (widget.navigationShell.currentIndex) {
+      case 0: pageTitle = 'Dashboard'; break;
+      case 1: pageTitle = 'Kasir'; break;
+      case 2: pageTitle = 'Riwayat Transaksi'; break;
+      case 3: pageTitle = 'Laporan Analitik'; break;
+      case 4: pageTitle = 'Pengaturan'; break;
+      default: pageTitle = 'POS Mobile';
+    }
+
+    // Cari index yang terpilih di GNav berdasarkan branch yang aktif di GoRouter
+    final int selectedIndex = navItems.indexWhere(
+      (item) => item['branch'] == widget.navigationShell.currentIndex
+    );
 
     return PopScope(
       canPop: false,
@@ -77,6 +104,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       },
       child: Scaffold(
+        key: _scaffoldKey,
         extendBody: true,
         drawer: const AppDrawer(),
         appBar: AppBar(
@@ -84,7 +112,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           elevation: 0,
           centerTitle: true,
           title: Text(
-            navItems[widget.navigationShell.currentIndex]['label'],
+            pageTitle,
             style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
           ),
           leading: Builder(
@@ -113,12 +141,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.9), // Dark floating bar
+                    color: Colors.black.withValues(alpha: 0.9), // Modern opacity
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
                         blurRadius: 20,
-                        color: Colors.black.withOpacity(.2),
+                        color: Colors.black.withValues(alpha: .2),
                         offset: const Offset(0, 10),
                       )
                     ],
@@ -131,9 +159,9 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                       gap: 4,
                       activeColor: Colors.white,
                       iconSize: 20,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                       duration: const Duration(milliseconds: 300),
-                      tabBackgroundColor: Warna.primary.withOpacity(0.8),
+                      tabBackgroundColor: Warna.primary.withValues(alpha: 0.8),
                       color: Colors.white54,
                       tabs: navItems
                           .map((item) => GButton(
@@ -146,9 +174,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                                 ),
                               ))
                           .toList(),
-                      selectedIndex: widget.navigationShell.currentIndex,
+                      selectedIndex: selectedIndex == -1 ? 0 : selectedIndex,
                       onTabChange: (index) {
-                        widget.navigationShell.goBranch(index);
+                        final item = navItems[index];
+                        if (item['branch'] != null) {
+                          widget.navigationShell.goBranch(item['branch'] as int);
+                        }
                       },
                     ),
                   ),

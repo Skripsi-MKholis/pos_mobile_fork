@@ -15,7 +15,10 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
+    final user = ref.watch(currentUserProvider);
+    final role = ref.watch(userRoleProvider);
     final activeStore = ref.watch(activeStoreProvider);
+    final isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -34,15 +37,19 @@ class SettingsScreen extends ConsumerWidget {
                         .fadeIn(duration: 400.ms)
                         .slideX(begin: 0.1, end: 0),
                   const SizedBox(height: 32),
-                  _buildMenuSection(theme, 'KATALOG & STOK', [
-                    _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
-                    _buildMenuItem(context, theme, TablerIcons.category, 'Kategori Produk', () => context.push('/categories')),
-                  ]),
-                  const SizedBox(height: 32),
+                  if (isAdmin) ...[
+                    _buildMenuSection(theme, 'KATALOG & STOK', [
+                      _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
+                      _buildMenuItem(context, theme, TablerIcons.category, 'Kategori Produk', () => context.push('/categories')),
+                    ]),
+                    const SizedBox(height: 32),
+                  ],
                   _buildMenuSection(theme, 'PENGATURAN TOKO', [
                     _buildMenuItem(context, theme, TablerIcons.printer, 'Printer & Struk', () => context.push('/printer-settings')),
-                    _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () => context.push('/store-info')),
-                    _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () => context.push('/staff-management')),
+                    if (isAdmin) ...[
+                      _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () => context.push('/store-info')),
+                      _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () => context.push('/staff-management')),
+                    ],
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'AKUN & KEAMANAN', [

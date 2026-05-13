@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -20,6 +18,18 @@ class DashboardScreen extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final analyticsAsync = ref.watch(analyticsProvider);
     final productsAsync = ref.watch(productNotifierProvider);
+    final role = ref.watch(userRoleProvider);
+    final isAdmin = role?.toLowerCase() == 'owner';
+
+    // Auto switch to 'today' for Kasir if not already
+    if (!isAdmin) {
+      final analytics = analyticsAsync.value;
+      if (analytics != null && analytics.timeRange != AnalyticsTimeRange.today) {
+        Future.microtask(() => 
+          ref.read(analyticsProvider.notifier).fetchAnalytics(AnalyticsTimeRange.today)
+        );
+      }
+    }
 
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
@@ -33,7 +43,9 @@ class DashboardScreen extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.read(analyticsProvider.notifier).fetchAnalytics();
+            ref.read(analyticsProvider.notifier).fetchAnalytics(
+              isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today
+            );
             ref.read(productNotifierProvider.notifier).syncProducts();
           },
           color: Warna.primary,
@@ -45,17 +57,22 @@ class DashboardScreen extends ConsumerWidget {
               children: [
                 _buildHeader(theme),
                 const SizedBox(height: 24),
-                _buildTimeFilter(ref, theme),
-                const SizedBox(height: 16),
+                if (isAdmin) ...[
+                  _buildTimeFilter(ref, theme),
+                  const SizedBox(height: 16),
+                ],
                 _buildStatsGrid(
                   context,
                   analyticsAsync,
                   productsAsync,
                   currencyFormat,
                   theme,
+                  isAdmin,
                 ),
-                const SizedBox(height: 24),
-                _buildSalesPerformanceCard(analyticsAsync, theme),
+                if (isAdmin) ...[
+                  const SizedBox(height: 24),
+                  _buildSalesPerformanceCard(analyticsAsync, theme),
+                ],
                 const SizedBox(height: 24),
               Text(
                 'AKSES CEPAT',
@@ -66,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
                 const SizedBox(height: 16),
-                _buildQuickAccessGrid(context, theme, ref),
+                _buildQuickAccessGrid(context, theme, ref, isAdmin),
                 const SizedBox(height: 85),
               ],
             ),
@@ -76,12 +93,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickAccessGrid(BuildContext context, ShadThemeData theme, WidgetRef ref) {
+  Widget _buildQuickAccessGrid(BuildContext context, ShadThemeData theme, WidgetRef ref, bool isAdmin) {
     final activeStoreAsync = ref.watch(activeStoreProvider);
     final activeStore = activeStoreAsync.value;
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
-    final businessModel = settings?['business_model'] as String?;
     
     final hasTables = features?['tables'] == true;
     final hasKds = features?['kds'] == true;
@@ -101,20 +117,21 @@ class DashboardScreen extends ConsumerWidget {
           'Buka kasir baru',
           onTap: () => context.go('/pos'),
         ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.package,
-          'Produk',
-          'Kelola stok barang',
-          onTap: () => context.push('/products'),
-        ),
+        if (isAdmin)
+          _buildAccessCard(
+            theme,
+            TablerIcons.package,
+            'Produk',
+            'Kelola stok barang',
+            onTap: () => context.push('/products'),
+          ),
         if (hasTables)
           _buildAccessCard(
             theme,
             TablerIcons.armchair,
             'Manajemen Meja',
             'Atur layout meja',
-            onTap: () => context.push('/tables'), // Assuming this route exists
+            onTap: () => context.push('/tables'),
           ),
         if (hasKds)
           _buildAccessCard(
@@ -122,22 +139,24 @@ class DashboardScreen extends ConsumerWidget {
             TablerIcons.device_desktop,
             'Monitor Dapur',
             'KDS Display',
-            onTap: () => context.push('/kds'), // Assuming this route exists
+            onTap: () => context.push('/kds'),
           ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.chart_dots,
-          'Laporan',
-          'Analisis performa',
-          onTap: () => context.go('/reports'),
-        ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.settings,
-          'Pengaturan',
-          'Konfigurasi aplikasi',
-          onTap: () => context.go('/settings'),
-        ),
+        if (isAdmin) ...[
+          _buildAccessCard(
+            theme,
+            TablerIcons.chart_dots,
+            'Laporan',
+            'Analisis performa',
+            onTap: () => context.go('/reports'),
+          ),
+          _buildAccessCard(
+            theme,
+            TablerIcons.settings,
+            'Pengaturan',
+            'Konfigurasi aplikasi',
+            onTap: () => context.go('/settings'),
+          ),
+        ],
       ],
     );
   }
@@ -166,7 +185,7 @@ class DashboardScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -211,6 +230,7 @@ class DashboardScreen extends ConsumerWidget {
     AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
     ShadThemeData theme,
+    bool isAdmin,
   ) {
     final analytics = analyticsAsync.value;
     final products = productsAsync.value;
@@ -317,7 +337,7 @@ class DashboardScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -362,7 +382,7 @@ class DashboardScreen extends ConsumerWidget {
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -427,14 +447,14 @@ class DashboardScreen extends ConsumerWidget {
               const Spacer(),
               if (isLoading)
                 Shimmer.fromColors(
-                  baseColor: theme.colorScheme.muted.withOpacity(0.5),
-                  highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                  baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
+                  highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
                   child: Container(
                     height: 24,
                     width: 80,
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(4),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 )
@@ -551,8 +571,8 @@ class DashboardScreen extends ConsumerWidget {
               show: true,
               gradient: LinearGradient(
                 colors: [
-                  theme.colorScheme.primary.withOpacity(0.2),
-                  theme.colorScheme.primary.withOpacity(0.0),
+                  theme.colorScheme.primary.withValues(alpha: 0.2),
+                  theme.colorScheme.primary.withValues(alpha: 0.0),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -576,8 +596,8 @@ class DashboardScreen extends ConsumerWidget {
       children: List.generate(
         4,
         (index) => Shimmer.fromColors(
-          baseColor: theme.colorScheme.muted.withOpacity(0.5),
-          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+          baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
+          highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -591,8 +611,8 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildChartSkeleton(ShadThemeData theme) {
     return Shimmer.fromColors(
-      baseColor: theme.colorScheme.muted.withOpacity(0.5),
-      highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+      baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
+      highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
       child: Container(
         height: 250,
         decoration: BoxDecoration(

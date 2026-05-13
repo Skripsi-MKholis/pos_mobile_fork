@@ -8,6 +8,11 @@ import 'package:isar/isar.dart';
 
 part 'store_provider.g.dart';
 
+final userRoleProvider = Provider<String?>((ref) {
+  final activeStore = ref.watch(activeStoreProvider).value;
+  return activeStore?['user_role'] as String?;
+});
+
 @riverpod
 class ActiveStore extends _$ActiveStore {
   static const _storageKey = 'active_store_id';
@@ -29,18 +34,29 @@ class ActiveStore extends _$ActiveStore {
           .group((q) => q.ownerIdEqualTo(user.id).or().userRoleIsNotNull())
           .findFirst();
       
-      // 2. If online, update from Supabase
+      // 2. If online, update from Supabase with Role
       final connectivity = ref.read(connectivityNotifierProvider).value;
       if (connectivity == ConnectivityStatus.online) {
         final supabase = Supabase.instance.client;
         try {
-          final response = await supabase.from('stores').select().eq('id', savedId).single();
+          // Join with store_members to get the user's role in this store
+          final response = await supabase
+              .from('store_members')
+              .select('role, stores(*)')
+              .eq('store_id', savedId)
+              .eq('user_id', user.id)
+              .maybeSingle();
           
-          // Save to Isar
-          final updatedStore = Store.fromMap(response);
-          await _isar.writeTxn(() => _isar.stores.putBySupabaseId(updatedStore));
-          
-          return response;
+          if (response != null) {
+            final storeMap = Map<String, dynamic>.from(response['stores']);
+            storeMap['user_role'] = response['role'];
+            
+            // Save to Isar (Note: Store model should ideally handle user_role)
+            final updatedStore = Store.fromMap(storeMap);
+            await _isar.writeTxn(() => _isar.stores.putBySupabaseId(updatedStore));
+            
+            return storeMap;
+          }
         } catch (e) {
           // If not found in Supabase but found in Isar, keep the local one
           if (localStore != null) return localStore.toMap();

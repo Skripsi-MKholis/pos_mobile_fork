@@ -46,6 +46,8 @@ class _DrawerMenuContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final role = ref.watch(userRoleProvider);
+    final bool isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
     
     final activeStoreAsync = ref.watch(activeStoreProvider);
     final activeStore = activeStoreAsync.value;
@@ -64,11 +66,12 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Dashboard',
           route: '/dashboard',
         ),
-        const _DrawerItem(
-          icon: TablerIcons.chart_dots,
-          title: 'Analitik',
-          route: '/reports',
-        ),
+        if (isAdmin)
+          const _DrawerItem(
+            icon: TablerIcons.chart_dots,
+            title: 'Analitik',
+            route: '/reports',
+          ),
 
         const _SectionSpacing(),
         const _SectionHeader(title: 'OPERASIONAL KASIR'),
@@ -89,18 +92,20 @@ class _DrawerMenuContent extends ConsumerWidget {
             route: '/tables',
           ),
 
-        const _SectionSpacing(),
-        const _SectionHeader(title: 'KATALOG & STOK'),
-        const _DrawerItem(
-          icon: TablerIcons.box,
-          title: 'Daftar Produk',
-          route: '/products',
-        ),
-        const _DrawerItem(
-          icon: TablerIcons.category,
-          title: 'Kategori',
-          route: '/categories',
-        ),
+        if (isAdmin) ...[
+          const _SectionSpacing(),
+          const _SectionHeader(title: 'KATALOG & STOK'),
+          const _DrawerItem(
+            icon: TablerIcons.box,
+            title: 'Daftar Produk',
+            route: '/products',
+          ),
+          const _DrawerItem(
+            icon: TablerIcons.category,
+            title: 'Kategori',
+            route: '/categories',
+          ),
+        ],
 
         const _SectionSpacing(),
         const _SectionHeader(title: 'PENGATURAN'),
@@ -109,11 +114,12 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Cetak & Struk',
           route: '/printer-settings',
         ),
-        const _DrawerItem(
-          icon: TablerIcons.building_store,
-          title: 'Informasi Toko',
-          route: '/settings',
-        ),
+        if (isAdmin)
+          const _DrawerItem(
+            icon: TablerIcons.building_store,
+            title: 'Informasi Toko',
+            route: '/settings',
+          ),
 
         if (user?.appMetadata['role'] == 'admin') ...[
           const _SectionSpacing(),

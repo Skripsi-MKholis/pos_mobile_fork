@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'dart:ui';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -61,6 +59,14 @@ class _TransactionHistoryScreenState
     final dateFormat = DateFormat('HH:mm');
     final dateFullFormat = DateFormat('dd MMM yyyy');
 
+    final role = ref.watch(userRoleProvider);
+    final isAdmin = role?.toLowerCase() == 'owner';
+
+    // Auto switch to 'Hari Ini' for Kasir if they try to see other dates
+    if (!isAdmin && _dateFilter != 'Hari Ini') {
+      Future.microtask(() => setState(() => _dateFilter = 'Hari Ini'));
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: RefreshIndicator(
@@ -83,16 +89,19 @@ class _TransactionHistoryScreenState
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildDateChip('Semua', 'Semua'),
-                          _buildDateChip('Hari Ini', 'Hari Ini'),
-                          _buildDateChip('Kemarin', 'Kemarin'),
-                          _buildDateChip(
-                            _dateFilter == 'Custom' && _customDate != null
-                                ? DateFormat('dd MMM').format(_customDate!)
-                                : 'Pilih Tanggal',
-                            'Custom',
-                            isCalendar: true,
-                          ),
+                          if (isAdmin) ...[
+                            _buildDateChip('Semua', 'Semua'),
+                            _buildDateChip('Hari Ini', 'Hari Ini'),
+                            _buildDateChip('Kemarin', 'Kemarin'),
+                            _buildDateChip(
+                              _dateFilter == 'Custom' && _customDate != null
+                                  ? DateFormat('dd MMM').format(_customDate!)
+                                  : 'Pilih Tanggal',
+                              'Custom',
+                              isCalendar: true,
+                            ),
+                          ] else 
+                            _buildDateChip('Hari Ini', 'Hari Ini'),
                         ],
                       ),
                     ),
