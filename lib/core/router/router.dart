@@ -22,6 +22,7 @@ import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/manage_tables_screen.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
@@ -91,6 +92,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/products',
           '/categories',
           '/staff-management',
+          '/manage-tables',
           '/store-info',
         ];
         
@@ -208,6 +210,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/staff-management',
         builder: (context, state) => const StaffManagementScreen(),
+      ),
+      GoRoute(
+        path: '/manage-tables',
+        builder: (context, state) => const ManageTablesScreen(),
       ),
       GoRoute(
         path: '/products',

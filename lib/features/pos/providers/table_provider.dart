@@ -28,7 +28,49 @@ class TableNotifier extends _$TableNotifier {
       return (response as List).map((data) => TableModel.fromMap(data)).toList();
     } catch (e) {
       print('Error fetching tables: $e');
-      return []; // Return empty list instead of throwing to avoid stuck loading UI
+      return [];
+    }
+  }
+
+  Future<void> addTable(String name, int capacity) async {
+    final activeStore = await ref.read(activeStoreProvider.future);
+    final storeId = activeStore?['id'];
+    if (storeId == null) return;
+
+    try {
+      await _supabase.from('tables').insert({
+        'store_id': storeId,
+        'name': name,
+        'capacity': capacity,
+        'status': 'available',
+      });
+      ref.invalidateSelf();
+    } catch (e) {
+      print('Error adding table: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateTable(TableModel table) async {
+    try {
+      await _supabase
+          .from('tables')
+          .update(table.toMap())
+          .eq('id', table.id);
+      ref.invalidateSelf();
+    } catch (e) {
+      print('Error updating table: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteTable(String id) async {
+    try {
+      await _supabase.from('tables').delete().eq('id', id);
+      ref.invalidateSelf();
+    } catch (e) {
+      print('Error deleting table: $e');
+      rethrow;
     }
   }
 }

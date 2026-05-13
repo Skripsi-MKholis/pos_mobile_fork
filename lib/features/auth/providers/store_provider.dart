@@ -130,6 +130,36 @@ class ActiveStore extends _$ActiveStore {
     ref.invalidate(userStoresProvider);
   }
 
+  Future<void> updateSettings(Map<String, dynamic> newSettings) async {
+    final currentStore = state.value;
+    if (currentStore == null) return;
+
+    final supabase = Supabase.instance.client;
+    final storeId = currentStore['id'];
+
+    try {
+      // Merge new settings with existing ones if necessary, 
+      // but here we expect the caller to provide the full settings map or we can merge here.
+      final existingSettings = currentStore['settings'] as Map<String, dynamic>? ?? {};
+      final updatedSettings = {...existingSettings, ...newSettings};
+
+      await supabase.from('stores').update({
+        'settings': updatedSettings,
+      }).eq('id', storeId);
+
+      // Update local state
+      final updatedStore = {...currentStore, 'settings': updatedSettings};
+      state = AsyncData(updatedStore);
+
+      // Update Isar
+      final storeObj = Store.fromMap(updatedStore);
+      await _isar.writeTxn(() => _isar.stores.putBySupabaseId(storeObj));
+    } catch (e) {
+      print('Error updating settings: $e');
+      rethrow;
+    }
+  }
+
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);

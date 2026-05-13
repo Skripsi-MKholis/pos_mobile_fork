@@ -85,11 +85,11 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Riwayat Transaksi',
           route: '/transactions',
         ),
-        if (hasTables)
+        if (hasTables || isAdmin)
           const _DrawerItem(
-            icon: TablerIcons.armchair,
+            icon: TablerIcons.table,
             title: 'Manajemen Meja',
-            route: '/tables',
+            route: '/manage-tables',
           ),
 
         if (isAdmin) ...[

@@ -32,4 +32,20 @@ class TableModel {
       'capacity': capacity,
     };
   }
+
+  TableModel copyWith({
+    String? id,
+    String? storeId,
+    String? name,
+    String? status,
+    int? capacity,
+  }) {
+    return TableModel(
+      id: id ?? this.id,
+      storeId: storeId ?? this.storeId,
+      name: name ?? this.name,
+      status: status ?? this.status,
+      capacity: capacity ?? this.capacity,
+    );
+  }
 }
