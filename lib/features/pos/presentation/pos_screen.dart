@@ -326,14 +326,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt: Cache search query to prevent O(N) string allocations during filter
+                  final cachedSearchQuery = _searchQuery.toLowerCase();
                   var filteredProducts = products
                       .where(
                         (p) =>
                             (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
+                                  cachedSearchQuery,
                                 ) ||
                                 (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
+                                      cachedSearchQuery,
                                     ) ??
                                     false)) &&
                             (_selectedCategoryId == null ||
@@ -440,6 +442,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     );
                   }
 
+                  // ⚡ Bolt: Create O(1) lookup map for cart items instead of O(M) search per product
+                  final cartItemMap = {
+                    for (var item in cartItems)
+                      item.product.supabaseId: item
+                  };
+
                   return GridView.builder(
                     padding: const EdgeInsets.all(16),
                     gridDelegate:
@@ -452,10 +460,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
                       final product = filteredProducts[index];
-                      final cartItem = cartItems.firstWhere(
-                        (item) => item.product.supabaseId == product.supabaseId,
-                        orElse: () => CartItem(product: product, quantity: 0),
-                      );
+                      // ⚡ Bolt: Fast O(1) lookup instead of iterating through cartItems
+                      final cartItem = cartItemMap[product.supabaseId] ??
+                          CartItem(product: product, quantity: 0);
 
                       return _buildProductCard(
                         context,
