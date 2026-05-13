@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -55,6 +56,15 @@ class SettingsScreen extends ConsumerWidget {
                   _buildMenuSection(theme, 'AKUN & KEAMANAN', [
                     _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () => context.push('/profile')),
                     _buildMenuItem(context, theme, TablerIcons.lock, 'Ganti Kata Sandi', () => context.push('/setup-password')),
+                    if (role?.toLowerCase() == 'karyawan')
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.logout,
+                        'Keluar dari Toko',
+                        () => _handleLeaveStore(context, ref),
+                        color: Colors.redAccent,
+                      ),
                   ]),
                   const SizedBox(height: 48),
                   ShadButton.destructive(
@@ -195,21 +205,78 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, ShadThemeData theme, IconData icon, String title, VoidCallback onTap) {
+  Widget _buildMenuItem(BuildContext context, ShadThemeData theme, IconData icon, String title, VoidCallback onTap, {Color? color}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: theme.colorScheme.muted.withOpacity(0.5),
+          color: color?.withOpacity(0.1) ?? theme.colorScheme.muted.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: Colors.black, size: 18),
+        child: Icon(icon, color: color ?? Colors.black, size: 18),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-      trailing: const Icon(TablerIcons.chevron_right, size: 16, color: Colors.black26),
+      title: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color ?? Colors.black)),
+      trailing: Icon(TablerIcons.chevron_right, size: 16, color: color?.withOpacity(0.5) ?? Colors.black26),
       onTap: onTap,
     );
+  }
+
+  Future<void> _handleLeaveStore(BuildContext context, WidgetRef ref) async {
+    final activeStore = ref.read(activeStoreProvider).value;
+    final user = ref.read(currentUserProvider);
+    if (activeStore == null || user == null) return;
+
+    final confirmed = await showShadDialog<bool>(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: const Text('Keluar dari Toko'),
+        description: Text('Apakah Anda yakin ingin keluar dari toko ${activeStore['name']}? Anda tidak akan bisa mengakses toko ini lagi tanpa kode undangan baru.'),
+        actions: [
+          ShadButton.outline(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ShadButton.destructive(
+            child: const Text('Ya, Keluar'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final supabase = sb.Supabase.instance.client;
+        await supabase
+            .from('store_members')
+            .delete()
+            .eq('store_id', activeStore['id'])
+            .eq('user_id', user.id);
+        
+        await ref.read(activeStoreProvider.notifier).clear();
+        ref.invalidate(userStoresProvider);
+        
+        if (context.mounted) {
+          context.go('/select-store');
+          ShadToaster.of(context).show(
+            const ShadToast(
+              title: Text('Berhasil'),
+              description: Text('Anda telah keluar dari toko.'),
+            ),
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ShadToaster.of(context).show(
+            ShadToast.destructive(
+              title: const Text('Error'),
+              description: Text('Gagal keluar dari toko: $e'),
+            ),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {

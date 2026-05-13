@@ -6,6 +6,7 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class StoreSelectionScreen extends ConsumerStatefulWidget {
   const StoreSelectionScreen({super.key});
@@ -306,7 +307,59 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
     );
   }
 
-  void _showJoinStoreDialog(BuildContext context, Color primaryColor, ShadThemeData theme) {
+  Future<void> _joinStore(String code) async {
+    final supabase = sb.Supabase.instance.client;
+
+    try {
+      final response = await supabase.rpc(
+        'join_store_by_code',
+        params: {'p_code': code},
+      );
+
+      if (response == null) {
+        if (mounted) {
+          ShadToaster.of(context).show(
+            ShadToast.destructive(
+              title: const Text('Error'),
+              description: const Text('Kode undangan tidak valid.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Refresh stores list
+      ref.invalidate(userStoresProvider);
+
+      if (mounted) {
+        ShadToaster.of(context).show(
+          const ShadToast(
+            title: Text('Berhasil'),
+            description: Text('Berhasil bergabung ke toko!'),
+          ),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ShadToaster.of(context).show(
+          ShadToast.destructive(
+            title: const Text('Error'),
+            description: Text('Gagal bergabung: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+
+  void _showJoinStoreDialog(
+    BuildContext context,
+    Color primaryColor,
+    ShadThemeData theme,
+  ) {
+    final codeController = TextEditingController();
+
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog(
@@ -348,12 +401,19 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
               ),
               const SizedBox(height: 8),
               ShadInput(
+                controller: codeController,
                 placeholder: const Text('CONTOH: X7H2K9A1'),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: ShadDecoration(
                   color: Colors.grey[50],
-                  border: ShadBorder.all(color: Colors.grey[300]!, width: 1, radius: const BorderRadius.all(Radius.circular(20))),
+                  border: ShadBorder.all(
+                    color: Colors.grey[300]!,
+                    width: 1,
+                    radius: const BorderRadius.all(Radius.circular(20)),
+                  ),
                 ),
+                textCapitalization: TextCapitalization.characters,
               ),
             ],
           ),
@@ -362,7 +422,11 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                final code = codeController.text.trim();
+                if (code.isEmpty) return;
+                _joinStore(code);
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
                 foregroundColor: Colors.black,
@@ -382,6 +446,7 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
       ),
     );
   }
+
 
   Widget _buildEmptyState(BuildContext context, ShadThemeData theme) {
     return Center(
