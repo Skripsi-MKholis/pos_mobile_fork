@@ -1,0 +1,3 @@
+## 2024-05-14 - Replace O(n) array lookup in render loop with O(1) Map lookup
+**Learning:** In `pos_screen.dart`, a GridView.builder was running `.firstWhere` on `cartItems` to find the corresponding `CartItem` for each product. This caused an O(N*M) time complexity during rendering, leading to potential stuttering and slow renders when there are many items in the product list and cart.
+**Action:** Always map lists to a `Map` structure with O(1) lookup before entering builders (like `ListView.builder` or `GridView.builder`) if we need to search for matching elements by ID. This reduces time complexity from O(N*M) to O(N+M) and avoids O(N) operations inside the hot rendering path.
