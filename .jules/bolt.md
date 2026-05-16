@@ -1,0 +1,3 @@
+## 2024-03-22 - [Add Debouncer on POS Screen Search]
+**Learning:** Adding a debouncer when modifying state tied to heavy UI changes (like filtering large lists in POS Screen) significantly reduces jank/stuttering and unnecessary CPU/memory work. Re-rendering a product grid for every keystroke creates a serious performance bottleneck. Riverpod `setState` or state invalidations hooked up directly to fast-firing inputs like `ShadInput.onChanged` are an anti-pattern.
+**Action:** Always wrap `onChanged` callbacks containing `setState` or `ref.read` in a `Debouncer` if the state updates drive queries or complex list filters, especially for core features like point-of-sale product lookups.
