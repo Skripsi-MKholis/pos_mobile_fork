@@ -17,6 +17,7 @@ import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -32,10 +33,14 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   String? _selectedCategoryId;
   String _sortOption = 'name_asc';
 
+  // ⚡ Bolt Optimization: Throttle search input to prevent expensive list filtering on every keystroke
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -259,11 +264,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       padding: EdgeInsets.all(8.0),
                       child: Icon(TablerIcons.search, size: 20),
                     ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
+                    onChanged: (value) {
+                      _debouncer.run(() {
+                        setState(() => _searchQuery = value);
+                      });
+                    },
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
                               _searchController.clear();
+                              _debouncer.cancel();
                               setState(() => _searchQuery = '');
                             },
                             child: const Icon(TablerIcons.x, size: 18),

@@ -11,6 +11,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -22,6 +23,15 @@ class ProductListScreen extends ConsumerStatefulWidget {
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   String _searchQuery = '';
   String? _selectedCategory;
+
+  // ⚡ Bolt Optimization: Throttle search input to prevent expensive list filtering on every keystroke
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
+  @override
+  void dispose() {
+    _debouncer.dispose();
+    super.dispose();
+  }
 
   Future<void> _showDeleteDialog(Product product) async {
     final confirmed = await showShadDialog<bool>(
@@ -184,8 +194,11 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value),
+                        onChanged: (value) {
+                          _debouncer.run(() {
+                            setState(() => _searchQuery = value);
+                          });
+                        },
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.background,
@@ -250,6 +263,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               child: ShadButton.ghost(
                                 size: ShadButtonSize.sm,
                                 onPressed: () {
+                                  _debouncer.cancel();
                                   setState(() {
                                     _searchQuery = '';
                                     _selectedCategory = null;
@@ -384,6 +398,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             const SizedBox(height: 24),
                             ShadButton.outline(
                               onPressed: () {
+                                _debouncer.cancel();
                                 setState(() {
                                   _searchQuery = '';
                                   _selectedCategory = null;

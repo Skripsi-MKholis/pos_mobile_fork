@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
   const CategoryListScreen({super.key});
@@ -17,6 +18,15 @@ class CategoryListScreen extends ConsumerStatefulWidget {
 
 class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
   String _searchQuery = '';
+
+  // ⚡ Bolt Optimization: Throttle search input to prevent expensive list filtering on every keystroke
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
+  @override
+  void dispose() {
+    _debouncer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +79,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                         padding: EdgeInsets.all(8.0),
                         child: Icon(TablerIcons.search, size: 20),
                       ),
-                      onChanged: (value) => setState(() => _searchQuery = value),
+                      onChanged: (value) {
+                        _debouncer.run(() {
+                          setState(() => _searchQuery = value);
+                        });
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),

@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -26,6 +27,9 @@ class _TransactionHistoryScreenState
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  // ⚡ Bolt Optimization: Throttle search input to prevent expensive list filtering on every keystroke
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +48,7 @@ class _TransactionHistoryScreenState
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -445,7 +450,11 @@ class _TransactionHistoryScreenState
                     padding: EdgeInsets.all(8.0),
                     child: Icon(TablerIcons.search, size: 16, color: Colors.grey),
                   ),
-                  onChanged: (val) => setState(() => _searchQuery = val),
+                  onChanged: (val) {
+                    _debouncer.run(() {
+                      setState(() => _searchQuery = val);
+                    });
+                  },
                   decoration: ShadDecoration(
                     border: ShadBorder.all(
                       color: theme.colorScheme.border.withOpacity(0.5),
