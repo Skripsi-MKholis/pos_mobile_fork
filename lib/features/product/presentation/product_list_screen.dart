@@ -11,6 +11,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -22,6 +23,13 @@ class ProductListScreen extends ConsumerStatefulWidget {
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   String _searchQuery = '';
   String? _selectedCategory;
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
+
+  @override
+  void dispose() {
+    _debouncer.dispose();
+    super.dispose();
+  }
 
   Future<void> _showDeleteDialog(Product product) async {
     final confirmed = await showShadDialog<bool>(
@@ -184,8 +192,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
+                        // ⚡ Bolt: Wrapped search input onChanged in a Debouncer
+                        // 🎯 Why: Prevents expensive UI rebuilds and table filtering on every keystroke
                         onChanged: (value) =>
-                            setState(() => _searchQuery = value),
+                            _debouncer.run(() => setState(() => _searchQuery = value)),
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.background,
