@@ -56,6 +56,10 @@ class CartNotifier extends _$CartNotifier {
     state = state.copyWith(selectedTable: table, clearTable: table == null);
   }
 
+  void setTransactionId(String? transactionId) {
+    state = state.copyWith(activeTransactionId: transactionId, clearTransactionId: transactionId == null);
+  }
+
   void applyVoucher(Voucher voucher) {
     state = state.copyWith(appliedVoucher: voucher);
   }

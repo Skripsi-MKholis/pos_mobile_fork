@@ -43,7 +43,8 @@ class TableMonitoring extends _$TableMonitoring {
         .from('transactions')
         .select('*, transaction_items(*)')
         .eq('store_id', storeId)
-        .eq('status', 'Pending');
+        .eq('status', 'Pending')
+        .order('created_at', ascending: false);
     
     final transactions = List<Map<String, dynamic>>.from(transactionsResponse);
 
@@ -68,6 +69,7 @@ class TableMonitoring extends _$TableMonitoring {
     required double totalAmount,
     double discountTotal = 0,
     Map<String, dynamic>? voucherInfo,
+    String? activeTransactionId,
   }) async {
     final activeStore = ref.read(activeStoreProvider).value;
     final storeId = activeStore?['id'];
@@ -82,23 +84,38 @@ class TableMonitoring extends _$TableMonitoring {
     }).toList();
 
     try {
-      // Use RPC to create a pending transaction
-      final response = await _supabase.rpc('create_transaction_v3', params: {
-        'p_store_id': storeId,
-        'p_cashier_id': _supabase.auth.currentUser!.id,
-        'p_total_amount': totalAmount,
-        'p_payment_method': 'Tunai', // Default, can be changed later
-        'p_discount_total': discountTotal,
-        'p_voucher_info': voucherInfo ?? {},
-        'p_table_id': table.id,
-        'p_items': itemsToProcess,
-        'p_status': 'Pending', // Mark as pending
-        'p_cash_paid': 0,
-        'p_change_amount': 0,
-      });
+      if (activeTransactionId != null) {
+        // Update existing transaction
+        final response = await _supabase.rpc('sync_pending_transaction', params: {
+          'p_transaction_id': activeTransactionId,
+          'p_items': itemsToProcess,
+          'p_total_amount': totalAmount,
+          'p_discount_total': discountTotal,
+          'p_voucher_info': voucherInfo ?? {},
+        });
 
-      if (response == null || (response is Map && response['success'] == false)) {
-        throw response?['error'] ?? 'Gagal menyimpan pesanan';
+        if (response == null || (response is Map && response['success'] == false)) {
+          throw response?['error'] ?? 'Gagal memperbarui pesanan';
+        }
+      } else {
+        // Use RPC to create a new pending transaction
+        final response = await _supabase.rpc('create_transaction_v3', params: {
+          'p_store_id': storeId,
+          'p_cashier_id': _supabase.auth.currentUser!.id,
+          'p_total_amount': totalAmount,
+          'p_payment_method': 'Tunai',
+          'p_discount_total': discountTotal,
+          'p_voucher_info': voucherInfo ?? {},
+          'p_table_id': table.id,
+          'p_items': itemsToProcess,
+          'p_status': 'Pending',
+          'p_cash_paid': 0,
+          'p_change_amount': 0,
+        });
+
+        if (response == null || (response is Map && response['success'] == false)) {
+          throw response?['error'] ?? 'Gagal menyimpan pesanan';
+        }
       }
 
       // Update table status to occupied
@@ -118,10 +135,16 @@ class TableMonitoring extends _$TableMonitoring {
     try {
       // 1. Get current pending order for this table
       final currentState = await future;
-      final tableOrder = currentState.firstWhere((o) => o.table.id == tableId);
+      final orderIndex = currentState.indexWhere((o) => o.table.id == tableId);
+      if (orderIndex == -1) return;
+      
+      final tableOrder = currentState[orderIndex];
       final pendingTx = tableOrder.transaction;
       
-      if (pendingTx == null) return; // No pending transaction
+      if (pendingTx == null || pendingTx['status'] != 'Pending') {
+        ref.invalidateSelf();
+        return; 
+      }
 
       final pendingTxId = pendingTx['id'];
       final pendingItems = List<Map<String, dynamic>>.from(tableOrder.items);

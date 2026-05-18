@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "49185547481-4v3nbjtam6q8mlrvk9ftfuom22oejfen.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.parzello.pos_mobile",
+            "certificate_hash": "63d28b7dd3a526095c6b5878cc3f4b7671cb8224"
+          }
+        },
+        {
           "client_id": "49185547481-5oedne01p4or15n42svra2saiatmirck.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -25,7 +25,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
     {
       'id': 'Restaurant',
       'title': 'Restoran / F&B',
-      'subtitle': 'Mendukung Meja, KDS, & Reservasi',
+      'subtitle': 'Mendukung KDS & Reservasi',
       'icon': TablerIcons.tools_kitchen_2,
       'color': const Color(0xFFE9FCD4),
       'iconColor': const Color(0xFF9AE600),

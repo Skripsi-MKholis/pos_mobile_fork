@@ -378,7 +378,9 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                                 totalAmount: cartState.totalAmount,
                                 discountTotal: cartState.discountAmount,
                                 voucherInfo: cartState.appliedVoucher?.toMap(),
+                                activeTransactionId: cartState.activeTransactionId,
                               );
+                          ref.invalidate(tableMonitoringProvider);
                           ref.read(cartNotifierProvider.notifier).clearCart();
                           if (context.mounted) {
                             Navigator.pop(context);

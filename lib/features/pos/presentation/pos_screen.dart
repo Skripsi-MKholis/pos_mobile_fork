@@ -145,6 +145,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                       
                                       ref.read(cartNotifierProvider.notifier).clearCart();
                                       ref.read(cartNotifierProvider.notifier).setItems(items);
+                                      ref.read(cartNotifierProvider.notifier).setTransactionId(tableOrder.transaction?['id']);
                                     }
                                     
                                     ref.read(cartNotifierProvider.notifier).selectTable(table);
@@ -280,9 +281,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         activeStore?['settings'] as Map<String, dynamic>?;
                     final features =
                         settings?['features'] as Map<String, dynamic>?;
-                    final hasTables =
-                        features?['tables'] ??
-                        true; // Default to true if not specified
+                    const hasTables = false; // Sembunyikan untuk sementara waktu
 
                     if (!hasTables) return const SizedBox.shrink();
 

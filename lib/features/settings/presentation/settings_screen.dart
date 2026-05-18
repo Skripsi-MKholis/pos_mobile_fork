@@ -50,7 +50,7 @@ class SettingsScreen extends ConsumerWidget {
                     if (isAdmin) ...[
                       _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () => context.push('/store-info')),
                       _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () => context.push('/staff-management')),
-                      _buildMenuItem(context, theme, TablerIcons.table, 'Manajemen Meja', () => context.push('/manage-tables')),
+                      // _buildMenuItem(context, theme, TablerIcons.table, 'Manajemen Meja', () => context.push('/manage-tables')),
                     ],
                   ]),
                   const SizedBox(height: 32),

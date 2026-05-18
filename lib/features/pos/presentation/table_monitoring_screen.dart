@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
-import 'package:pos_mobile/core/models/table.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
@@ -315,8 +314,31 @@ class TableMonitoringScreen extends ConsumerWidget {
                     child: ShadButton.outline(
                       onPressed: () {
                         Navigator.pop(context);
-                        // Navigate to POS with this table selected
-                        ref.read(cartNotifierProvider.notifier).selectTable(order.table);
+                        
+                        // Load existing items for this table
+                        final products = ref.read(productNotifierProvider).value ?? [];
+                        final List<CartItem> cartItems = [];
+                        
+                        for (var item in order.items) {
+                          final product = products.firstWhere(
+                            (p) => p.supabaseId == item['product_id'],
+                            orElse: () => Product(
+                              supabaseId: item['product_id'],
+                              storeId: order.table.storeId,
+                              name: item['product_name'],
+                              price: (item['unit_price'] as num).toDouble(),
+                              stockQuantity: 0,
+                            ),
+                          );
+                          cartItems.add(CartItem(product: product, quantity: item['quantity']));
+                        }
+
+                        final cartNotifier = ref.read(cartNotifierProvider.notifier);
+                        cartNotifier.clearCart();
+                        cartNotifier.selectTable(order.table);
+                        cartNotifier.setItems(cartItems);
+                        cartNotifier.setTransactionId(order.transaction?['id']);
+                        
                         context.go('/pos');
                       },
                       leading: const Icon(TablerIcons.plus, size: 18),

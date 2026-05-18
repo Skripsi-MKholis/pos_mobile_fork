@@ -54,7 +54,7 @@ class _DrawerMenuContent extends ConsumerWidget {
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
     
-    final hasTables = features?['tables'] == true;
+    const hasTables = false; // Sembunyikan untuk sementara waktu
 
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -85,12 +85,13 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: 'Riwayat Transaksi',
           route: '/transactions',
         ),
-        const _DrawerItem(
-          icon: TablerIcons.device_desktop_analytics,
-          title: 'Monitoring Meja',
-          route: '/table-monitoring',
-        ),
-        if (hasTables || isAdmin)
+        if (hasTables)
+          const _DrawerItem(
+            icon: TablerIcons.device_desktop_analytics,
+            title: 'Monitoring Meja',
+            route: '/table-monitoring',
+          ),
+        if (hasTables)
           const _DrawerItem(
             icon: TablerIcons.table,
             title: 'Manajemen Meja',

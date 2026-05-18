@@ -322,21 +322,51 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'subtotal': item.subtotal,
       }).toList();
 
-      // Gunakan RPC untuk memproses transaksi secara atomik (header + items + stock update)
-      // Ini juga menghindari masalah RLS pada tabel individual karena RPC didefinisikan sebagai SECURITY DEFINER
-      final response = await supabase.rpc('create_transaction_v3', params: {
-        'p_store_id': storeId,
-        'p_cashier_id': supabase.auth.currentUser!.id,
-        'p_total_amount': totalAmount,
-        'p_payment_method': _paymentMethod,
-        'p_discount_total': cartState.discountAmount,
-        'p_voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
-        'p_table_id': cartState.selectedTable?.id,
-        'p_items': itemsToProcess,
-        'p_status': 'Berhasil',
-        'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
-        'p_change_amount': _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
-      });
+      // Gunakan RPC untuk memproses transaksi
+      dynamic response;
+      
+      if (cartState.activeTransactionId != null) {
+        // 1. Sync items first to ensure any last-minute changes are saved
+        final syncResponse = await supabase.rpc('sync_pending_transaction', params: {
+          'p_transaction_id': cartState.activeTransactionId,
+          'p_items': itemsToProcess,
+          'p_total_amount': totalAmount,
+          'p_discount_total': cartState.discountAmount,
+          'p_voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
+        });
+        
+        if (syncResponse == null || (syncResponse is Map && syncResponse['success'] == false)) {
+          throw syncResponse?['error'] ?? 'Gagal memperbarui data pesanan sebelum pembayaran.';
+        }
+        
+        // 2. Complete the pending transaction
+        response = await supabase.rpc('complete_pending_transaction', params: {
+          'p_transaction_id': cartState.activeTransactionId,
+          'p_payment_method': _paymentMethod,
+          'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
+          'p_change_amount': _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
+        });
+        
+        // Add transaction_id to response for consistency with create_transaction_v3
+        if (response != null && response is Map) {
+          response['transaction_id'] = cartState.activeTransactionId;
+        }
+      } else {
+        // Normal flow for new transaction
+        response = await supabase.rpc('create_transaction_v3', params: {
+          'p_store_id': storeId,
+          'p_cashier_id': supabase.auth.currentUser!.id,
+          'p_total_amount': totalAmount,
+          'p_payment_method': _paymentMethod,
+          'p_discount_total': cartState.discountAmount,
+          'p_voucher_info': cartState.appliedVoucher != null ? cartState.appliedVoucher!.toMap() : {},
+          'p_table_id': cartState.selectedTable?.id,
+          'p_items': itemsToProcess,
+          'p_status': 'Berhasil',
+          'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
+          'p_change_amount': _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
+        });
+      }
 
       if (response == null || (response is Map && response['success'] == false)) {
         throw response?['error'] ?? 'Terjadi kesalahan saat memproses transaksi.';
@@ -367,6 +397,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                 paidItems: cartState.items,
               );
         }
+        ref.invalidate(tableMonitoringProvider);
         ref.read(cartNotifierProvider.notifier).clearCart();
         _showSuccessDialog(transactionMap, itemsToProcess);
       }

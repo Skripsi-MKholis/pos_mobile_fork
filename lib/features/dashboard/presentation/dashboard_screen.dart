@@ -99,7 +99,7 @@ class DashboardScreen extends ConsumerWidget {
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
     
-    final hasTables = features?['tables'] == true;
+    const hasTables = false; // Sembunyikan untuk sementara waktu
     final hasKds = features?['kds'] == true;
 
     return GridView.count(
