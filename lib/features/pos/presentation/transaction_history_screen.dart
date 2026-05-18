@@ -30,6 +30,11 @@ class _TransactionHistoryScreenState
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(transactionHistoryProvider.notifier).refresh();
+      }
+    });
   }
 
   void _onScroll() {
@@ -100,7 +105,7 @@ class _TransactionHistoryScreenState
                               'Custom',
                               isCalendar: true,
                             ),
-                          ] else 
+                          ] else
                             _buildDateChip('Hari Ini', 'Hari Ini'),
                         ],
                       ),
@@ -118,12 +123,14 @@ class _TransactionHistoryScreenState
             historyAsync.when(
               data: (state) {
                 final transactions = [...state.transactions];
-                
+
                 // Apply Sort
                 transactions.sort((a, b) {
                   final dateA = DateTime.parse(a['created_at']);
                   final dateB = DateTime.parse(b['created_at']);
-                  return _sortOrder == 'desc' ? dateB.compareTo(dateA) : dateA.compareTo(dateB);
+                  return _sortOrder == 'desc'
+                      ? dateB.compareTo(dateA)
+                      : dateA.compareTo(dateB);
                 });
 
                 final filtered = transactions.where((tx) {
@@ -136,24 +143,27 @@ class _TransactionHistoryScreenState
                       );
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
-                  
+
                   final txDate = DateTime.parse(tx['created_at']);
                   bool matchesDate = true;
                   final now = DateTime.now();
 
                   if (_dateFilter == 'Hari Ini') {
-                    matchesDate = txDate.year == now.year && 
-                                 txDate.month == now.month && 
-                                 txDate.day == now.day;
+                    matchesDate =
+                        txDate.year == now.year &&
+                        txDate.month == now.month &&
+                        txDate.day == now.day;
                   } else if (_dateFilter == 'Kemarin') {
                     final yesterday = now.subtract(const Duration(days: 1));
-                    matchesDate = txDate.year == yesterday.year && 
-                                 txDate.month == yesterday.month && 
-                                 txDate.day == yesterday.day;
+                    matchesDate =
+                        txDate.year == yesterday.year &&
+                        txDate.month == yesterday.month &&
+                        txDate.day == yesterday.day;
                   } else if (_dateFilter == 'Custom' && _customDate != null) {
-                    matchesDate = txDate.year == _customDate!.year && 
-                                 txDate.month == _customDate!.month && 
-                                 txDate.day == _customDate!.day;
+                    matchesDate =
+                        txDate.year == _customDate!.year &&
+                        txDate.month == _customDate!.month &&
+                        txDate.day == _customDate!.day;
                   }
 
                   return matchesSearch && matchesStatus && matchesDate;
@@ -326,12 +336,18 @@ class _TransactionHistoryScreenState
           final txDate = DateTime.parse(tx['created_at']);
           final now = DateTime.now();
           if (_dateFilter == 'Hari Ini') {
-            return txDate.year == now.year && txDate.month == now.month && txDate.day == now.day;
+            return txDate.year == now.year &&
+                txDate.month == now.month &&
+                txDate.day == now.day;
           } else if (_dateFilter == 'Kemarin') {
             final yesterday = now.subtract(const Duration(days: 1));
-            return txDate.year == yesterday.year && txDate.month == yesterday.month && txDate.day == yesterday.day;
+            return txDate.year == yesterday.year &&
+                txDate.month == yesterday.month &&
+                txDate.day == yesterday.day;
           } else if (_dateFilter == 'Custom' && _customDate != null) {
-            return txDate.year == _customDate!.year && txDate.month == _customDate!.month && txDate.day == _customDate!.day;
+            return txDate.year == _customDate!.year &&
+                txDate.month == _customDate!.month &&
+                txDate.day == _customDate!.day;
           }
           return true;
         }).toList();
@@ -443,7 +459,11 @@ class _TransactionHistoryScreenState
                   placeholder: const Text('Cari transaksi...'),
                   leading: const Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Icon(TablerIcons.search, size: 16, color: Colors.grey),
+                    child: Icon(
+                      TablerIcons.search,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
                   ),
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: ShadDecoration(
@@ -467,11 +487,13 @@ class _TransactionHistoryScreenState
                   decoration: BoxDecoration(
                     color: theme.colorScheme.muted.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.colorScheme.border.withOpacity(0.5)),
+                    border: Border.all(
+                      color: theme.colorScheme.border.withOpacity(0.5),
+                    ),
                   ),
                   child: Icon(
-                    _sortOrder == 'desc' 
-                        ? TablerIcons.sort_descending 
+                    _sortOrder == 'desc'
+                        ? TablerIcons.sort_descending
                         : TablerIcons.sort_ascending,
                     size: 20,
                     color: Warna.primary,
@@ -531,7 +553,7 @@ class _TransactionHistoryScreenState
   Widget _buildDateChip(String label, String value, {bool isCalendar = false}) {
     final isSelected = _dateFilter == value;
     final theme = ShadTheme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
@@ -585,14 +607,18 @@ class _TransactionHistoryScreenState
                 Icon(
                   TablerIcons.calendar,
                   size: 14,
-                  color: isSelected ? Warna.primary : theme.colorScheme.mutedForeground,
+                  color: isSelected
+                      ? Warna.primary
+                      : theme.colorScheme.mutedForeground,
                 ),
                 const SizedBox(width: 6),
               ],
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : theme.colorScheme.mutedForeground,
+                  color: isSelected
+                      ? Colors.white
+                      : theme.colorScheme.mutedForeground,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal,
                   fontSize: 12,
                 ),

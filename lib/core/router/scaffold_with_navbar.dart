@@ -9,12 +9,10 @@ import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 
 class ScaffoldWithNavBar extends ConsumerStatefulWidget {
-  const ScaffoldWithNavBar({
-    required this.navigationShell,
-    super.key,
-  });
+  const ScaffoldWithNavBar({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
@@ -25,13 +23,28 @@ class ScaffoldWithNavBar extends ConsumerStatefulWidget {
 class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime? lastPressed;
+  int? _lastIndex;
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
-    final isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+    final isAdmin =
+        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+
+    // Auto-refresh transaction history when switching to Riwayat tab/branch (index 2)
+    final currentIndex = widget.navigationShell.currentIndex;
+    if (_lastIndex != currentIndex) {
+      _lastIndex = currentIndex;
+      if (currentIndex == 2) {
+        Future.microtask(() {
+          if (mounted) {
+            ref.read(transactionHistoryProvider.notifier).refresh();
+          }
+        });
+      }
+    }
 
     // Reset ke Dashboard saat ganti toko
     ref.listen(activeStoreProvider, (previous, next) {
@@ -43,35 +56,50 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
     });
 
     // Tentukan item navigasi berdasarkan Role dengan pemetaan Branch yang eksplisit
-    final List<Map<String, dynamic>> navItems = isAdmin 
-      ? [
-          {'icon': TablerIcons.chart_pie, 'label': 'Home', 'branch': 0},
-          {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
-          {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
-          {'icon': TablerIcons.report_money, 'label': 'Laporan', 'branch': 3},
-          {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
-        ]
-      : [
-          {'icon': TablerIcons.layout_dashboard, 'label': 'Home', 'branch': 0},
-          {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
-          {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
-          {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
-        ];
+    final List<Map<String, dynamic>> navItems = isAdmin
+        ? [
+            {'icon': TablerIcons.chart_pie, 'label': 'Home', 'branch': 0},
+            {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
+            {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
+            {'icon': TablerIcons.report_money, 'label': 'Laporan', 'branch': 3},
+            {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
+          ]
+        : [
+            {
+              'icon': TablerIcons.layout_dashboard,
+              'label': 'Home',
+              'branch': 0,
+            },
+            {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
+            {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
+            {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
+          ];
 
     // Judul AppBar berdasarkan branch yang aktif (bukan berdasarkan index bottom bar)
     final String pageTitle;
     switch (widget.navigationShell.currentIndex) {
-      case 0: pageTitle = 'Dashboard'; break;
-      case 1: pageTitle = 'Kasir'; break;
-      case 2: pageTitle = 'Riwayat Transaksi'; break;
-      case 3: pageTitle = 'Laporan Analitik'; break;
-      case 4: pageTitle = 'Pengaturan'; break;
-      default: pageTitle = 'POS Mobile';
+      case 0:
+        pageTitle = 'Dashboard';
+        break;
+      case 1:
+        pageTitle = 'Kasir';
+        break;
+      case 2:
+        pageTitle = 'Riwayat Transaksi';
+        break;
+      case 3:
+        pageTitle = 'Laporan Analitik';
+        break;
+      case 4:
+        pageTitle = 'Pengaturan';
+        break;
+      default:
+        pageTitle = 'POS Mobile';
     }
 
     // Cari index yang terpilih di GNav berdasarkan branch yang aktif di GoRouter
     final int selectedIndex = navItems.indexWhere(
-      (item) => item['branch'] == widget.navigationShell.currentIndex
+      (item) => item['branch'] == widget.navigationShell.currentIndex,
     );
 
     return PopScope(
@@ -84,9 +112,10 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           widget.navigationShell.goBranch(0);
           return;
         }
-        
+
         final now = DateTime.now();
-        final backButtonHasNotBeenPressedRecently = lastPressed == null || 
+        final backButtonHasNotBeenPressedRecently =
+            lastPressed == null ||
             now.difference(lastPressed!) > const Duration(seconds: 2);
 
         if (backButtonHasNotBeenPressedRecently) {
@@ -100,7 +129,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           }
           return;
         }
-        
+
         await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       },
       child: Scaffold(
@@ -122,10 +151,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
             ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(TablerIcons.bell),
-              onPressed: () {},
-            ),
+            IconButton(icon: const Icon(TablerIcons.bell), onPressed: () {}),
           ],
         ),
         body: widget.navigationShell,
@@ -141,14 +167,16 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                 child: Container(
                   height: 64,
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.9), // Modern opacity
+                    color: Colors.black.withValues(
+                      alpha: 0.9,
+                    ), // Modern opacity
                     borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
                         blurRadius: 20,
                         color: Colors.black.withValues(alpha: .2),
                         offset: const Offset(0, 10),
-                      )
+                      ),
                     ],
                   ),
                   child: Padding(
@@ -159,26 +187,33 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                       gap: 4,
                       activeColor: Colors.white,
                       iconSize: 20,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
                       duration: const Duration(milliseconds: 300),
                       tabBackgroundColor: Warna.primary.withValues(alpha: 0.8),
                       color: Colors.white54,
                       tabs: navItems
-                          .map((item) => GButton(
-                                icon: item['icon'],
-                                text: item['label'],
-                                textStyle: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ))
+                          .map(
+                            (item) => GButton(
+                              icon: item['icon'],
+                              text: item['label'],
+                              textStyle: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
                           .toList(),
                       selectedIndex: selectedIndex == -1 ? 0 : selectedIndex,
                       onTabChange: (index) {
                         final item = navItems[index];
                         if (item['branch'] != null) {
-                          widget.navigationShell.goBranch(item['branch'] as int);
+                          widget.navigationShell.goBranch(
+                            item['branch'] as int,
+                          );
                         }
                       },
                     ),
