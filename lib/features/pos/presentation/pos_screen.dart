@@ -105,16 +105,25 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                     context: context,
                                     builder: (context) => ShadDialog(
                                       title: const Text('Meja Terisi'),
-                                      description: const Text('Meja ini sedang digunakan. Ingin menambah pesanan ke meja ini?'),
+                                      description: const Text(
+                                        'Meja ini sedang digunakan. Ingin menambah pesanan ke meja ini?',
+                                      ),
                                       actions: [
                                         ShadButton.outline(
-                                          onPressed: () => Navigator.pop(context, false),
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
                                           child: const Text('Batal'),
                                         ),
                                         ShadButton(
                                           backgroundColor: Warna.primary,
-                                          onPressed: () => Navigator.pop(context, true),
-                                          child: const Text('Tambah Pesanan', style: TextStyle(color: Colors.black)),
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text(
+                                            'Tambah Pesanan',
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -122,37 +131,66 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
                                   if (confirmed == true) {
                                     // Load existing items for this table
-                                    final monitoring = ref.read(tableMonitoringProvider).value;
-                                    final tableOrder = monitoring?.firstWhere((o) => o.table.id == table.id);
-                                    
-                                    if (tableOrder != null && tableOrder.transaction != null) {
-                                      final products = ref.read(productNotifierProvider).value ?? [];
+                                    final monitoring = ref
+                                        .read(tableMonitoringProvider)
+                                        .value;
+                                    final tableOrder = monitoring?.firstWhere(
+                                      (o) => o.table.id == table.id,
+                                    );
+
+                                    if (tableOrder != null &&
+                                        tableOrder.transaction != null) {
+                                      final products =
+                                          ref
+                                              .read(productNotifierProvider)
+                                              .value ??
+                                          [];
                                       final List<CartItem> items = [];
-                                      
+
                                       for (var item in tableOrder.items) {
                                         final product = products.firstWhere(
-                                          (p) => p.supabaseId == item['product_id'],
+                                          (p) =>
+                                              p.supabaseId ==
+                                              item['product_id'],
                                           orElse: () => Product(
                                             supabaseId: item['product_id'],
                                             storeId: item['store_id'] ?? '',
                                             name: item['product_name'],
-                                            price: (item['unit_price'] as num).toDouble(),
+                                            price: (item['unit_price'] as num)
+                                                .toDouble(),
                                             stockQuantity: 0,
                                           ),
                                         );
-                                        items.add(CartItem(product: product, quantity: item['quantity']));
+                                        items.add(
+                                          CartItem(
+                                            product: product,
+                                            quantity: item['quantity'],
+                                          ),
+                                        );
                                       }
-                                      
-                                      ref.read(cartNotifierProvider.notifier).clearCart();
-                                      ref.read(cartNotifierProvider.notifier).setItems(items);
-                                      ref.read(cartNotifierProvider.notifier).setTransactionId(tableOrder.transaction?['id']);
+
+                                      ref
+                                          .read(cartNotifierProvider.notifier)
+                                          .clearCart();
+                                      ref
+                                          .read(cartNotifierProvider.notifier)
+                                          .setItems(items);
+                                      ref
+                                          .read(cartNotifierProvider.notifier)
+                                          .setTransactionId(
+                                            tableOrder.transaction?['id'],
+                                          );
                                     }
-                                    
-                                    ref.read(cartNotifierProvider.notifier).selectTable(table);
+
+                                    ref
+                                        .read(cartNotifierProvider.notifier)
+                                        .selectTable(table);
                                     if (context.mounted) Navigator.pop(context);
                                   }
                                 } else {
-                                  ref.read(cartNotifierProvider.notifier).selectTable(table);
+                                  ref
+                                      .read(cartNotifierProvider.notifier)
+                                      .selectTable(table);
                                   Navigator.pop(context);
                                 }
                               },
@@ -281,7 +319,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         activeStore?['settings'] as Map<String, dynamic>?;
                     final features =
                         settings?['features'] as Map<String, dynamic>?;
-                    const hasTables = false; // Sembunyikan untuk sementara waktu
+                    const hasTables =
+                        false; // Sembunyikan untuk sementara waktu
 
                     if (!hasTables) return const SizedBox.shrink();
 
@@ -407,7 +446,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             const SizedBox(height: 12),
                             ShadButton.outline(
                               onPressed: () => context.push('/products'),
-                              leading: const Icon(TablerIcons.settings, size: 18),
+                              leading: const Icon(
+                                TablerIcons.settings,
+                                size: 18,
+                              ),
                               child: const Text('Kelola Produk'),
                             ),
                           ],
@@ -550,7 +592,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           context: context,
           useRootNavigator: true, // Show over bottom bar
           backgroundColor: Colors.transparent,
-          builder: (context) => _buildSortBottomSheet(),
+          builder: (sheetContext) => _buildSortBottomSheet(sheetContext),
         );
       },
       borderRadius: BorderRadius.circular(20),
@@ -571,7 +613,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
   }
 
-  Widget _buildSortBottomSheet() {
+  Widget _buildSortBottomSheet(BuildContext context) {
     final theme = ShadTheme.of(context);
     final options = [
       {'label': 'Nama (A-Z)', 'value': 'name_asc'},
