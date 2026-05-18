@@ -11,6 +11,7 @@ import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/category_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_form_screen.dart';
+import 'package:pos_mobile/features/product/presentation/stock_management_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/pos_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/payment_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
@@ -35,6 +36,7 @@ import 'package:pos_mobile/features/onboarding/presentation/onboarding_screen.da
 import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
 import 'package:pos_mobile/features/dashboard/presentation/notification_center_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/broadcast_notification_screen.dart';
+import 'package:pos_mobile/features/kds/presentation/kds_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
@@ -261,6 +263,14 @@ final routerProvider = Provider<GoRouter>((ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: '/stock',
+        builder: (context, state) => const StockManagementScreen(),
+      ),
+      GoRoute(
+        path: '/kds',
+        builder: (context, state) => const KDSScreen(),
       ),
       GoRoute(
         path: '/profile',

@@ -296,6 +296,39 @@ class ProductNotifier extends _$ProductNotifier {
     }
   }
 
+  Future<void> updateStock(String supabaseId, int newStock) async {
+    try {
+      final isOnline =
+          ref.read(connectivityNotifierProvider).value ==
+          ConnectivityStatus.online;
+
+      // Update locally
+      final localProduct = await _isar.products
+          .filter()
+          .supabaseIdEqualTo(supabaseId)
+          .findFirst();
+          
+      if (localProduct != null) {
+        await _isar.writeTxn(() async {
+          localProduct.stockQuantity = newStock;
+          localProduct.isSynced = isOnline;
+          await _isar.products.putBySupabaseId(localProduct);
+        });
+        ref.invalidateSelf();
+      }
+
+      // Sync to remote if online
+      if (isOnline) {
+        await _supabase
+            .from('products')
+            .update({'stock_quantity': newStock})
+            .eq('id', supabaseId);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> deleteProduct(String supabaseId) async {
     try {
       // 1. Soft delete locally

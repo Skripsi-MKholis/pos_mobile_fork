@@ -106,6 +106,11 @@ class _DrawerMenuContent extends ConsumerWidget {
             route: '/products',
           ),
           const _DrawerItem(
+            icon: TablerIcons.packages,
+            title: 'Kelola Stok',
+            route: '/stock',
+          ),
+          const _DrawerItem(
             icon: TablerIcons.category,
             title: 'Kategori',
             route: '/categories',

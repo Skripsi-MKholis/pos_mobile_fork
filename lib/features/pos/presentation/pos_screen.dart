@@ -676,9 +676,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       padding: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: product.stockQuantity > 0
-            ? () => cartNotifier.addItem(product)
-            : null,
+        onTap: () => cartNotifier.addItem(product),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -762,12 +760,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   else if (product.stockQuantity <= 0)
                     Positioned.fill(
                       child: Container(
-                        color: Colors.black.withValues(alpha: 0.5),
+                        color: Colors.red.withValues(alpha: 0.1),
                         child: const Center(
                           child: Text(
-                            'HABIS',
+                            'Stok 0',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.red,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
                             ),

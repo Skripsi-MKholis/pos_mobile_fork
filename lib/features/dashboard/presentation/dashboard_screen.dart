@@ -293,7 +293,7 @@ class DashboardScreen extends ConsumerWidget {
           theme,
           accentColor: const Color(0xFFFF6B00),
           isLoading: isProductsLoading,
-          onTap: () => context.go('/inventory'),
+          onTap: () => context.push('/stock'),
         ),
         _buildStatCard(
           'Produk Aktif',
@@ -301,7 +301,7 @@ class DashboardScreen extends ConsumerWidget {
           TablerIcons.box,
           theme,
           isLoading: isProductsLoading,
-          onTap: () => context.go('/inventory'),
+          onTap: () => context.push('/products'),
         ),
       ],
     );
