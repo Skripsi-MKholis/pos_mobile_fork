@@ -10,6 +10,9 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
+import 'package:pos_mobile/core/models/notification_local_model.dart';
+import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
+import 'package:pos_mobile/core/services/fcm_service.dart';
 
 class ScaffoldWithNavBar extends ConsumerStatefulWidget {
   const ScaffoldWithNavBar({required this.navigationShell, super.key});
@@ -26,12 +29,102 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   int? _lastIndex;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      FCMService.instance.initialize();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
     final isAdmin =
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+
+    // Listener untuk notifikasi real-time yang masuk untuk menampilkan Toast instan
+    ref.listen<NotificationLocalModel?>(lastReceivedNotificationProvider, (
+      previous,
+      next,
+    ) {
+      if (next != null) {
+        final isDestructive = next.type == 'low_stock' || next.type == 'danger';
+        final isWarning =
+            next.type == 'warning' || next.type == 'transaction_void';
+        final isSuccess = next.type == 'success';
+        final isAnnouncement = next.type == 'announcement';
+        final isPromo = next.type == 'promo';
+        final isTechnical = next.type == 'technical';
+
+        final IconData icon;
+        final Color iconColor;
+        if (isDestructive) {
+          icon = next.type == 'danger'
+              ? TablerIcons.alert_circle
+              : TablerIcons.alert_triangle;
+          iconColor = Colors.white;
+        } else if (isWarning) {
+          icon = next.type == 'warning'
+              ? TablerIcons.alert_triangle
+              : TablerIcons.circle_x;
+          iconColor = Colors.amber;
+        } else if (isSuccess) {
+          icon = TablerIcons.circle_check;
+          iconColor = Colors.green;
+        } else if (isAnnouncement) {
+          icon = TablerIcons.speakerphone;
+          iconColor = Colors.blue;
+        } else if (isPromo) {
+          icon = TablerIcons.ticket;
+          iconColor = Colors.indigo;
+        } else if (isTechnical) {
+          icon = TablerIcons.tool;
+          iconColor = Colors.orange;
+        } else {
+          icon = TablerIcons.info_circle;
+          iconColor = Colors.lightGreen;
+        }
+
+        final toast = isDestructive
+            ? ShadToast.destructive(
+                title: Row(
+                  children: [
+                    Icon(icon, color: iconColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      next.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                description: Text(next.message),
+                duration: const Duration(seconds: 4),
+              )
+            : ShadToast(
+                title: Row(
+                  children: [
+                    Icon(icon, color: iconColor, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      next.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                description: Text(next.message),
+                duration: const Duration(seconds: 4),
+              );
+
+        ShadToaster.of(context).show(toast);
+
+        // Reset agar tidak memicu ulang toast pada rebuild UI berikutnya
+        Future.microtask(() {
+          ref.read(lastReceivedNotificationProvider.notifier).state = null;
+        });
+      }
+    });
 
     // Auto-refresh transaction history when switching to Riwayat tab/branch (index 2)
     final currentIndex = widget.navigationShell.currentIndex;
@@ -151,7 +244,25 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
             ),
           ),
           actions: [
-            IconButton(icon: const Icon(TablerIcons.bell), onPressed: () {}),
+            IconButton(
+              icon: Consumer(
+                builder: (context, ref, child) {
+                  final unreadCount = ref.watch(
+                    unreadNotificationCountProvider,
+                  );
+                  return Badge(
+                    label: Text(unreadCount.toString()),
+                    isLabelVisible: unreadCount > 0,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    child: const Icon(TablerIcons.bell),
+                  );
+                },
+              ),
+              onPressed: () {
+                context.push('/notifications');
+              },
+            ),
           ],
         ),
         body: widget.navigationShell,

@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
+import 'package:flutter/services.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -499,6 +500,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       };
 
       if (mounted) {
+        HapticFeedback.heavyImpact();
+        final currencyFormat = NumberFormat.currency(
+          locale: 'id_ID',
+          symbol: 'Rp ',
+          decimalDigits: 0,
+        );
+        ShadToaster.of(context).show(
+          ShadToast(
+            title: const Text('Pembayaran Berhasil!'),
+            description: Text('Transaksi senilai ${currencyFormat.format(totalAmount)} telah disimpan.'),
+            duration: const Duration(seconds: 3),
+          ),
+        );
         if (cartState.selectedTable != null) {
           await ref
               .read(tableMonitoringProvider.notifier)

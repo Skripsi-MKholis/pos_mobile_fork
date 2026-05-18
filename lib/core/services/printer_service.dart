@@ -76,7 +76,7 @@ class PrinterService {
     );
     await bluetooth.printLeftRight(
       "Tgl:",
-      dateFormat.format(DateTime.parse(transaction['created_at'])),
+      dateFormat.format(DateTime.parse(transaction['created_at']).toLocal()),
       1,
     );
     if (showCashier) {

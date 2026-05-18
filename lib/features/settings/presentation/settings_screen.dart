@@ -88,6 +88,13 @@ class SettingsScreen extends ConsumerWidget {
                         'Manajemen Karyawan',
                         () => context.push('/staff-management'),
                       ),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.speakerphone,
+                        'Broadcast Notifikasi',
+                        () => context.push('/broadcast-notification'),
+                      ),
                       // _buildMenuItem(context, theme, TablerIcons.table, 'Manajemen Meja', () => context.push('/manage-tables')),
                     ],
                   ]),

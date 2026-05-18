@@ -253,7 +253,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         _buildRow(
                           'Tanggal',
                           dateFormat.format(
-                            DateTime.parse(widget.transaction['created_at']),
+                            DateTime.parse(widget.transaction['created_at']).toLocal(),
                           ),
                         ),
                         _buildRow(
@@ -537,7 +537,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
 =================================
 ${showHeaderMsg && headerMsg.isNotEmpty ? '$headerMsg\n' : ''}${showAddress && address.isNotEmpty ? '$address\n' : ''}${showPhone && phone.isNotEmpty ? 'Telp: $phone\n' : ''}---------------------------------
 No. Transaksi: #${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
-Tanggal: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']))}
+Tanggal: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
 Metode: ${widget.transaction['payment_method']}
 ${showCashier ? 'Kasir: Staf Parzello\n' : ''}---------------------------------
 ${widget.items.map((item) => "${item['product_name']}\n${item['quantity']} x ${currencyFormat.format(item['unit_price'])}   ${currencyFormat.format(item['subtotal'])}").join('\n---------------------------------\n')}

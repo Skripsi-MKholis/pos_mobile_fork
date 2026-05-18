@@ -6,7 +6,7 @@ part of 'table_monitoring_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$tableMonitoringHash() => r'1849cb71583d26e38f230629c5fb640c940190f8';
+String _$tableMonitoringHash() => r'ef150a9efa284ca007b153ca6ff6576c6194e388';
 
 /// See also [TableMonitoring].
 @ProviderFor(TableMonitoring)

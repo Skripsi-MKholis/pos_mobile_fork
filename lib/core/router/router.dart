@@ -33,6 +33,8 @@ import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
+import 'package:pos_mobile/features/dashboard/presentation/notification_center_screen.dart';
+import 'package:pos_mobile/features/dashboard/presentation/broadcast_notification_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
@@ -103,6 +105,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/staff-management',
           '/manage-tables',
           '/store-info',
+          '/broadcast-notification',
         ];
 
         final isRestricted = restrictedRoutes.any(
@@ -262,6 +265,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
+        path: '/broadcast-notification',
+        builder: (context, state) => const BroadcastNotificationScreen(),
       ),
     ],
   );

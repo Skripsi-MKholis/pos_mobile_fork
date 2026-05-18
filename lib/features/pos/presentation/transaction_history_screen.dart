@@ -126,8 +126,8 @@ class _TransactionHistoryScreenState
 
                 // Apply Sort
                 transactions.sort((a, b) {
-                  final dateA = DateTime.parse(a['created_at']);
-                  final dateB = DateTime.parse(b['created_at']);
+                  final dateA = DateTime.parse(a['created_at']).toLocal();
+                  final dateB = DateTime.parse(b['created_at']).toLocal();
                   return _sortOrder == 'desc'
                       ? dateB.compareTo(dateA)
                       : dateA.compareTo(dateB);
@@ -144,7 +144,7 @@ class _TransactionHistoryScreenState
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
 
-                  final txDate = DateTime.parse(tx['created_at']);
+                  final txDate = DateTime.parse(tx['created_at']).toLocal();
                   bool matchesDate = true;
                   final now = DateTime.now();
 
@@ -180,7 +180,7 @@ class _TransactionHistoryScreenState
                 final Map<String, List<Map<String, dynamic>>> grouped = {};
                 for (var tx in filtered) {
                   final dateStr = dateFullFormat.format(
-                    DateTime.parse(tx['created_at']),
+                    DateTime.parse(tx['created_at']).toLocal(),
                   );
                   grouped.putIfAbsent(dateStr, () => []).add(tx);
                 }
@@ -333,7 +333,7 @@ class _TransactionHistoryScreenState
     return historyAsync.when(
       data: (state) {
         final filtered = state.transactions.where((tx) {
-          final txDate = DateTime.parse(tx['created_at']);
+          final txDate = DateTime.parse(tx['created_at']).toLocal();
           final now = DateTime.now();
           if (_dateFilter == 'Hari Ini') {
             return txDate.year == now.year &&
@@ -676,7 +676,7 @@ class _TransactionHistoryScreenState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${timeFormat.format(DateTime.parse(tx['created_at']))} \u2022 $paymentMethod',
+                        '${timeFormat.format(DateTime.parse(tx['created_at']).toLocal())} \u2022 $paymentMethod',
                         style: theme.textTheme.muted.copyWith(fontSize: 12),
                       ),
                     ],

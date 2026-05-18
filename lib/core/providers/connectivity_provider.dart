@@ -14,12 +14,20 @@ class ConnectivityNotifier extends _$ConnectivityNotifier {
     final connectivity = Connectivity();
     
     // Initial check
-    final result = await connectivity.checkConnectivity();
-    yield _mapResultToStatus(result);
+    try {
+      final result = await connectivity.checkConnectivity();
+      yield _mapResultToStatus(result);
+    } catch (e) {
+      yield ConnectivityStatus.offline;
+    }
     
     // Watch for changes
-    await for (final result in connectivity.onConnectivityChanged) {
-      yield _mapResultToStatus(result);
+    try {
+      await for (final result in connectivity.onConnectivityChanged) {
+        yield _mapResultToStatus(result);
+      }
+    } catch (e) {
+      yield ConnectivityStatus.offline;
     }
   }
 
