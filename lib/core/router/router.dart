@@ -203,6 +203,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           return ReceiptScreen(
             transaction: extra['transaction'],
             items: extra['items'],
+            autoPrint: extra['autoPrint'] ?? false,
           );
         },
       ),

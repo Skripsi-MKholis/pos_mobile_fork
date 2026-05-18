@@ -580,7 +580,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     Navigator.pop(context);
                     context.push(
                       '/receipt',
-                      extra: {'transaction': transaction, 'items': items},
+                      extra: {
+                        'transaction': transaction,
+                        'items': items,
+                        'autoPrint': true,
+                      },
                     );
                   },
                   child: const Text(
