@@ -19,7 +19,8 @@ class SettingsScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
     final activeStore = ref.watch(activeStoreProvider);
-    final isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+    final isAdmin =
+        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -40,23 +41,72 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
                   if (isAdmin) ...[
                     _buildMenuSection(theme, 'KATALOG & STOK', [
-                      _buildMenuItem(context, theme, TablerIcons.package, 'Daftar Produk', () => context.push('/products')),
-                      _buildMenuItem(context, theme, TablerIcons.category, 'Kategori Produk', () => context.push('/categories')),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.package,
+                        'Daftar Produk',
+                        () => context.push('/products'),
+                      ),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.category,
+                        'Kategori Produk',
+                        () => context.push('/categories'),
+                      ),
                     ]),
                     const SizedBox(height: 32),
                   ],
                   _buildMenuSection(theme, 'PENGATURAN TOKO', [
-                    _buildMenuItem(context, theme, TablerIcons.printer, 'Printer & Struk', () => context.push('/printer-settings')),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.printer,
+                      'Koneksi Printer',
+                      () => context.push('/printer-settings'),
+                    ),
                     if (isAdmin) ...[
-                      _buildMenuItem(context, theme, TablerIcons.building_store, 'Informasi Toko', () => context.push('/store-info')),
-                      _buildMenuItem(context, theme, TablerIcons.users, 'Manajemen Karyawan', () => context.push('/staff-management')),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.receipt,
+                        'Kustomisasi Struk',
+                        () => context.push('/receipt-customization'),
+                      ),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.building_store,
+                        'Informasi Toko',
+                        () => context.push('/store-info'),
+                      ),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.users,
+                        'Manajemen Karyawan',
+                        () => context.push('/staff-management'),
+                      ),
                       // _buildMenuItem(context, theme, TablerIcons.table, 'Manajemen Meja', () => context.push('/manage-tables')),
                     ],
                   ]),
                   const SizedBox(height: 32),
                   _buildMenuSection(theme, 'AKUN & KEAMANAN', [
-                    _buildMenuItem(context, theme, TablerIcons.user, 'Profil Saya', () => context.push('/profile')),
-                    _buildMenuItem(context, theme, TablerIcons.lock, 'Ganti Kata Sandi', () => context.push('/setup-password')),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.user,
+                      'Profil Saya',
+                      () => context.push('/profile'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.lock,
+                      'Ganti Kata Sandi',
+                      () => context.push('/setup-password'),
+                    ),
                     if (role?.toLowerCase() == 'karyawan')
                       _buildMenuItem(
                         context,
@@ -77,7 +127,11 @@ class SettingsScreen extends ConsumerWidget {
                   Center(
                     child: Text(
                       'Antigravity POS • Versi 1.0.0',
-                      style: theme.textTheme.muted.copyWith(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 85),
@@ -112,12 +166,19 @@ class SettingsScreen extends ConsumerWidget {
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Divider(height: 1, color: theme.colorScheme.border.withOpacity(0.5)),
+        child: Divider(
+          height: 1,
+          color: theme.colorScheme.border.withOpacity(0.5),
+        ),
       ),
     );
   }
 
-  Widget _buildStoreHeader(BuildContext context, ShadThemeData theme, Map<String, dynamic> store) {
+  Widget _buildStoreHeader(
+    BuildContext context,
+    ShadThemeData theme,
+    Map<String, dynamic> store,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -135,7 +196,9 @@ class SettingsScreen extends ConsumerWidget {
               color: Warna.primary,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: store['logo_url'] != null && (store['logo_url'] as String).isNotEmpty
+            child:
+                store['logo_url'] != null &&
+                    (store['logo_url'] as String).isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: store['logo_url'],
                     fit: BoxFit.cover,
@@ -143,12 +206,23 @@ class SettingsScreen extends ConsumerWidget {
                       child: SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                    errorWidget: (context, url, error) => const Icon(TablerIcons.building_store, color: Colors.black, size: 24),
+                    errorWidget: (context, url, error) => const Icon(
+                      TablerIcons.building_store,
+                      color: Colors.black,
+                      size: 24,
+                    ),
                   )
-                : const Icon(TablerIcons.building_store, color: Colors.black, size: 24),
+                : const Icon(
+                    TablerIcons.building_store,
+                    color: Colors.black,
+                    size: 24,
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -157,7 +231,10 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 Text(
                   store['name'] ?? 'Toko Aktif',
-                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
                 ),
                 Text(
                   store['address'] ?? 'Alamat tidak diatur',
@@ -178,7 +255,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuSection(ShadThemeData theme, String title, List<Widget> children) {
+  Widget _buildMenuSection(
+    ShadThemeData theme,
+    String title,
+    List<Widget> children,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -198,7 +279,9 @@ class SettingsScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: theme.colorScheme.border.withOpacity(0.5)),
+            border: Border.all(
+              color: theme.colorScheme.border.withOpacity(0.5),
+            ),
           ),
           child: Column(children: children),
         ),
@@ -206,19 +289,39 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, ShadThemeData theme, IconData icon, String title, VoidCallback onTap, {Color? color}) {
+  Widget _buildMenuItem(
+    BuildContext context,
+    ShadThemeData theme,
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    Color? color,
+  }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color?.withOpacity(0.1) ?? theme.colorScheme.muted.withOpacity(0.5),
+          color:
+              color?.withOpacity(0.1) ??
+              theme.colorScheme.muted.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: color ?? Colors.black, size: 18),
       ),
-      title: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color ?? Colors.black)),
-      trailing: Icon(TablerIcons.chevron_right, size: 16, color: color?.withOpacity(0.5) ?? Colors.black26),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: color ?? Colors.black,
+        ),
+      ),
+      trailing: Icon(
+        TablerIcons.chevron_right,
+        size: 16,
+        color: color?.withOpacity(0.5) ?? Colors.black26,
+      ),
       onTap: onTap,
     );
   }
@@ -232,7 +335,9 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Keluar dari Toko'),
-        description: Text('Apakah Anda yakin ingin keluar dari toko ${activeStore['name']}? Anda tidak akan bisa mengakses toko ini lagi tanpa kode undangan baru.'),
+        description: Text(
+          'Apakah Anda yakin ingin keluar dari toko ${activeStore['name']}? Anda tidak akan bisa mengakses toko ini lagi tanpa kode undangan baru.',
+        ),
         actions: [
           ShadButton.outline(
             child: const Text('Batal'),
@@ -254,10 +359,10 @@ class SettingsScreen extends ConsumerWidget {
             .delete()
             .eq('store_id', activeStore['id'])
             .eq('user_id', user.id);
-        
+
         await ref.read(activeStoreProvider.notifier).clear();
         ref.invalidate(userStoresProvider);
-        
+
         if (context.mounted) {
           context.go('/select-store');
           ShadToaster.of(context).show(
@@ -285,7 +390,9 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Konfirmasi Keluar'),
-        description: const Text('Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.'),
+        description: const Text(
+          'Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.',
+        ),
         actions: [
           ShadButton.outline(
             child: const Text('Batal'),

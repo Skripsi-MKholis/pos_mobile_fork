@@ -23,6 +23,7 @@ import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/manage_tables_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/receipt_customization_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/table_monitoring_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/split_bill_screen.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
@@ -86,8 +87,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Role-based Access Control (RBAC)
-      final role = activeStoreAsync.value?['user_role']?.toString().toLowerCase();
-      final isOwner = role == 'owner' || Supabase.instance.client.auth.currentUser?.appMetadata['role'] == 'admin';
+      final role = activeStoreAsync.value?['user_role']
+          ?.toString()
+          .toLowerCase();
+      final isOwner =
+          role == 'owner' ||
+          Supabase.instance.client.auth.currentUser?.appMetadata['role'] ==
+              'admin';
 
       if (!isOwner) {
         final restrictedRoutes = [
@@ -98,8 +104,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/manage-tables',
           '/store-info',
         ];
-        
-        final isRestricted = restrictedRoutes.any((route) => state.matchedLocation.startsWith(route));
+
+        final isRestricted = restrictedRoutes.any(
+          (route) => state.matchedLocation.startsWith(route),
+        );
         if (isRestricted) {
           return '/dashboard';
         }
@@ -201,6 +209,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/printer-settings',
         builder: (context, state) => const PrinterSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/receipt-customization',
+        builder: (context, state) => const ReceiptCustomizationScreen(),
       ),
       GoRoute(
         path: '/categories',

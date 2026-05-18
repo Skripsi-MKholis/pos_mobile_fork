@@ -27,9 +27,7 @@ class AppDrawer extends StatelessWidget {
             Divider(height: 1),
 
             // MENU ITEMS (Surgical Rebuilds)
-            Expanded(
-              child: _DrawerMenuContent(),
-            ),
+            Expanded(child: _DrawerMenuContent()),
 
             Divider(height: 1),
             _UserFooter(),
@@ -47,13 +45,14 @@ class _DrawerMenuContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
-    final bool isAdmin = role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
-    
+    final bool isAdmin =
+        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+
     final activeStoreAsync = ref.watch(activeStoreProvider);
     final activeStore = activeStoreAsync.value;
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
-    
+
     const hasTables = false; // Sembunyikan untuk sementara waktu
 
     return ListView(
@@ -122,6 +121,12 @@ class _DrawerMenuContent extends ConsumerWidget {
         ),
         if (isAdmin)
           const _DrawerItem(
+            icon: TablerIcons.receipt,
+            title: 'Kustomisasi Struk',
+            route: '/receipt-customization',
+          ),
+        if (isAdmin)
+          const _DrawerItem(
             icon: TablerIcons.building_store,
             title: 'Informasi Toko',
             route: '/settings',
@@ -148,7 +153,9 @@ class _StoreHeaderSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeStoreAsync = ref.watch(activeStoreProvider);
-    final storesAsync = ref.watch(userStoresProvider); // Watch to ensure data is fetched
+    final storesAsync = ref.watch(
+      userStoresProvider,
+    ); // Watch to ensure data is fetched
     final theme = ShadTheme.of(context);
 
     return activeStoreAsync.when(
@@ -206,11 +213,19 @@ class _StoreHeaderSection extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(width: 100, height: 12, color: Colors.black.withOpacity(0.05)),
+                Container(
+                  width: 100,
+                  height: 12,
+                  color: Colors.black.withOpacity(0.05),
+                ),
                 const SizedBox(height: 6),
-                Container(width: 60, height: 8, color: Colors.black.withOpacity(0.05)),
+                Container(
+                  width: 60,
+                  height: 8,
+                  color: Colors.black.withOpacity(0.05),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -244,10 +259,15 @@ class _StoreHeaderSection extends ConsumerWidget {
                       children: [
                         ...stores.map(
                           (s) => ListTile(
-                            leading: _StoreIcon(logoUrl: s['logo_url'], size: 32),
+                            leading: _StoreIcon(
+                              logoUrl: s['logo_url'],
+                              size: 32,
+                            ),
                             title: Text(s['name'] ?? ''),
                             onTap: () {
-                              ref.read(activeStoreProvider.notifier).selectStore(s);
+                              ref
+                                  .read(activeStoreProvider.notifier)
+                                  .selectStore(s);
                               Navigator.pop(context);
                               Navigator.pop(context); // Close drawer too
                             },
@@ -273,7 +293,11 @@ class _StoreHeaderSection extends ConsumerWidget {
                             child: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(TablerIcons.settings, size: 20, color: Colors.black87),
+                                Icon(
+                                  TablerIcons.settings,
+                                  size: 20,
+                                  color: Colors.black87,
+                                ),
                                 SizedBox(width: 12),
                                 Text(
                                   'Kelola / Tambah Toko',
@@ -420,7 +444,7 @@ class _UserFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -461,7 +485,10 @@ class _UserFooter extends ConsumerWidget {
                           ),
                           Text(
                             user?.email ?? '',
-                            style: const TextStyle(fontSize: 10, color: Colors.black45),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Colors.black45,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
