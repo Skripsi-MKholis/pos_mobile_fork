@@ -1,6 +1,6 @@
 ### **Versi Sekarang**
 
-**1.0.0+2**
+**1.1.0+3**
 
 ---
 
@@ -38,3 +38,14 @@ Kami dengan bangga memperkenalkan versi stabil pertama dari ZelloPOS! Rilis ini 
 
 * **Update Target SDK**: Meningkatkan target API level ke **35 (Android 15)** untuk memastikan aplikasi menggunakan fitur keamanan dan optimasi performa terbaru.
 * **Compile SDK 36**: Memperbarui Compile SDK ke versi 36 untuk kompatibilitas penuh dengan library Google Play Services terbaru.
+
+---
+
+**Versi 1.1.0+3 (Feature Updates & Enhancements)**
+
+* **Fitur Manajemen Stok**: Menambahkan sistem kelola stok yang komprehensif, memungkinkan pengguna untuk memperbarui inventaris dengan mudah. Mendukung penjualan stok 0/minus untuk fleksibilitas operasional.
+* **Fitur Notifikasi**: Sistem notifikasi baru, baik dari sistem maupun *broadcast*, terintegrasi di dalam aplikasi.
+* **Fitur Cetak & Kustomisasi Struk**: Integrasi pencetakan struk *thermal* (Bluetooth/USB) beserta halaman kustomisasi yang memungkinkan pengaturan *header*, pesan penutup, dan ukuran kertas secara dinamis.
+* **Perbaikan Alur Pembayaran (Checkout)**: Penyesuaian kalkulasi dan stabilisasi sinkronisasi keranjang belanja ke transaksi sukses.
+* **Perbaikan Antarmuka (UI/UX)**: Berbagai perbaikan kecil pada antarmuka *Dashboard* dan *Kasir* (*POS Screen*), serta menyembunyikan fitur Manajemen Meja sementara untuk fokus pada fitur inti kasir ritel/F&B tanpa meja.
+* **Halaman Coming Soon KDS**: Menyiapkan pondasi *Kitchen Display System* dengan halaman *placeholder*.
