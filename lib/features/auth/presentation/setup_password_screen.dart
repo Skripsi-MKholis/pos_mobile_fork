@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 
 class SetupPasswordScreen extends ConsumerStatefulWidget {
   const SetupPasswordScreen({super.key});
@@ -20,16 +21,18 @@ class _SetupPasswordScreenState extends ConsumerState<SetupPasswordScreen> {
 
   Future<void> _handleSavePassword() async {
     if (_passwordController.text.length < 6) {
-      ShadToaster.of(context).show(
-        const ShadToast.destructive(
-          description: Text('Password minimal 6 karakter'),
-        ),
+      mySnackBar(
+        context: context,
+        text: 'Password minimal 6 karakter',
+        status: ToastStatus.error,
       );
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
-      ShadToaster.of(context).show(
-        const ShadToast.destructive(description: Text('Password tidak cocok')),
+      mySnackBar(
+        context: context,
+        text: 'Password tidak cocok',
+        status: ToastStatus.error,
       );
       return;
     }
@@ -40,9 +43,11 @@ class _SetupPasswordScreenState extends ConsumerState<SetupPasswordScreen> {
     setState(() => _isLoading = false);
 
     if (mounted) {
-      ShadToaster.of(
-        context,
-      ).show(const ShadToast(description: Text('Password berhasil disimpan!')));
+      mySnackBar(
+        context: context,
+        text: 'Password berhasil disimpan!',
+        status: ToastStatus.success,
+      );
       context.go('/select-store');
     }
   }

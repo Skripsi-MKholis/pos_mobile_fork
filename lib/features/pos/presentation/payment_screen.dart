@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
@@ -386,9 +387,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final cartState = ref.read(cartNotifierProvider);
     final cash = double.tryParse(_cashController.text.replaceAll('.', '')) ?? 0;
     if (_paymentMethod == 'Tunai' && cash < totalAmount) {
-      ShadToaster.of(
-        context,
-      ).show(const ShadToast(description: Text('Uang tunai tidak mencukupi')));
+      mySnackBar(
+        context: context,
+        text: 'Uang tunai tidak mencukupi',
+        status: ToastStatus.warning,
+      );
       return;
     }
 
@@ -509,12 +512,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             ? 'Transaksi senilai ${currencyFormat.format(totalAmount)} telah disimpan & disinkronkan.'
             : 'Transaksi senilai ${currencyFormat.format(totalAmount)} disimpan lokal (Belum Sinkron).';
 
-        ShadToaster.of(context).show(
-          ShadToast(
-            title: Text(syncedSuccessfully ? 'Pembayaran Berhasil!' : 'Tersimpan Offline'),
-            description: Text(toastMsg),
-            duration: const Duration(seconds: 3),
-          ),
+        mySnackBar(
+          context: context,
+          text: toastMsg,
+          status: syncedSuccessfully ? ToastStatus.success : ToastStatus.warning,
         );
 
         if (cartState.selectedTable != null) {
@@ -535,9 +536,11 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(
-          context,
-        ).show(ShadToast.destructive(description: Text('Gagal: $e')));
+        mySnackBar(
+          context: context,
+          text: 'Gagal: $e',
+          status: ToastStatus.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

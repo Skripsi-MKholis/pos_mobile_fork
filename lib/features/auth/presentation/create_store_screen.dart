@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 
 class CreateStoreScreen extends ConsumerStatefulWidget {
@@ -50,8 +51,10 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
 
   Future<void> _handleCreateStore() async {
     if (_nameController.text.isEmpty) {
-      ShadToaster.of(context).show(
-        const ShadToast.destructive(description: Text('Nama toko tidak boleh kosong')),
+      mySnackBar(
+        context: context,
+        text: 'Nama toko tidak boleh kosong',
+        status: ToastStatus.error,
       );
       return;
     }
@@ -68,8 +71,10 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal membuat toko: $e')),
+        mySnackBar(
+          context: context,
+          text: 'Gagal membuat toko: $e',
+          status: ToastStatus.error,
         );
       }
     } finally {

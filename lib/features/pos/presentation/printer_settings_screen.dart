@@ -4,6 +4,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -41,9 +42,11 @@ class _PrinterSettingsScreenState extends ConsumerState<PrinterSettingsScreen> {
       setState(() => _devices = devices);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(
-          context,
-        ).show(ShadToast.destructive(description: Text('Error: $e')));
+        mySnackBar(
+          context: context,
+          text: 'Error: $e',
+          status: ToastStatus.error,
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

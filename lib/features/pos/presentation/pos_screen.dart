@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -58,12 +59,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       ref.read(cartNotifierProvider.notifier).addItem(foundProduct);
       HapticFeedback.lightImpact();
 
-      ShadToaster.of(context).show(
-        ShadToast(
-          title: const Text('Berhasil menambahkan'),
-          description: Text('${foundProduct.name} telah ditambahkan ke keranjang.'),
-          duration: const Duration(seconds: 2),
-        ),
+      mySnackBar(
+        context: context,
+        text: '${foundProduct.name} telah ditambahkan ke keranjang.',
+        status: ToastStatus.success,
       );
 
       _searchController.clear();

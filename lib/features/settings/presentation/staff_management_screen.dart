@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:go_router/go_router.dart';
@@ -180,11 +181,10 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
                   const SizedBox(width: 12),
                   _buildCircleIconButton(TablerIcons.copy, () {
                     Clipboard.setData(ClipboardData(text: inviteCode));
-                    ShadToaster.of(context).show(
-                      const ShadToast(
-                        title: Text('Berhasil'),
-                        description: Text('Kode undangan berhasil disalin!'),
-                      ),
+                    mySnackBar(
+                      context: context,
+                      text: 'Kode undangan berhasil disalin!',
+                      status: ToastStatus.success,
                     );
                   }),
                   const SizedBox(width: 8),
@@ -221,20 +221,18 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       ref.invalidate(activeStoreProvider);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Kode undangan berhasil diperbarui!'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Kode undangan berhasil diperbarui!',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Error'),
-            description: Text('Gagal memperbarui kode: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal memperbarui kode: $e',
+          status: ToastStatus.error,
         );
       }
     }
@@ -454,13 +452,10 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
 
       if (userResponse == null) {
         if (mounted) {
-          ShadToaster.of(context).show(
-            ShadToast.destructive(
-              title: const Text('Error'),
-              description: Text(
-                'Pengguna dengan email $email belum terdaftar di sistem.',
-              ),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Pengguna dengan email $email belum terdaftar di sistem.',
+            status: ToastStatus.error,
           );
         }
         return;
@@ -478,13 +473,10 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
 
       if (memberCheck != null) {
         if (mounted) {
-          ShadToaster.of(context).show(
-            ShadToast.destructive(
-              title: const Text('Error'),
-              description: const Text(
-                'Pengguna sudah menjadi staf di toko ini.',
-              ),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Pengguna sudah menjadi staf di toko ini.',
+            status: ToastStatus.error,
           );
         }
         return;
@@ -501,20 +493,18 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       ref.invalidate(staffListProvider);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Staf baru berhasil ditambahkan!'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Staf baru berhasil ditambahkan!',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Error'),
-            description: Text('Gagal menambahkan staf: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal menambahkan staf: $e',
+          status: ToastStatus.error,
         );
       }
     }
@@ -536,20 +526,18 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       ref.invalidate(staffListProvider);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Data staf berhasil diperbarui!'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Data staf berhasil diperbarui!',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Error'),
-            description: Text('Gagal memperbarui staf: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal memperbarui staf: $e',
+          status: ToastStatus.error,
         );
       }
     }
@@ -564,20 +552,18 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       ref.invalidate(staffListProvider);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Staf berhasil dihapus dari toko!'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Staf berhasil dihapus dari toko!',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Error'),
-            description: Text('Gagal menghapus staf: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal menghapus staf: $e',
+          status: ToastStatus.error,
         );
       }
     }

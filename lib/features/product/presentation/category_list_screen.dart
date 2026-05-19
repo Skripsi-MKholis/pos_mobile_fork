@@ -5,6 +5,7 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
@@ -348,7 +349,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             child: Text(isEditing ? 'Simpan' : 'Tambah'),
             onPressed: () async {
               if (nameController.text.isEmpty) {
-                ShadToaster.of(context).show(const ShadToast(description: Text('Nama kategori tidak boleh kosong')));
+                mySnackBar(
+                  context: context,
+                  text: 'Nama kategori tidak boleh kosong',
+                  status: ToastStatus.warning,
+                );
                 return;
               }
 
@@ -365,13 +370,19 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 }
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ShadToaster.of(context).show(ShadToast(
-                    description: Text(isEditing ? 'Kategori berhasil diperbarui' : 'Kategori berhasil ditambahkan'),
-                  ));
+                  mySnackBar(
+                    context: context,
+                    text: isEditing ? 'Kategori berhasil diperbarui' : 'Kategori berhasil ditambahkan',
+                    status: ToastStatus.success,
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ShadToaster.of(context).show(ShadToast(description: Text('Gagal: $e')));
+                  mySnackBar(
+                    context: context,
+                    text: 'Gagal: $e',
+                    status: ToastStatus.error,
+                  );
                 }
               }
             },
@@ -399,11 +410,19 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 await ref.read(categoryNotifierProvider.notifier).deleteCategory(category.supabaseId);
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ShadToaster.of(context).show(const ShadToast(description: Text('Kategori berhasil dihapus')));
+                  mySnackBar(
+                    context: context,
+                    text: 'Kategori berhasil dihapus',
+                    status: ToastStatus.success,
+                  );
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ShadToaster.of(context).show(ShadToast(description: Text('Gagal menghapus: $e')));
+                  mySnackBar(
+                    context: context,
+                    text: 'Gagal menghapus: $e',
+                    status: ToastStatus.error,
+                  );
                 }
               }
             },

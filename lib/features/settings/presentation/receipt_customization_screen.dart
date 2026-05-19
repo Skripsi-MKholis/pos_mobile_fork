@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
@@ -181,21 +182,19 @@ class _ReceiptCustomizationScreenState
       _initialSettings = Map<String, dynamic>.from(_settings);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            description: Text(
-              'Pengaturan kustomisasi struk berhasil disimpan!',
-            ),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Pengaturan kustomisasi struk berhasil disimpan!',
+          status: ToastStatus.success,
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Gagal menyimpan pengaturan: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal menyimpan pengaturan: $e',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -526,20 +525,12 @@ class _ReceiptCustomizationScreenState
     final theme = ShadTheme.of(context);
     return InkWell(
       onTap: () {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Row(
-              children: [
-                Icon(TablerIcons.crown, color: Colors.amber, size: 20),
-                SizedBox(width: 8),
-                Text('Fitur Premium / Pro'),
-              ],
-            ),
-            description: Text(
-              'Menghilangkan watermark Parzello POS memerlukan langganan Premium. Fitur berlangganan akan segera hadir!',
-            ),
-          ),
-        );
+      mySnackBar(
+        context: context,
+        text: 'Menghilangkan watermark Parzello POS memerlukan langganan Premium. Fitur berlangganan akan segera hadir!',
+        status: ToastStatus.warning,
+        icon: TablerIcons.crown,
+      );
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),

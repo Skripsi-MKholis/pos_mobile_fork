@@ -82,10 +82,7 @@ class MyApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: colorScheme,
-        primaryToastTheme: const ShadToastTheme(alignment: Alignment.topCenter),
-        destructiveToastTheme: const ShadToastTheme(
-          alignment: Alignment.topCenter,
-        ),
+
       ),
     );
   }

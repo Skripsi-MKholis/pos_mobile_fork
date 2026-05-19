@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
@@ -134,10 +135,10 @@ class _NotificationCenterScreenState
                         .read(notificationNotifierProvider.notifier)
                         .markAllAsRead();
                     if (mounted) {
-                      ShadToaster.of(context).show(
-                        const ShadToast(
-                          description: Text('Semua notifikasi ditandai dibaca'),
-                        ),
+                      mySnackBar(
+                        context: context,
+                        text: 'Semua notifikasi ditandai dibaca',
+                        status: ToastStatus.success,
                       );
                     }
                   } else if (value == 'clear_all') {
@@ -164,12 +165,10 @@ class _NotificationCenterScreenState
                                   .read(notificationNotifierProvider.notifier)
                                   .clearAll();
                               if (mounted) {
-                                ShadToaster.of(context).show(
-                                  const ShadToast(
-                                    description: Text(
-                                      'Semua notifikasi dihapus',
-                                    ),
-                                  ),
+                                mySnackBar(
+                                  context: context,
+                                  text: 'Semua notifikasi dihapus',
+                                  status: ToastStatus.success,
                                 );
                               }
                             },
@@ -350,10 +349,10 @@ class _NotificationCenterScreenState
                           ref
                               .read(notificationNotifierProvider.notifier)
                               .deleteNotification(notif.supabaseId);
-                          ShadToaster.of(context).show(
-                            const ShadToast(
-                              description: Text('Notifikasi telah dihapus'),
-                            ),
+                          mySnackBar(
+                            context: context,
+                            text: 'Notifikasi telah dihapus',
+                            status: ToastStatus.success,
                           );
                         },
                         child: InkWell(

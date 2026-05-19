@@ -8,8 +8,9 @@ import 'package:pos_mobile/core/models/transaction_local.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/core/providers/sync_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:isar/isar.dart';
 
@@ -72,13 +73,10 @@ class _SyncMonitoringScreenState extends ConsumerState<SyncMonitoringScreen> {
   Future<void> _handleSync() async {
     final connectivity = ref.read(connectivityNotifierProvider).value;
     if (connectivity != ConnectivityStatus.online) {
-      ShadToaster.of(context).show(
-        const ShadToast.destructive(
-          title: Text('Koneksi Gagal'),
-          description: Text(
-            'Anda harus terhubung ke internet untuk sinkronisasi.',
-          ),
-        ),
+      mySnackBar(
+        context: context,
+        text: 'Anda harus terhubung ke internet untuk sinkronisasi.',
+        status: ToastStatus.error,
       );
       return;
     }
@@ -96,11 +94,10 @@ class _SyncMonitoringScreenState extends ConsumerState<SyncMonitoringScreen> {
         setState(() {
           _syncStatusMessage = 'Sinkronisasi selesai dengan sukses!';
         });
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Sukses'),
-            description: Text('Semua data berhasil disinkronkan ke server.'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Semua data berhasil disinkronkan ke server.',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
@@ -108,11 +105,10 @@ class _SyncMonitoringScreenState extends ConsumerState<SyncMonitoringScreen> {
         setState(() {
           _syncStatusMessage = 'Terjadi kesalahan saat sinkronisasi: $e';
         });
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Sinkronisasi Gagal'),
-            description: Text(e.toString()),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Sinkronisasi Gagal: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {

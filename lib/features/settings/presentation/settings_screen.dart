@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
@@ -379,20 +380,18 @@ class SettingsScreen extends ConsumerWidget {
 
         if (context.mounted) {
           context.go('/select-store');
-          ShadToaster.of(context).show(
-            const ShadToast(
-              title: Text('Berhasil'),
-              description: Text('Anda telah keluar dari toko.'),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Anda telah keluar dari toko.',
+            status: ToastStatus.success,
           );
         }
       } catch (e) {
         if (context.mounted) {
-          ShadToaster.of(context).show(
-            ShadToast.destructive(
-              title: const Text('Error'),
-              description: Text('Gagal keluar dari toko: $e'),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Gagal keluar dari toko: $e',
+            status: ToastStatus.error,
           );
         }
       }

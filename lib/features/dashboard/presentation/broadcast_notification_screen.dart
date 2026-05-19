@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 
 class BroadcastNotificationScreen extends ConsumerStatefulWidget {
   const BroadcastNotificationScreen({super.key});
@@ -119,23 +120,19 @@ class _BroadcastNotificationScreenState
           .sendBroadcast(title: title, message: message, type: _selectedType);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text(
-              'Notifikasi broadcast berhasil dikirim ke semua staf!',
-            ),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Notifikasi broadcast berhasil dikirim ke semua staf!',
+          status: ToastStatus.success,
         );
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Mengirim'),
-            description: Text('Error: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Error: $e',
+          status: ToastStatus.error,
         );
       }
     } finally {

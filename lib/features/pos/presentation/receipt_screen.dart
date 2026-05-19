@@ -6,6 +6,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
@@ -55,20 +56,18 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
           .read(printerNotifierProvider.notifier)
           .printReceipt(transaction: widget.transaction, items: widget.items);
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Struk sedang dicetak.'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Struk sedang dicetak.',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Mencetak'),
-            description: Text(e.toString()),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal mencetak: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -645,8 +644,10 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
       setState(() => _devices = devices);
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(description: Text('Gagal memuat printer: $e')),
+        mySnackBar(
+          context: context,
+          text: 'Gagal memuat printer: $e',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -696,10 +697,10 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
                           widget.onConnected();
                         } catch (e) {
                           if (context.mounted) {
-                            ShadToaster.of(context).show(
-                              ShadToast.destructive(
-                                description: Text('Gagal menghubungkan: $e'),
-                              ),
+                          mySnackBar(
+                              context: context,
+                              text: 'Gagal menghubungkan: $e',
+                              status: ToastStatus.error,
                             );
                           }
                         }

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
@@ -185,19 +186,19 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
       });
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            description: Text('Informasi toko berhasil diperbarui'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Informasi toko berhasil diperbarui',
+          status: ToastStatus.success,
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Gagal memperbarui data: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal memperbarui data: $e',
+          status: ToastStatus.error,
         );
       }
     } finally {

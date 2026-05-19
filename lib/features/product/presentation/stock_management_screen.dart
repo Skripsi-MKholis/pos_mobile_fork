@@ -7,6 +7,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 
@@ -45,19 +46,18 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
           .read(productNotifierProvider.notifier)
           .updateStock(product.supabaseId, newStock);
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast(
-            description: Text('Stok ${product.name} diperbarui menjadi $newStock'),
-            duration: const Duration(seconds: 2),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Stok ${product.name} diperbarui menjadi $newStock',
+          status: ToastStatus.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Gagal memperbarui stok: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal memperbarui stok: $e',
+          status: ToastStatus.error,
         );
       }
     }

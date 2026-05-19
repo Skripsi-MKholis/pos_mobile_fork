@@ -13,6 +13,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:go_router/go_router.dart';
 import 'package:barcode_widget/barcode_widget.dart' as bc;
 import 'package:share_plus/share_plus.dart';
@@ -73,11 +74,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _skuController.text = 'SKU-$randomNumber';
     HapticFeedback.lightImpact();
     
-    ShadToaster.of(context).show(
-      const ShadToast(
-        description: Text('SKU acak berhasil dibuat'),
-        duration: Duration(seconds: 1),
-      ),
+    mySnackBar(
+      context: context,
+      text: 'SKU acak berhasil dibuat',
+      status: ToastStatus.success,
     );
   }
 
@@ -107,11 +107,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Membagikan'),
-            description: Text(e.toString()),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal membagikan: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -421,7 +420,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   Future<void> _saveProduct() async {
     if (_nameController.text.isEmpty) {
-      ShadToaster.of(context).show(const ShadToast.destructive(description: Text('Nama produk wajib diisi')));
+      mySnackBar(
+        context: context,
+        text: 'Nama produk wajib diisi',
+        status: ToastStatus.error,
+      );
       return;
     }
     
@@ -443,7 +446,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       await ref.read(productNotifierProvider.notifier).saveProduct(product, imageFile: _imageFile);
       if (mounted) context.pop();
     } catch (e) {
-      if (mounted) ShadToaster.of(context).show(ShadToast.destructive(description: Text('Gagal menyimpan: $e')));
+      if (mounted) mySnackBar(
+        context: context,
+        text: 'Gagal menyimpan: $e',
+        status: ToastStatus.error,
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

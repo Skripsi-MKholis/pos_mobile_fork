@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
@@ -336,11 +337,10 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
 
       if (response == null) {
         if (mounted) {
-          ShadToaster.of(context).show(
-            ShadToast.destructive(
-              title: const Text('Error'),
-              description: const Text('Kode undangan tidak valid.'),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Kode undangan tidak valid.',
+            status: ToastStatus.error,
           );
         }
         return;
@@ -350,21 +350,19 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
       ref.invalidate(userStoresProvider);
 
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            title: Text('Berhasil'),
-            description: Text('Berhasil bergabung ke toko!'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Berhasil bergabung ke toko!',
+          status: ToastStatus.success,
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Error'),
-            description: Text('Gagal bergabung: $e'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal bergabung: $e',
+          status: ToastStatus.error,
         );
       }
     }

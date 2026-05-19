@@ -11,6 +11,7 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
@@ -65,16 +66,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             .read(productNotifierProvider.notifier)
             .deleteProduct(product.supabaseId);
         if (mounted) {
-          ShadToaster.of(
-            context,
-          ).show(const ShadToast(description: Text('Produk berhasil dihapus')));
+          mySnackBar(
+            context: context,
+            text: 'Produk berhasil dihapus',
+            status: ToastStatus.success,
+          );
         }
       } catch (e) {
         if (mounted) {
-          ShadToaster.of(context).show(
-            ShadToast.destructive(
-              description: Text('Gagal menghapus produk: $e'),
-            ),
+          mySnackBar(
+            context: context,
+            text: 'Gagal menghapus produk: $e',
+            status: ToastStatus.error,
           );
         }
       }
@@ -720,11 +723,10 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       );
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            title: const Text('Gagal Membagikan'),
-            description: Text(e.toString()),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Gagal membagikan: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -736,12 +738,10 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
     Clipboard.setData(ClipboardData(text: widget.product.sku ?? ''));
     HapticFeedback.lightImpact();
     
-    ShadToaster.of(context).show(
-      const ShadToast(
-        title: Text('Salin Sukses'),
-        description: Text('SKU berhasil disalin ke clipboard.'),
-        duration: Duration(seconds: 2),
-      ),
+    mySnackBar(
+      context: context,
+      text: 'SKU berhasil disalin ke clipboard.',
+      status: ToastStatus.success,
     );
   }
 

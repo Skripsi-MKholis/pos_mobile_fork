@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
@@ -72,24 +73,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
       _newTransactionCount = 0; // Reset counter menjadi terkunci/terlindungi dari spam
     });
 
-    ShadToaster.of(context).show(
-      ShadToast(
-        title: Row(
-          children: [
-            const Icon(TablerIcons.circle_check, color: Warna.success, size: 20),
-            const SizedBox(width: 8),
-            const Text(
-              'Kalibrasi AI Selesai!',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        description: const Text(
-          'Model kecerdasan buatan telah disesuaikan dengan pola penjualan toko Anda secara presisi.',
-          style: TextStyle(fontSize: 12),
-        ),
-        duration: const Duration(seconds: 4),
-      ),
+    mySnackBar(
+      context: context,
+      text: 'Kalibrasi AI Selesai! Model telah disesuaikan dengan pola penjualan toko Anda.',
+      status: ToastStatus.success,
     );
   }
 
@@ -209,28 +196,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         _isLoading = false;
       });
 
-      // Show beautiful premium toast
-      ShadToaster.of(context).show(
-        ShadToast(
-          title: Row(
-            children: [
-              const Icon(TablerIcons.sparkles, color: Warna.success, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'AI Berhasil Sinkron!',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey.shade900,
-                ),
-              ),
-            ],
-          ),
-          description: const Text(
-            'Analisis perkiraan penjualan, cuaca, dan smart pricing terbaru telah diperbarui.',
-            style: TextStyle(fontSize: 12),
-          ),
-          duration: const Duration(seconds: 4),
-        ),
+      mySnackBar(
+        context: context,
+        text: 'AI Berhasil Sinkron! Analisis perkiraan penjualan terbaru telah diperbarui.',
+        status: ToastStatus.success,
       );
     }
   }
@@ -570,12 +539,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                       setState(() {
                         _newTransactionCount += 5;
                       });
-                      ShadToaster.of(context).show(
-                        const ShadToast(
-                          title: Text('Transaksi Baru disimulasikan'),
-                          description: Text('+5 Transaksi ditambahkan ke toko.'),
-                          duration: Duration(seconds: 2),
-                        ),
+                      mySnackBar(
+                        context: context,
+                        text: '+5 Transaksi baru disimulasikan ke toko.',
+                        status: ToastStatus.success,
                       );
                     },
                     child: const Text(
@@ -1095,11 +1062,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                   color: Colors.grey,
                 ),
                 onPressed: () {
-                  ShadToaster.of(context).show(
-                    const ShadToast(
-                      title: Text('Grafik Forecasting'),
-                      description: Text('Garis putus-putus = Proyeksi cerdas AI.'),
-                    ),
+                  mySnackBar(
+                    context: context,
+                    text: 'Grafik Forecasting: Garis putus-putus = Proyeksi cerdas AI.',
+                    status: ToastStatus.success,
                   );
                 },
               ),
@@ -1424,26 +1390,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                 backgroundColor: Warna.black,
                 hoverBackgroundColor: Colors.grey.shade900,
                 onPressed: () {
-                  ShadToaster.of(context).show(
-                    ShadToast(
-                      title: Row(
-                        children: [
-                          const Icon(
-                            TablerIcons.circle_check,
-                            color: Warna.success,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Rekomendasi Diterapkan',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      description: Text(
-                        'Fitur promo "${rec['title']}" berhasil ditambahkan ke modul diskon aplikasi.',
-                      ),
-                    ),
+                  mySnackBar(
+                    context: context,
+                    text: 'Rekomendasi "${rec['title']}" berhasil diterapkan ke modul diskon.',
+                    status: ToastStatus.success,
                   );
                 },
                 child: const Text(

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -22,8 +23,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (_passwordController.text != _confirmPasswordController.text) {
-      ShadToaster.of(context).show(
-        const ShadToast.destructive(description: Text('Password tidak cocok')),
+      mySnackBar(
+        context: context,
+        text: 'Password tidak cocok',
+        status: ToastStatus.error,
       );
       return;
     }
@@ -36,19 +39,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             data: {'full_name': _nameController.text.trim()},
           );
       if (mounted) {
-        ShadToaster.of(context).show(
-          const ShadToast(
-            description: Text('Registrasi berhasil! Silakan cek email Anda.'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Registrasi berhasil! Silakan cek email Anda.',
+          status: ToastStatus.success,
         );
         context.pushReplacement('/setup-password');
       }
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Registrasi Gagal: ${e.toString()}'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Registrasi Gagal: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -63,10 +66,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) context.go('/dashboard');
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Google Sign-In Gagal: ${e.toString()}'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Google Sign-In Gagal: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {

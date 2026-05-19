@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -28,10 +29,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/select-store');
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Login Gagal: ${e.toString()}'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Login Gagal: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {
@@ -46,10 +47,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/select-store');
     } catch (e) {
       if (mounted) {
-        ShadToaster.of(context).show(
-          ShadToast.destructive(
-            description: Text('Google Sign-In Gagal: ${e.toString()}'),
-          ),
+        mySnackBar(
+          context: context,
+          text: 'Google Sign-In Gagal: ${e.toString()}',
+          status: ToastStatus.error,
         );
       }
     } finally {

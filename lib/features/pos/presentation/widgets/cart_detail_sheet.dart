@@ -5,6 +5,7 @@ import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/providers/voucher_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -527,22 +528,18 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             ref.read(cartNotifierProvider.notifier).clearCart();
                             if (context.mounted) {
                               Navigator.pop(context);
-                              ShadToaster.of(context).show(
-                                const ShadToast(
-                                  title: Text('Pesanan Disimpan'),
-                                  description: Text(
-                                    'Pesanan berhasil disimpan ke meja.',
-                                  ),
-                                ),
+                              mySnackBar(
+                                context: context,
+                                text: 'Pesanan berhasil disimpan ke meja.',
+                                status: ToastStatus.success,
                               );
                             }
                           } catch (e) {
                             if (context.mounted) {
-                              ShadToaster.of(context).show(
-                                ShadToast.destructive(
-                                  title: const Text('Gagal Menyimpan'),
-                                  description: Text(e.toString()),
-                                ),
+                              mySnackBar(
+                                context: context,
+                                text: 'Gagal menyimpan pesanan: ${e.toString()}',
+                                status: ToastStatus.error,
                               );
                             }
                           }

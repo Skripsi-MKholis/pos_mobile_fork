@@ -9,6 +9,7 @@ import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
@@ -55,70 +56,23 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         final isWarning =
             next.type == 'warning' || next.type == 'transaction_void';
         final isSuccess = next.type == 'success';
-        final isAnnouncement = next.type == 'announcement';
-        final isPromo = next.type == 'promo';
-        final isTechnical = next.type == 'technical';
 
-        final IconData icon;
-        final Color iconColor;
+        final ToastStatus toastStatus;
         if (isDestructive) {
-          icon = next.type == 'danger'
-              ? TablerIcons.alert_circle
-              : TablerIcons.alert_triangle;
-          iconColor = Colors.white;
+          toastStatus = ToastStatus.error;
         } else if (isWarning) {
-          icon = next.type == 'warning'
-              ? TablerIcons.alert_triangle
-              : TablerIcons.circle_x;
-          iconColor = Colors.amber;
+          toastStatus = ToastStatus.warning;
         } else if (isSuccess) {
-          icon = TablerIcons.circle_check;
-          iconColor = Colors.green;
-        } else if (isAnnouncement) {
-          icon = TablerIcons.speakerphone;
-          iconColor = Colors.blue;
-        } else if (isPromo) {
-          icon = TablerIcons.ticket;
-          iconColor = Colors.indigo;
-        } else if (isTechnical) {
-          icon = TablerIcons.tool;
-          iconColor = Colors.orange;
+          toastStatus = ToastStatus.success;
         } else {
-          icon = TablerIcons.info_circle;
-          iconColor = Colors.lightGreen;
+          toastStatus = ToastStatus.success;
         }
 
-        final toast = isDestructive
-            ? ShadToast.destructive(
-                title: Row(
-                  children: [
-                    Icon(icon, color: iconColor, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      next.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                description: Text(next.message),
-                duration: const Duration(seconds: 4),
-              )
-            : ShadToast(
-                title: Row(
-                  children: [
-                    Icon(icon, color: iconColor, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      next.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                description: Text(next.message),
-                duration: const Duration(seconds: 4),
-              );
-
-        ShadToaster.of(context).show(toast);
+        mySnackBar(
+          context: context,
+          text: '${next.title}: ${next.message}',
+          status: toastStatus,
+        );
 
         // Reset agar tidak memicu ulang toast pada rebuild UI berikutnya
         Future.microtask(() {
@@ -215,10 +169,10 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         if (backButtonHasNotBeenPressedRecently) {
           lastPressed = now;
           if (mounted) {
-            ShadToaster.of(context).show(
-              const ShadToast(
-                description: Text('Tekan sekali lagi untuk keluar'),
-              ),
+            mySnackBar(
+              context: context,
+              text: 'Tekan sekali lagi untuk keluar',
+              status: ToastStatus.warning,
             );
           }
           return;

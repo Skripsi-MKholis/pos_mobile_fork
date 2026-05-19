@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:go_router/go_router.dart';
@@ -387,23 +388,17 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
                 }
                 if (mounted) Navigator.of(context).pop();
 
-                ShadToaster.of(context).show(
-                  ShadToast(
-                    title: const Text('Berhasil'),
-                    description: Text(
-                      table == null
-                          ? 'Meja baru berhasil ditambahkan'
-                          : 'Data meja berhasil diperbarui',
-                    ),
-                  ),
+                mySnackBar(
+                  context: context,
+                  text: table == null ? 'Meja baru berhasil ditambahkan' : 'Data meja berhasil diperbarui',
+                  status: ToastStatus.success,
                 );
               } catch (e) {
                 if (mounted) {
-                  ShadToaster.of(context).show(
-                    ShadToast.destructive(
-                      title: const Text('Error'),
-                      description: Text('Gagal menyimpan meja: $e'),
-                    ),
+                  mySnackBar(
+                    context: context,
+                    text: 'Gagal menyimpan meja: $e',
+                    status: ToastStatus.error,
                   );
                 }
               }
@@ -441,19 +436,17 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
                     .read(tableNotifierProvider.notifier)
                     .deleteTable(table.id);
                 if (mounted) Navigator.of(context).pop();
-                ShadToaster.of(context).show(
-                  const ShadToast(
-                    title: Text('Berhasil'),
-                    description: Text('Meja berhasil dihapus'),
-                  ),
+                mySnackBar(
+                  context: context,
+                  text: 'Meja berhasil dihapus',
+                  status: ToastStatus.success,
                 );
               } catch (e) {
                 if (mounted) {
-                  ShadToaster.of(context).show(
-                    ShadToast.destructive(
-                      title: const Text('Error'),
-                      description: Text('Gagal menghapus meja: $e'),
-                    ),
+                  mySnackBar(
+                    context: context,
+                    text: 'Gagal menghapus meja: $e',
+                    status: ToastStatus.error,
                   );
                 }
               }
