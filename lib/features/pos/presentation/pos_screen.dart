@@ -16,6 +16,7 @@ import 'package:intl/intl.dart';
 
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/core/models/product.dart';
@@ -32,11 +33,15 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
+  // ⚡ Bolt: Use a Debouncer to reduce setState calls during search input,
+  // preventing unnecessary UI rebuilds and improving responsiveness.
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
   String? _selectedCategoryId;
   String _sortOption = 'name_asc';
 
   @override
   void dispose() {
+    _debouncer.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -65,6 +70,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         status: ToastStatus.success,
       );
 
+      _debouncer.cancel();
       _searchController.clear();
       setState(() {
         _searchQuery = '';
@@ -356,11 +362,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       padding: EdgeInsets.all(8.0),
                       child: Icon(TablerIcons.search, size: 20),
                     ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
+                    onChanged: (value) {
+                      _debouncer.run(() {
+                        setState(() => _searchQuery = value);
+                      });
+                    },
                     onSubmitted: (value) => _handleSearchSubmitted(value, products),
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
+                              _debouncer.cancel();
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },

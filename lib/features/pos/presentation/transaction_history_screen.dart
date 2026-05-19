@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -25,6 +26,9 @@ class _TransactionHistoryScreenState
   DateTime? _customDate;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  // ⚡ Bolt: Use a Debouncer to reduce setState calls during search input,
+  // preventing unnecessary UI rebuilds and improving responsiveness.
+  final Debouncer _debouncer = Debouncer(milliseconds: 300);
 
   @override
   void initState() {
@@ -46,6 +50,7 @@ class _TransactionHistoryScreenState
 
   @override
   void dispose() {
+    _debouncer.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
@@ -465,7 +470,11 @@ class _TransactionHistoryScreenState
                       color: Colors.grey,
                     ),
                   ),
-                  onChanged: (val) => setState(() => _searchQuery = val),
+                  onChanged: (val) {
+                    _debouncer.run(() {
+                      setState(() => _searchQuery = val);
+                    });
+                  },
                   decoration: ShadDecoration(
                     border: ShadBorder.all(
                       color: theme.colorScheme.border.withOpacity(0.5),
