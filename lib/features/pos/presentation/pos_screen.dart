@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
@@ -9,6 +10,8 @@ import 'package:shimmer/shimmer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:intl/intl.dart';
 
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
@@ -36,6 +39,62 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _handleSearchSubmitted(String value, List<Product> products) {
+    if (value.trim().isEmpty) return;
+
+    final code = value.trim().toLowerCase();
+    Product? foundProduct;
+    for (final p in products) {
+      if ((p.sku != null && p.sku!.trim().toLowerCase() == code) ||
+          (p.barcode != null && p.barcode!.trim().toLowerCase() == code)) {
+        foundProduct = p;
+        break;
+      }
+    }
+
+    if (foundProduct != null) {
+      ref.read(cartNotifierProvider.notifier).addItem(foundProduct);
+      HapticFeedback.lightImpact();
+
+      ShadToaster.of(context).show(
+        ShadToast(
+          title: const Text('Berhasil menambahkan'),
+          description: Text('${foundProduct.name} telah ditambahkan ke keranjang.'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      _searchController.clear();
+      setState(() {
+        _searchQuery = '';
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchFocusNode.requestFocus();
+      });
+    }
+  }
+
+  void _openBarcodeScanner(List<Product> products) {
+    FocusScope.of(context).unfocus();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _BarcodeScannerModal(
+        products: products,
+        cartNotifier: ref.read(cartNotifierProvider.notifier),
+        currencyFormat: NumberFormat.currency(
+          locale: 'id_ID',
+          symbol: 'Rp ',
+          decimalDigits: 0,
+        ),
+      ),
+    ).then((_) {
+      _searchFocusNode.unfocus();
+    });
   }
 
   Future<void> _showTablePicker(BuildContext context, WidgetRef ref) async {
@@ -267,6 +326,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     final role = ref.watch(userRoleProvider);
     final isAdmin = role?.toLowerCase() == 'owner';
     final productsAsync = ref.watch(productNotifierProvider);
+    final products = productsAsync.value ?? [];
     final categoriesAsync = ref.watch(categoryNotifierProvider);
     final cartState = ref.watch(cartNotifierProvider);
     final cartItems = cartState.items;
@@ -298,6 +358,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       child: Icon(TablerIcons.search, size: 20),
                     ),
                     onChanged: (value) => setState(() => _searchQuery = value),
+                    onSubmitted: (value) => _handleSearchSubmitted(value, products),
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
@@ -309,7 +370,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         : null,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
+                ShadIconButton.outline(
+                  onPressed: () => _openBarcodeScanner(products),
+                  icon: const Icon(TablerIcons.barcode, size: 20),
+                ),
+                const SizedBox(width: 8),
                 productsAsync.when(
                   data: (products) {
                     final activeStoreAsync = ref.watch(activeStoreProvider);
@@ -318,8 +384,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         activeStore?['settings'] as Map<String, dynamic>?;
                     final features =
                         settings?['features'] as Map<String, dynamic>?;
-                    const hasTables =
-                        false; // Sembunyikan untuk sementara waktu
+                    final hasTables = features?['tables'] == true && activeStore == null; // Sembunyikan untuk sementara waktu
 
                     if (!hasTables) return const SizedBox.shrink();
 
@@ -918,6 +983,562 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BarcodeScannerModal extends StatefulWidget {
+  final List<Product> products;
+  final CartNotifier cartNotifier;
+  final NumberFormat currencyFormat;
+
+  const _BarcodeScannerModal({
+    required this.products,
+    required this.cartNotifier,
+    required this.currencyFormat,
+  });
+
+  @override
+  State<_BarcodeScannerModal> createState() => _BarcodeScannerModalState();
+}
+
+class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleTickerProviderStateMixin {
+  final MobileScannerController _controller = MobileScannerController();
+  
+  // Scanned history in this session
+  final List<Map<String, dynamic>> _sessionScanned = [];
+  
+  // Scanning state
+  String? _lastScannedSku;
+  DateTime? _lastScanTime;
+  
+  // Notification Toast Overlay inside scanner
+  String? _notificationText;
+  bool _isSuccessNotification = true;
+  
+  // Flash / Torch state
+  bool _isTorchOn = false;
+
+  late AnimationController _laserController;
+
+  @override
+  void initState() {
+    super.initState();
+    _laserController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _laserController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _showNotification(String text, bool isSuccess) {
+    setState(() {
+      _notificationText = text;
+      _isSuccessNotification = isSuccess;
+    });
+    
+    // Auto hide after 1.5 seconds
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _notificationText = null;
+        });
+      }
+    });
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    final List<Barcode> barcodes = capture.barcodes;
+    if (barcodes.isEmpty) return;
+    
+    final barcodeValue = barcodes.first.rawValue;
+    if (barcodeValue == null || barcodeValue.trim().isEmpty) return;
+    
+    final code = barcodeValue.trim().toLowerCase();
+    final now = DateTime.now();
+    
+    // 1.5 seconds debounce for the same barcode to prevent accidental multiple scans
+    if (_lastScannedSku == code &&
+        _lastScanTime != null &&
+        now.difference(_lastScanTime!) < const Duration(milliseconds: 1500)) {
+      return;
+    }
+    
+    _lastScannedSku = code;
+    _lastScanTime = now;
+    
+    // Search product
+    Product? foundProduct;
+    for (final p in widget.products) {
+      if ((p.sku != null && p.sku!.trim().toLowerCase() == code) ||
+          (p.barcode != null && p.barcode!.trim().toLowerCase() == code)) {
+        foundProduct = p;
+        break;
+      }
+    }
+    
+    if (foundProduct != null) {
+      // Add to cart
+      widget.cartNotifier.addItem(foundProduct);
+      
+      // Haptic Feedback for success scan
+      HapticFeedback.lightImpact();
+      
+      // Show success notification inside scanner
+      _showNotification('1x ${foundProduct.name} ditambahkan', true);
+      
+      // Add to session history or increment if exists
+      setState(() {
+        final existingIndex = _sessionScanned.indexWhere(
+          (item) => (item['product'] as Product).supabaseId == foundProduct!.supabaseId,
+        );
+        if (existingIndex != -1) {
+          _sessionScanned[existingIndex]['quantity'] = _sessionScanned[existingIndex]['quantity'] + 1;
+        } else {
+          _sessionScanned.insert(0, {
+            'product': foundProduct,
+            'quantity': 1,
+          });
+        }
+      });
+    } else {
+      // Double heavy vibrate for failed match
+      HapticFeedback.heavyImpact();
+      Future.delayed(const Duration(milliseconds: 100), () {
+        HapticFeedback.heavyImpact();
+      });
+      
+      _showNotification('SKU/Barcode "$barcodeValue" tidak terdaftar!', false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final size = MediaQuery.of(context).size;
+    final totalSessionItems = _sessionScanned.fold<int>(0, (sum, item) => sum + (item['quantity'] as int));
+    final totalSessionPrice = _sessionScanned.fold<double>(
+      0,
+      (sum, item) => sum + ((item['product'] as Product).price * (item['quantity'] as int)),
+    );
+
+    return Container(
+      height: size.height * 0.85,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: Stack(
+          children: [
+            // Camera Scanner View
+            Positioned.fill(
+              bottom: 220, // Leave space for session history drawer
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _onDetect,
+              ),
+            ),
+            
+            // Scanner Viewport cutout & glowing red/green scanner line
+            Positioned.fill(
+              bottom: 220,
+              child: Stack(
+                children: [
+                  // Viewfinder cutout (translucent dark border around camera target)
+                  ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                      Colors.black.withOpacity(0.6),
+                      BlendMode.srcOut,
+                    ),
+                    child: Stack(
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.transparent,
+                            backgroundBlendMode: BlendMode.dstOut,
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                            width: size.width * 0.7,
+                            height: 180,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Scanning target corners
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: size.width * 0.7,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.transparent),
+                      ),
+                      child: Stack(
+                        children: [
+                          // Custom corner markers
+                          _buildCorner(Alignment.topLeft, rotateX: false, rotateY: false),
+                          _buildCorner(Alignment.topRight, rotateX: true, rotateY: false),
+                          _buildCorner(Alignment.bottomLeft, rotateX: false, rotateY: true),
+                          _buildCorner(Alignment.bottomRight, rotateX: true, rotateY: true),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Neon Green Animated Laser Line
+                  Align(
+                    alignment: Alignment.center,
+                    child: AnimatedBuilder(
+                      animation: _laserController,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, -90 + (180 * _laserController.value)),
+                          child: Container(
+                            width: size.width * 0.65,
+                            height: 2.5,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF98D100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF98D100).withOpacity(0.8),
+                                  blurRadius: 8,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Top Header: Flash, Switch Camera, Title, Close Button
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black.withOpacity(0.8), Colors.transparent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Flash Toggle
+                    IconButton(
+                      icon: Icon(
+                        _isTorchOn ? Icons.flashlight_off : Icons.flashlight_on,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {
+                        _controller.toggleTorch();
+                        setState(() {
+                          _isTorchOn = !_isTorchOn;
+                        });
+                      },
+                    ),
+                    const Text(
+                      'Scan SKU / Barcode',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    // Close button
+                    IconButton(
+                      icon: const Icon(TablerIcons.x, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Notifications Banner Overlay inside modal (gorgeous animated glassmorphism toast)
+            if (_notificationText != null)
+              Positioned(
+                top: 70,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _isSuccessNotification
+                        ? const Color(0xFF98D100).withOpacity(0.9)
+                        : Colors.red.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _isSuccessNotification ? TablerIcons.circle_check : TablerIcons.circle_x,
+                        color: _isSuccessNotification ? Colors.black : Colors.white,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _notificationText!,
+                          style: TextStyle(
+                            color: _isSuccessNotification ? Colors.black : Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // Bottom session history drawer (white/theme background)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 235,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.background,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 10,
+                      offset: const Offset(0, -3),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: Column(
+                  children: [
+                    // Drawer handle / Indicator
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    
+                    // Header of the session list
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Sesi Scan Ini',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          '$totalSessionItems Item',
+                          style: TextStyle(
+                            color: theme.colorScheme.mutedForeground,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Scanned items horizontally
+                    Expanded(
+                      child: _sessionScanned.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    TablerIcons.barcode,
+                                    size: 32,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Arahkan kamera ke barcode produk',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: _sessionScanned.length,
+                              itemBuilder: (context, index) {
+                                final item = _sessionScanned[index];
+                                final Product product = item['product'];
+                                final int quantity = item['quantity'];
+                                
+                                return Container(
+                                  width: 140,
+                                  margin: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.muted.withOpacity(0.3),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: theme.colorScheme.border),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        widget.currencyFormat.format(product.price),
+                                        style: TextStyle(
+                                          color: theme.colorScheme.primary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Qty: $quantity',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFF98D100),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              TablerIcons.check,
+                                              size: 10,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Total session price & "Selesai" Action Button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Total Sesi',
+                                style: TextStyle(
+                                  color: theme.colorScheme.mutedForeground,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              Text(
+                                widget.currencyFormat.format(totalSessionPrice),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ShadButton(
+                          onPressed: () => Navigator.pop(context),
+                          backgroundColor: const Color(0xFF98D100),
+                          child: const Text(
+                            'Selesai',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCorner(Alignment alignment, {required bool rotateX, required bool rotateY}) {
+    return Align(
+      alignment: alignment,
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..scale(rotateX ? -1.0 : 1.0, rotateY ? -1.0 : 1.0),
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Color(0xFF98D100), width: 4),
+              left: BorderSide(color: Color(0xFF98D100), width: 4),
+            ),
           ),
         ),
       ),

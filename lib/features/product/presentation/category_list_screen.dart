@@ -5,7 +5,6 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
@@ -58,128 +57,264 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               const ConnectivityStatusBar(),
               
               // HEADER & SEARCH
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ShadInput(
+                        placeholder: const Text('Cari kategori...'),
+                        leading: const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(TablerIcons.search, size: 20),
+                        ),
+                        onChanged: (value) => setState(() => _searchQuery = value),
+                        decoration: ShadDecoration(
+                          border: ShadBorder.none,
+                          color: theme.colorScheme.muted.withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ShadButton(
+                      backgroundColor: const Color(0xFF98D100), // Lime Green
+                      onPressed: () => _showCategoryForm(context),
+                      leading: const Icon(TablerIcons.plus, size: 18),
+                      child: const Text('Tambah'),
+                    ),
+                  ],
+                ),
+              ),
+
+              // CATEGORY LIST
+              Expanded(
+                child: categoriesAsync.when(
+                  data: (categories) {
+                    final filtered = categories.where((c) {
+                      return c.name
+                          .toLowerCase()
+                          .contains(_searchQuery.toLowerCase());
+                    }).toList();
+
+                    if (filtered.isEmpty) {
+                      return RefreshIndicator(
+                        onRefresh: () => ref
+                            .read(categoryNotifierProvider.notifier)
+                            .syncCategories(),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.muted.withOpacity(0.5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    TablerIcons.category,
+                                    size: 48,
+                                    color: theme.colorScheme.mutedForeground,
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'Belum ada kategori',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: theme.colorScheme.foreground,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tambah kategori baru untuk mulai\nmengelompokkan produk Anda.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: theme.colorScheme.mutedForeground,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () => ref
+                          .read(categoryNotifierProvider.notifier)
+                          .syncCategories(),
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) {
+                          final category = filtered[index];
+                          return _buildCategoryCard(context, category, theme);
+                        },
+                      ),
+                    );
+                  },
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, _) => Center(child: Text('Error: $err')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getCategoryColor(String name) {
+    final int hash = name.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.45, 0.93).toColor();
+  }
+
+  Color _getCategoryTextColor(String name) {
+    final int hash = name.hashCode;
+    final double hue = (hash.abs() % 360).toDouble();
+    return HSLColor.fromAHSL(1.0, hue, 0.65, 0.35).toColor();
+  }
+
+  Widget _buildCategoryCard(
+    BuildContext context,
+    Category category,
+    ShadThemeData theme,
+  ) {
+    final firstLetter =
+        category.name.isNotEmpty ? category.name[0].toUpperCase() : '?';
+    final avatarBgColor = _getCategoryColor(category.name);
+    final avatarTextColor = _getCategoryTextColor(category.name);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.border.withOpacity(0.4),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.01),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            // Left: Dynamic Pastel Avatar
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: avatarBgColor,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                firstLetter,
+                style: TextStyle(
+                  color: avatarTextColor,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            
+            // Middle: Category Name & Sync Status
+            Expanded(
               child: Row(
                 children: [
                   Expanded(
-                    child: ShadInput(
-                      placeholder: const Text('Cari kategori...'),
-                      leading: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(TablerIcons.search, size: 20),
+                    child: Text(
+                      category.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        letterSpacing: -0.2,
                       ),
-                      onChanged: (value) => setState(() => _searchQuery = value),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ShadButton(
-                    backgroundColor: const Color(0xFF98D100), // Lime Green
-                    onPressed: () => _showCategoryForm(context),
-                    leading: const Icon(TablerIcons.plus, size: 18),
-                    child: const Text('Tambah'),
-                  ),
+                  if (!category.isSynced)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 6),
+                      child: Tooltip(
+                        message: 'Menunggu sinkronisasi ke cloud',
+                        child: Icon(
+                          TablerIcons.cloud_off,
+                          size: 14,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
+            const SizedBox(width: 12),
 
-            // TABLE
-            Expanded(
-              child: categoriesAsync.when(
-                data: (categories) {
-                  final filtered = categories.where((c) {
-                    return c.name
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
-                  }).toList();
-
-                  final tableColumns = [
-                    ParzelloColumn(title: 'NAMA KATEGORI', isFlex: true),
-                    ParzelloColumn(
-                        title: 'AKSI',
-                        width: 100,
-                        textAlign: TextAlign.center),
-                  ];
-
-                  return ParzelloTable(
-                    totalWidth: MediaQuery.of(context).size.width,
-                    columns: tableColumns,
-                    itemCount: filtered.length,
-                    onRefresh: () => ref
-                        .read(categoryNotifierProvider.notifier)
-                        .syncCategories(),
-                    emptyWidget: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(TablerIcons.category,
-                              size: 64, color: theme.colorScheme.muted),
-                          const SizedBox(height: 16),
-                          Text('Belum ada kategori',
-                              style: TextStyle(
-                                  color: theme.colorScheme.mutedForeground)),
-                        ],
+            // Right: Actions (Edit, Delete)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Tooltip(
+                  message: 'Edit Kategori',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _showCategoryForm(context, category: category),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.muted.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        TablerIcons.edit,
+                        size: 16,
+                        color: theme.colorScheme.foreground,
                       ),
                     ),
-                    itemBuilder: (context, index) {
-                      final category = filtered[index];
-                      return ParzelloTableRow(
-                        columns: tableColumns,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(category.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 14)),
-                              ),
-                              if (!category.isSynced)
-                                const Padding(
-                                  padding: EdgeInsets.only(left: 4),
-                                  child: Icon(TablerIcons.cloud_off,
-                                      size: 12, color: Colors.orange),
-                                ),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () => _showCategoryForm(context,
-                                    category: category),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Icon(TablerIcons.edit, size: 18),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              InkWell(
-                                onTap: () => _confirmDelete(context, category),
-                                child: const Padding(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: Icon(TablerIcons.trash,
-                                      size: 18, color: Colors.red),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(child: Text('Error: $err')),
-              ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: 'Hapus Kategori',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _confirmDelete(context, category),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        TablerIcons.trash,
+                        size: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _showCategoryForm(BuildContext context, {Category? category}) {
     final theme = ShadTheme.of(context);

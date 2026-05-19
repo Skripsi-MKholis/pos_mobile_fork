@@ -1,5 +1,9 @@
 import 'dart:io';
+import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -8,6 +12,9 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:barcode_widget/barcode_widget.dart' as bc;
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProductFormScreen extends ConsumerStatefulWidget {
   final Product? product;
@@ -32,9 +39,79 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name);
     _skuController = TextEditingController(text: widget.product?.sku);
+    _nameController.addListener(_onSkuChanged);
+    _skuController.addListener(_onSkuChanged);
     _priceController = TextEditingController(text: widget.product?.price.toString());
     _modalPriceController = TextEditingController(text: widget.product?.modalPrice?.toString());
     _stockController = TextEditingController(text: widget.product?.stockQuantity.toString());
+  }
+
+  void _onSkuChanged() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _nameController.removeListener(_onSkuChanged);
+    _skuController.removeListener(_onSkuChanged);
+    _nameController.dispose();
+    _skuController.dispose();
+    _priceController.dispose();
+    _modalPriceController.dispose();
+    _stockController.dispose();
+    super.dispose();
+  }
+
+  void _generateRandomSku() {
+    final random = Random();
+    final randomNumber = random.nextInt(90000000) + 10000000; // 8-digit random number
+    _skuController.text = 'SKU-$randomNumber';
+    HapticFeedback.lightImpact();
+    
+    ShadToaster.of(context).show(
+      const ShadToast(
+        description: Text('SKU acak berhasil dibuat'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+  final GlobalKey _previewKey = GlobalKey();
+  bool _isSharingPreview = false;
+
+  Future<void> _sharePreviewBarcode() async {
+    setState(() => _isSharingPreview = true);
+    try {
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final boundary = _previewKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return;
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ImageByteFormat.png);
+      if (byteData == null) return;
+      final pngBytes = byteData.buffer.asUint8List();
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File('${tempDir.path}/barcode_preview_${_skuController.text}.png').create();
+      await file.writeAsBytes(pngBytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Barcode untuk ${_nameController.text.isNotEmpty ? _nameController.text : "Produk Baru"} (${_skuController.text})',
+      );
+    } catch (e) {
+      if (mounted) {
+        ShadToaster.of(context).show(
+          ShadToast.destructive(
+            title: const Text('Gagal Membagikan'),
+            description: Text(e.toString()),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharingPreview = false);
+    }
   }
 
   Future<void> _pickImage() async {
@@ -100,12 +177,112 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  ShadButton.outline(
-                    leading: const Icon(TablerIcons.barcode),
-                    onPressed: _scanBarcode,
+                  Tooltip(
+                    message: 'Generate SKU Acak',
+                    child: ShadButton.outline(
+                      onPressed: _generateRandomSku,
+                      child: const Icon(TablerIcons.refresh, size: 20),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: 'Scan Barcode Kamera',
+                    child: ShadButton.outline(
+                      onPressed: _scanBarcode,
+                      child: const Icon(TablerIcons.barcode, size: 20),
+                    ),
                   ),
                 ],
               ),
+              if (_skuController.text.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildFieldLabel('Barcode Preview'),
+                RepaintBoundary(
+                  key: _previewKey,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          _nameController.text.isNotEmpty 
+                              ? _nameController.text.toUpperCase() 
+                              : 'PRODUK BARU',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          height: 70,
+                          child: bc.BarcodeWidget(
+                            barcode: bc.Barcode.code128(),
+                            data: _skuController.text,
+                            color: Colors.black,
+                            drawText: false,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _skuController.text,
+                              style: const TextStyle(
+                                fontFamily: 'monospace',
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            InkWell(
+                              onTap: _isSharingPreview ? null : _sharePreviewBarcode,
+                              child: Row(
+                                children: [
+                                  if (_isSharingPreview)
+                                    const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.blue,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
+                                    const Icon(TablerIcons.share, size: 16, color: Colors.blue),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    'Bagikan',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               Row(
                 children: [
