@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.1.0+3**
+**1.2.0+4**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS MVP Launch - Stable Version**
+**ZelloPOS Offline & Analytics Update**
 
 ---
 
@@ -49,3 +49,18 @@ Kami dengan bangga memperkenalkan versi stabil pertama dari ZelloPOS! Rilis ini 
 * **Perbaikan Alur Pembayaran (Checkout)**: Penyesuaian kalkulasi dan stabilisasi sinkronisasi keranjang belanja ke transaksi sukses.
 * **Perbaikan Antarmuka (UI/UX)**: Berbagai perbaikan kecil pada antarmuka *Dashboard* dan *Kasir* (*POS Screen*), serta menyembunyikan fitur Manajemen Meja sementara untuk fokus pada fitur inti kasir ritel/F&B tanpa meja.
 * **Halaman Coming Soon KDS**: Menyiapkan pondasi *Kitchen Display System* dengan halaman *placeholder*.
+
+---
+
+**Versi 1.2.0+4 (Offline & Analytics Update)**
+
+Ringkasan perubahan sejak commit `679b5d0c1e99e1f12ca2aeb6d65899dab6707e61`:
+
+* **Mode Offline & Sinkronisasi Data**: Menambahkan model transaksi lokal berbasis Isar, provider sinkronisasi, pemantauan koneksi, dan halaman monitoring sinkronisasi agar transaksi tetap dapat dicatat saat koneksi tidak stabil.
+* **Barcode SKU & Scan di POS**: Menambahkan dukungan pemindaian barcode/SKU di layar kasir dan form produk untuk mempercepat pencarian serta input produk.
+* **Smart Analytics**: Mengembangkan halaman analitik pintar dengan visualisasi dan ringkasan performa penjualan yang lebih lengkap.
+* **Produk ke Kategori**: Memperkuat pengelolaan kategori produk, termasuk alur penambahan produk ke kategori dan pembaruan tampilan daftar produk/kategori.
+* **Perbaikan UI Toast**: Migrasi penggunaan *ShadToast* ke *DelightfulToast* untuk notifikasi antarmuka yang lebih konsisten.
+* **Penyempurnaan POS & Pembayaran**: Memperbarui layar POS, detail keranjang, pembayaran, struk, dan riwayat transaksi agar selaras dengan alur offline dan pemindaian barcode.
+* **Pembaruan Navigasi & Pengaturan**: Menyesuaikan router, navbar, drawer, serta beberapa halaman pengaturan untuk mengakomodasi fitur sinkronisasi dan perubahan alur aplikasi.
+* **Dokumentasi Perencanaan**: Menambahkan dokumen perencanaan fitur offline dan AI sebagai referensi pengembangan lanjutan.
