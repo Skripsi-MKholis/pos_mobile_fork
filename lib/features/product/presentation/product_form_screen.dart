@@ -8,13 +8,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
+import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:barcode_widget/barcode_widget.dart' as bc;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+
 
 class ProductFormScreen extends ConsumerStatefulWidget {
   final Product? product;
@@ -33,10 +36,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   late TextEditingController _stockController;
   File? _imageFile;
   bool _isSaving = false;
+  String? _selectedCategoryId;
 
   @override
   void initState() {
     super.initState();
+    _selectedCategoryId = widget.product?.categoryId;
     _nameController = TextEditingController(text: widget.product?.name);
     _skuController = TextEditingController(text: widget.product?.sku);
     _nameController.addListener(_onSkuChanged);
@@ -138,6 +143,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final categoriesAsync = ref.watch(categoryNotifierProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product == null ? 'Tambah Produk' : 'Edit Produk', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -165,6 +171,49 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ShadInput(
                 controller: _nameController,
                 placeholder: const Text('Masukkan nama produk...'),
+              ),
+              const SizedBox(height: 20),
+              _buildFieldLabel('Kategori'),
+              categoriesAsync.when(
+                data: (categories) => ShadSelect<String>(
+                  placeholder: const Text('Pilih Kategori'),
+                  initialValue: _selectedCategoryId,
+                  options: [
+                    const ShadOption(
+                      value: 'none',
+                      child: Text('Tanpa Kategori'),
+                    ),
+                    ...categories.map(
+                      (c) => ShadOption(
+                        value: c.supabaseId,
+                        child: Text(c.name),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) => setState(
+                    () => _selectedCategoryId = value == 'none' ? null : value,
+                  ),
+                  selectedOptionBuilder: (context, value) => Text(
+                    value == 'none'
+                        ? 'Tanpa Kategori'
+                        : categories
+                            .firstWhere(
+                              (c) => c.supabaseId == value,
+                              orElse: () => Category()..name = 'Tanpa Kategori',
+                            )
+                            .name,
+                  ),
+                ),
+                loading: () => const ShadSelect<String>(
+                  placeholder: Text('Loading kategori...'),
+                  options: [],
+                  selectedOptionBuilder: null,
+                ),
+                error: (err, _) => ShadSelect<String>(
+                  placeholder: Text('Error: $err'),
+                  options: [],
+                  selectedOptionBuilder: null,
+                ),
               ),
               const SizedBox(height: 20),
               _buildFieldLabel('SKU / Barcode'),
@@ -387,6 +436,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         modalPrice: double.tryParse(_modalPriceController.text),
         stockQuantity: int.tryParse(_stockController.text) ?? 0,
         sku: _skuController.text,
+        categoryId: _selectedCategoryId,
         imageUrl: widget.product?.imageUrl,
       );
 
