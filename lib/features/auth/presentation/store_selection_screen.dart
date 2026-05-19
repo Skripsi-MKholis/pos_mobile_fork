@@ -6,6 +6,7 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class StoreSelectionScreen extends ConsumerStatefulWidget {
@@ -30,6 +31,8 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
     final theme = ShadTheme.of(context);
     final primaryColor = theme.colorScheme.primary;
     final storesAsync = ref.watch(userStoresProvider);
+    final connectivity = ref.watch(connectivityNotifierProvider).value;
+    final isOffline = connectivity == ConnectivityStatus.offline;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -110,6 +113,9 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
               storesAsync.when(
                 data: (stores) {
                   if (stores.isEmpty) {
+                    if (isOffline) {
+                      return _buildOfflineEmptyState(context, theme);
+                    }
                     return _buildEmptyState(context, theme);
                   }
                   return ListView.separated(
@@ -136,10 +142,13 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: TextButton(
-                      onPressed: () =>
-                          _showJoinStoreDialog(context, primaryColor, theme),
+                      onPressed: isOffline
+                          ? null
+                          : () => _showJoinStoreDialog(context, primaryColor, theme),
                       style: TextButton.styleFrom(
-                        backgroundColor: primaryColor.withValues(alpha: 0.1),
+                        backgroundColor: isOffline
+                            ? Colors.grey.shade100
+                            : primaryColor.withValues(alpha: 0.1),
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
@@ -148,12 +157,16 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(TablerIcons.ticket, size: 20, color: primaryColor),
+                          Icon(
+                            TablerIcons.ticket,
+                            size: 20,
+                            color: isOffline ? Colors.grey : primaryColor,
+                          ),
                           const SizedBox(width: 12),
                           Text(
                             'Punya Kode Undangan?',
                             style: TextStyle(
-                              color: primaryColor,
+                              color: isOffline ? Colors.grey : primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -180,10 +193,15 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () => context.push('/create-store'),
+                      onPressed: isOffline
+                          ? null
+                          : () => context.push('/create-store'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 20),
-                        side: BorderSide(color: primaryColor, width: 1.5),
+                        side: BorderSide(
+                          color: isOffline ? Colors.grey.shade300 : primaryColor,
+                          width: 1.5,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(32),
                         ),
@@ -191,7 +209,7 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                       child: Text(
                         '+ Daftarkan Toko / Outlet Baru',
                         style: TextStyle(
-                          color: primaryColor,
+                          color: isOffline ? Colors.grey : primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -463,6 +481,27 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
             'Anda perlu membuat toko pertama Anda untuk memulai.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfflineEmptyState(BuildContext context, ShadThemeData theme) {
+    return Center(
+      child: Column(
+        children: [
+          Icon(TablerIcons.cloud_off, size: 64, color: Colors.redAccent),
+          const SizedBox(height: 24),
+          const Text(
+            'Koneksi Internet Diperlukan',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black87),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Untuk penggunaan pertama kali, wajib terhubung ke internet agar data toko dapat disinkronkan ke perangkat Anda.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
       ),

@@ -15,7 +15,6 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/core/models/product.dart';
-import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 class POSScreen extends ConsumerStatefulWidget {

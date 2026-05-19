@@ -114,6 +114,13 @@ class SettingsScreen extends ConsumerWidget {
                       'Ganti Kata Sandi',
                       () => context.push('/setup-password'),
                     ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.refresh,
+                      'Sinkronisasi Data',
+                      () => context.push('/settings/sync-monitoring'),
+                    ),
                     if (role?.toLowerCase() == 'karyawan')
                       _buildMenuItem(
                         context,

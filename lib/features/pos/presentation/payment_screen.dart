@@ -8,8 +8,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
-import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
+import 'package:pos_mobile/core/database/isar_service.dart';
+import 'package:pos_mobile/core/models/transaction_local.dart';
+import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/core/providers/sync_provider.dart';
+import 'package:uuid/uuid.dart';
+import 'dart:convert';
+import 'package:isar/isar.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -408,84 +416,74 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           )
           .toList();
 
-      // Gunakan RPC untuk memproses transaksi
-      dynamic response;
+      final transactionId = cartState.activeTransactionId ?? const Uuid().v4();
 
-      if (cartState.activeTransactionId != null) {
-        // 1. Sync items first to ensure any last-minute changes are saved
-        final syncResponse = await supabase.rpc(
-          'sync_pending_transaction',
-          params: {
-            'p_transaction_id': cartState.activeTransactionId,
-            'p_items': itemsToProcess,
-            'p_total_amount': totalAmount,
-            'p_discount_total': cartState.discountAmount,
-            'p_voucher_info': cartState.appliedVoucher != null
-                ? cartState.appliedVoucher!.toMap()
-                : {},
-          },
-        );
+      final transactionLocal = TransactionLocal(
+        supabaseId: transactionId,
+        storeId: storeId.toString(),
+        cashierId: supabase.auth.currentUser?.id ?? '',
+        totalAmount: totalAmount,
+        paymentMethod: _paymentMethod,
+        cashPaid: _paymentMethod == 'Tunai' ? cash : totalAmount,
+        changeAmount: _paymentMethod == 'Tunai' ? cash - totalAmount : 0,
+        status: 'Berhasil',
+        tableId: cartState.selectedTable?.id,
+        discountTotal: cartState.discountAmount,
+        voucherInfo: cartState.appliedVoucher != null
+            ? jsonEncode(cartState.appliedVoucher!.toMap())
+            : null,
+        createdAt: DateTime.now(),
+        isSynced: false,
+      );
 
-        if (syncResponse == null ||
-            (syncResponse is Map && syncResponse['success'] == false)) {
-          throw syncResponse?['error'] ??
-              'Gagal memperbarui data pesanan sebelum pembayaran.';
+      final localItems = cartState.items.map((item) => TransactionItemLocal(
+        transactionSupabaseId: transactionId,
+        productId: item.product.supabaseId,
+        productName: item.product.name,
+        unitPrice: item.product.price,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      )).toList();
+
+      // 1. Simpan Transaksi dan Item secara lokal di Isar
+      final isar = IsarService.instance;
+      await isar.writeTxn(() async {
+        await isar.collection<TransactionLocal>().put(transactionLocal);
+        for (var item in localItems) {
+          await isar.collection<TransactionItemLocal>().put(item);
         }
 
-        // 2. Complete the pending transaction
-        response = await supabase.rpc(
-          'complete_pending_transaction',
-          params: {
-            'p_transaction_id': cartState.activeTransactionId,
-            'p_payment_method': _paymentMethod,
-            'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
-            'p_change_amount': _paymentMethod == 'Tunai'
-                ? cash - totalAmount
-                : 0,
-          },
-        );
-
-        // Add transaction_id to response for consistency with create_transaction_v3
-        if (response != null && response is Map) {
-          response['transaction_id'] = cartState.activeTransactionId;
+        // 2. Kurangi stok produk secara lokal
+        for (var item in cartState.items) {
+          final localProd = await isar.collection<Product>().filter().supabaseIdEqualTo(item.product.supabaseId).findFirst();
+          if (localProd != null) {
+            localProd.stockQuantity = localProd.stockQuantity - item.quantity;
+            await isar.collection<Product>().put(localProd);
+          }
         }
-      } else {
-        // Normal flow for new transaction
-        response = await supabase.rpc(
-          'create_transaction_v3',
-          params: {
-            'p_store_id': storeId,
-            'p_cashier_id': supabase.auth.currentUser!.id,
-            'p_total_amount': totalAmount,
-            'p_payment_method': _paymentMethod,
-            'p_discount_total': cartState.discountAmount,
-            'p_voucher_info': cartState.appliedVoucher != null
-                ? cartState.appliedVoucher!.toMap()
-                : {},
-            'p_table_id': cartState.selectedTable?.id,
-            'p_items': itemsToProcess,
-            'p_status': 'Berhasil',
-            'p_cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
-            'p_change_amount': _paymentMethod == 'Tunai'
-                ? cash - totalAmount
-                : 0,
-          },
-        );
-      }
+      });
 
-      if (response == null ||
-          (response is Map && response['success'] == false)) {
-        throw response?['error'] ??
-            'Terjadi kesalahan saat memproses transaksi.';
+      // 3. Coba sinkronisasi langsung jika online
+      bool syncedSuccessfully = false;
+      final connectivity = ref.read(connectivityNotifierProvider).value;
+      if (connectivity == ConnectivityStatus.online) {
+        try {
+          await ref.read(syncNotifierProvider.notifier).syncUnsynced();
+          
+          final updatedTx = await isar.collection<TransactionLocal>().filter().supabaseIdEqualTo(transactionId).findFirst();
+          if (updatedTx != null && updatedTx.isSynced) {
+            syncedSuccessfully = true;
+          }
+        } catch (e) {
+          print('DEBUG: Immediate sync failed, it will retry in background: $e');
+        }
       }
-
-      final transactionId = response['transaction_id'];
 
       // Konstruksi map transaksi untuk keperluan UI/Receipt tanpa fetch ulang
       final transactionMap = {
         'id': transactionId,
         'store_id': storeId,
-        'cashier_id': supabase.auth.currentUser!.id,
+        'cashier_id': supabase.auth.currentUser?.id ?? '',
         'total_amount': totalAmount,
         'payment_method': _paymentMethod,
         'cash_paid': _paymentMethod == 'Tunai' ? cash : totalAmount,
@@ -496,7 +494,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         'voucher_info': cartState.appliedVoucher != null
             ? cartState.appliedVoucher!.toMap()
             : {},
-        'created_at': DateTime.now().toIso8601String(),
+        'created_at': transactionLocal.createdAt.toIso8601String(),
       };
 
       if (mounted) {
@@ -506,20 +504,30 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           symbol: 'Rp ',
           decimalDigits: 0,
         );
+        
+        final String toastMsg = syncedSuccessfully
+            ? 'Transaksi senilai ${currencyFormat.format(totalAmount)} telah disimpan & disinkronkan.'
+            : 'Transaksi senilai ${currencyFormat.format(totalAmount)} disimpan lokal (Belum Sinkron).';
+
         ShadToaster.of(context).show(
           ShadToast(
-            title: const Text('Pembayaran Berhasil!'),
-            description: Text('Transaksi senilai ${currencyFormat.format(totalAmount)} telah disimpan.'),
+            title: Text(syncedSuccessfully ? 'Pembayaran Berhasil!' : 'Tersimpan Offline'),
+            description: Text(toastMsg),
             duration: const Duration(seconds: 3),
           ),
         );
+
         if (cartState.selectedTable != null) {
-          await ref
-              .read(tableMonitoringProvider.notifier)
-              .handleTableTransactionComplete(
-                tableId: cartState.selectedTable!.id,
-                paidItems: cartState.items,
-              );
+          try {
+            await ref
+                .read(tableMonitoringProvider.notifier)
+                .handleTableTransactionComplete(
+                  tableId: cartState.selectedTable!.id,
+                  paidItems: cartState.items,
+                );
+          } catch (e) {
+            print('DEBUG: Table state remote update failed (offline): $e');
+          }
         }
         ref.invalidate(tableMonitoringProvider);
         ref.read(cartNotifierProvider.notifier).clearCart();

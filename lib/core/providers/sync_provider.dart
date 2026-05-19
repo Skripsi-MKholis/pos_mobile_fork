@@ -8,6 +8,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/models/transaction_local.dart';
+import 'dart:convert';
 
 part 'sync_provider.g.dart';
 
@@ -36,11 +38,20 @@ class SyncNotifier extends _$SyncNotifier {
     print('DEBUG: Memulai sinkronisasi otomatis karena status Online...');
     await _syncCategories();
     await _syncProducts();
+    await _syncTransactions();
     print('DEBUG: Sinkronisasi otomatis selesai.');
     
     // Invalidate providers agar UI terupdate
     ref.invalidate(productNotifierProvider);
     ref.invalidate(categoryNotifierProvider);
+  }
+
+  Future<void> syncUnsynced() async {
+    final status = ref.read(connectivityNotifierProvider).value;
+    final user = _supabase.auth.currentUser;
+    if (status == ConnectivityStatus.online && user != null) {
+      await _syncUnsyncedData();
+    }
   }
 
   Future<void> _syncCategories() async {
@@ -141,6 +152,69 @@ class SyncNotifier extends _$SyncNotifier {
         await _isar.writeTxn(() async {
           prod.syncError = e.toString();
           await _isar.products.put(prod);
+        });
+      }
+    }
+  }
+
+  Future<void> _syncTransactions() async {
+    final unsynced = await _isar.collection<TransactionLocal>().filter().isSyncedEqualTo(false).findAll();
+
+    for (var tx in unsynced) {
+      try {
+        // Fetch local items associated with this transaction
+        final localItems = await _isar.collection<TransactionItemLocal>()
+            .filter()
+            .transactionSupabaseIdEqualTo(tx.supabaseId)
+            .findAll();
+
+        final itemsToProcess = localItems.map((item) => {
+          'product_id': item.productId,
+          'product_name': item.productName,
+          'unit_price': item.unitPrice,
+          'quantity': item.quantity,
+          'subtotal': item.subtotal,
+        }).toList();
+
+        // Check if transaction already exists in Supabase
+        final existing = await _supabase.from('transactions').select().eq('id', tx.supabaseId).maybeSingle();
+
+        if (existing == null) {
+          // Call create_transaction_v4 on Supabase via RPC
+          final response = await _supabase.rpc(
+            'create_transaction_v4',
+            params: {
+              'p_transaction_id': tx.supabaseId,
+              'p_store_id': tx.storeId,
+              'p_cashier_id': tx.cashierId,
+              'p_total_amount': tx.totalAmount,
+              'p_payment_method': tx.paymentMethod,
+              'p_discount_total': tx.discountTotal,
+              'p_voucher_info': tx.voucherInfo != null ? jsonDecode(tx.voucherInfo!) : {},
+              'p_table_id': tx.tableId,
+              'p_items': itemsToProcess,
+              'p_status': tx.status,
+              'p_cash_paid': tx.cashPaid,
+              'p_change_amount': tx.changeAmount,
+            },
+          );
+
+          if (response == null || (response is Map && response['success'] == false)) {
+            throw response?['error'] ?? 'Gagal membuat transaksi di server.';
+          }
+        }
+
+        // If success, update local state
+        await _isar.writeTxn(() async {
+          tx.isSynced = true;
+          tx.syncError = null;
+          await _isar.collection<TransactionLocal>().put(tx);
+        });
+      } catch (e) {
+        print('DEBUG: Error syncing transaction ${tx.supabaseId}: $e');
+        await _isar.writeTxn(() async {
+          tx.syncError = e.toString();
+          await _isar.collection<TransactionLocal>().put(tx);
         });
       }
     }

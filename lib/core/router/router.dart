@@ -18,6 +18,7 @@ import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/printer_settings_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
@@ -191,6 +192,12 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'sync-monitoring',
+                    builder: (context, state) => const SyncMonitoringScreen(),
+                  ),
+                ],
               ),
             ],
           ),
