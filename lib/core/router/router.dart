@@ -109,6 +109,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/manage-tables',
           '/store-info',
           '/broadcast-notification',
+          '/smart-analytics',
         ];
 
         final isRestricted = restrictedRoutes.any(
@@ -178,12 +179,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/reports',
                 builder: (context, state) => const ReportsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'smart', // this will be /reports/smart
-                    builder: (context, state) => const SmartAnalyticsScreen(),
-                  ),
-                ],
               ),
             ],
           ),
@@ -278,6 +273,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/kds',
         builder: (context, state) => const KDSScreen(),
+      ),
+      GoRoute(
+        path: '/smart-analytics',
+        builder: (context, state) => const SmartAnalyticsScreen(),
       ),
       GoRoute(
         path: '/profile',

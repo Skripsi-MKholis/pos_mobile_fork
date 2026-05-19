@@ -71,6 +71,12 @@ class _DrawerMenuContent extends ConsumerWidget {
             title: 'Analitik',
             route: '/reports',
           ),
+        if (isAdmin)
+          const _DrawerItem(
+            icon: TablerIcons.brain,
+            title: 'Smart Analitik',
+            route: '/smart-analytics',
+          ),
 
         const _SectionSpacing(),
         const _SectionHeader(title: 'OPERASIONAL KASIR'),

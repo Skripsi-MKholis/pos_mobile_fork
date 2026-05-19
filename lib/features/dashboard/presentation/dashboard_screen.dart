@@ -24,9 +24,12 @@ class DashboardScreen extends ConsumerWidget {
     // Auto switch to 'today' for Kasir if not already
     if (!isAdmin) {
       final analytics = analyticsAsync.value;
-      if (analytics != null && analytics.timeRange != AnalyticsTimeRange.today) {
-        Future.microtask(() => 
-          ref.read(analyticsProvider.notifier).fetchAnalytics(AnalyticsTimeRange.today)
+      if (analytics != null &&
+          analytics.timeRange != AnalyticsTimeRange.today) {
+        Future.microtask(
+          () => ref
+              .read(analyticsProvider.notifier)
+              .fetchAnalytics(AnalyticsTimeRange.today),
         );
       }
     }
@@ -43,9 +46,11 @@ class DashboardScreen extends ConsumerWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            ref.read(analyticsProvider.notifier).fetchAnalytics(
-              isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today
-            );
+            ref
+                .read(analyticsProvider.notifier)
+                .fetchAnalytics(
+                  isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today,
+                );
             ref.read(productNotifierProvider.notifier).syncProducts();
           },
           color: Warna.primary,
@@ -74,14 +79,14 @@ class DashboardScreen extends ConsumerWidget {
                   _buildSalesPerformanceCard(analyticsAsync, theme),
                 ],
                 const SizedBox(height: 24),
-              Text(
-                'AKSES CEPAT',
-                style: theme.textTheme.muted.copyWith(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
+                Text(
+                  'AKSES CEPAT',
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2.0,
+                  ),
                 ),
-              ),
                 const SizedBox(height: 16),
                 _buildQuickAccessGrid(context, theme, ref, isAdmin),
                 const SizedBox(height: 85),
@@ -93,12 +98,17 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickAccessGrid(BuildContext context, ShadThemeData theme, WidgetRef ref, bool isAdmin) {
+  Widget _buildQuickAccessGrid(
+    BuildContext context,
+    ShadThemeData theme,
+    WidgetRef ref,
+    bool isAdmin,
+  ) {
     final activeStoreAsync = ref.watch(activeStoreProvider);
     final activeStore = activeStoreAsync.value;
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
-    
+
     const hasTables = false; // Sembunyikan untuk sementara waktu
     final hasKds = features?['kds'] == true;
 
@@ -240,11 +250,13 @@ class DashboardScreen extends ConsumerWidget {
     final lowStockCount = products == null
         ? 0
         : products.where((p) => (p.stockQuantity ?? 0) <= 5).length;
-    final totalTransactions = analytics == null ? 0 : analytics.totalTransactions;
+    final totalTransactions = analytics == null
+        ? 0
+        : analytics.totalTransactions;
     final totalRevenue = analytics == null ? 0 : analytics.totalRevenue;
 
     final range = analytics?.timeRange ?? AnalyticsTimeRange.week;
-    
+
     String revenueLabel = 'Omzet Hari Ini';
     String txLabel = 'Transaksi Selesai';
 
@@ -322,9 +334,7 @@ class DashboardScreen extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(
           'Ringkasan Performa',
-          style: theme.textTheme.h3.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -448,7 +458,9 @@ class DashboardScreen extends ConsumerWidget {
               if (isLoading)
                 Shimmer.fromColors(
                   baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
-                  highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
+                  highlightColor: theme.colorScheme.muted.withValues(
+                    alpha: 0.2,
+                  ),
                   child: Container(
                     height: 24,
                     width: 80,
@@ -529,7 +541,9 @@ class DashboardScreen extends ConsumerWidget {
             height: 180,
             child: isLoading
                 ? _buildChartSkeleton(theme)
-                : (state != null ? _buildDashboardChart(state, theme) : const SizedBox()),
+                : (state != null
+                      ? _buildDashboardChart(state, theme)
+                      : const SizedBox()),
           ),
         ],
       ),
@@ -585,6 +599,7 @@ class DashboardScreen extends ConsumerWidget {
       ),
     ).animate().fadeIn(duration: 800.ms);
   }
+
   Widget _buildStatsSkeleton(ShadThemeData theme) {
     return GridView.count(
       shrinkWrap: true,
