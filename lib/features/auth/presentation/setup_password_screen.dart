@@ -96,29 +96,16 @@ class _SetupPasswordScreenState extends ConsumerState<SetupPasswordScreen> {
 
                 const SizedBox(height: 32),
 
-                // Card with Green Top Border
+                // Main Form Area
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(32),
                     child: Column(
                       children: [
-                        // Green Top Accent
-                        Container(
-                          height: 8,
-                          width: double.infinity,
-                          color: primaryColor,
-                        ),
                         Padding(
                           padding: const EdgeInsets.all(32),
                           child: Column(
