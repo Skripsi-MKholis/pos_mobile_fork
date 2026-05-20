@@ -65,7 +65,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const ConnectivityStatusBar(),
-              
+
               // HEADER & SEARCH
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
@@ -78,7 +78,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
-                        onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
+                        onChanged: (value) => _debouncer.run(
+                          () => setState(() => _searchQuery = value),
+                        ),
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.muted.withOpacity(0.3),
@@ -101,9 +103,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 child: categoriesAsync.when(
                   data: (categories) {
                     final filtered = categories.where((c) {
-                      return c.name
-                          .toLowerCase()
-                          .contains(_searchQuery.toLowerCase());
+                      return c.name.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      );
                     }).toList();
 
                     if (filtered.isEmpty) {
@@ -122,7 +124,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.muted.withOpacity(0.5),
+                                    color: theme.colorScheme.muted.withOpacity(
+                                      0.5,
+                                    ),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -199,8 +203,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
     Category category,
     ShadThemeData theme,
   ) {
-    final firstLetter =
-        category.name.isNotEmpty ? category.name[0].toUpperCase() : '?';
+    final firstLetter = category.name.isNotEmpty
+        ? category.name[0].toUpperCase()
+        : '?';
     final avatarBgColor = _getCategoryColor(category.name);
     final avatarTextColor = _getCategoryTextColor(category.name);
 
@@ -209,9 +214,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.border.withOpacity(0.4),
-        ),
+        border: Border.all(color: theme.colorScheme.border.withOpacity(0.4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -243,7 +246,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               ),
             ),
             const SizedBox(width: 16),
-            
+
             // Middle: Category Name & Sync Status
             Expanded(
               child: Row(
@@ -279,6 +282,31 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Tooltip(
+                  message: 'Lihat Produk',
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      context.push(
+                        '/products',
+                        extra: {'categoryId': category.supabaseId},
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        TablerIcons.packages,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Tooltip(
                   message: 'Edit Kategori',
                   child: InkWell(
@@ -340,7 +368,10 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Nama Kategori', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            const Text(
+              'Nama Kategori',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
             const SizedBox(height: 8),
             ShadInput(
               controller: nameController,
@@ -368,20 +399,24 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
 
               try {
                 if (isEditing) {
-                  await ref.read(categoryNotifierProvider.notifier).updateCategory(
+                  await ref
+                      .read(categoryNotifierProvider.notifier)
+                      .updateCategory(
                         supabaseId: category.supabaseId,
                         name: nameController.text,
                       );
                 } else {
-                  await ref.read(categoryNotifierProvider.notifier).addCategory(
-                        name: nameController.text,
-                      );
+                  await ref
+                      .read(categoryNotifierProvider.notifier)
+                      .addCategory(name: nameController.text);
                 }
                 if (context.mounted) {
                   Navigator.pop(context);
                   mySnackBar(
                     context: context,
-                    text: isEditing ? 'Kategori berhasil diperbarui' : 'Kategori berhasil ditambahkan',
+                    text: isEditing
+                        ? 'Kategori berhasil diperbarui'
+                        : 'Kategori berhasil ditambahkan',
                     status: ToastStatus.success,
                   );
                 }
@@ -406,7 +441,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Hapus Kategori'),
-        description: Text('Apakah Anda yakin ingin menghapus kategori "${category.name}"? Tindakan ini tidak dapat dibatalkan.'),
+        description: Text(
+          'Apakah Anda yakin ingin menghapus kategori "${category.name}"? Tindakan ini tidak dapat dibatalkan.',
+        ),
         actions: [
           ShadButton.outline(
             child: const Text('Batal'),
@@ -416,7 +453,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             child: const Text('Hapus'),
             onPressed: () async {
               try {
-                await ref.read(categoryNotifierProvider.notifier).deleteCategory(category.supabaseId);
+                await ref
+                    .read(categoryNotifierProvider.notifier)
+                    .deleteCategory(category.supabaseId);
                 if (context.mounted) {
                   Navigator.pop(context);
                   mySnackBar(

@@ -251,7 +251,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/products',
-        builder: (context, state) => const ProductListScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final initialCategoryId = extra?['categoryId'] as String?;
+          return ProductListScreen(initialCategoryId: initialCategoryId);
+        },
         routes: [
           GoRoute(
             path: 'add',
@@ -270,10 +274,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/stock',
         builder: (context, state) => const StockManagementScreen(),
       ),
-      GoRoute(
-        path: '/kds',
-        builder: (context, state) => const KDSScreen(),
-      ),
+      GoRoute(path: '/kds', builder: (context, state) => const KDSScreen()),
       GoRoute(
         path: '/smart-analytics',
         builder: (context, state) => const SmartAnalyticsScreen(),
