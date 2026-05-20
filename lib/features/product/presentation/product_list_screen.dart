@@ -21,7 +21,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
-  const ProductListScreen({super.key});
+  final String? initialCategoryId;
+
+  const ProductListScreen({super.key, this.initialCategoryId});
 
   @override
   ConsumerState<ProductListScreen> createState() => _ProductListScreenState();
@@ -32,6 +34,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String? _selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedCategory = widget.initialCategoryId;
+  }
 
   @override
   void dispose() {
@@ -93,15 +101,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     }
   }
 
-  void _openBarcodeViewer(BuildContext context, Product product, String categoryName) {
+  void _openBarcodeViewer(
+    BuildContext context,
+    Product product,
+    String categoryName,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _BarcodeViewerSheet(
-        product: product,
-        categoryName: categoryName,
-      ),
+      builder: (context) =>
+          _BarcodeViewerSheet(product: product, categoryName: categoryName),
     );
   }
 
@@ -189,7 +199,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const ConnectivityStatusBar(),
-              
+
               const SizedBox(height: 8),
 
               // SEARCH & ACTIONS ROW
@@ -204,7 +214,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
-                        onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
+                        onChanged: (value) => _debouncer.run(
+                          () => setState(() => _searchQuery = value),
+                        ),
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.muted.withOpacity(0.3),
@@ -238,9 +250,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             label: const Text('Semua'),
                             selected: _selectedCategory == null,
                             selectedColor: const Color(0xFF98D100),
-                            backgroundColor: theme.colorScheme.muted.withOpacity(0.3),
+                            backgroundColor: theme.colorScheme.muted
+                                .withOpacity(0.3),
                             labelStyle: TextStyle(
-                              color: _selectedCategory == null ? Colors.black : theme.colorScheme.foreground,
+                              color: _selectedCategory == null
+                                  ? Colors.black
+                                  : theme.colorScheme.foreground,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -252,19 +267,24 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                     : theme.colorScheme.border.withOpacity(0.3),
                               ),
                             ),
-                            onSelected: (_) => setState(() => _selectedCategory = null),
+                            onSelected: (_) =>
+                                setState(() => _selectedCategory = null),
                           ),
                           ...categories.map((c) {
-                            final isSelected = _selectedCategory == c.supabaseId;
+                            final isSelected =
+                                _selectedCategory == c.supabaseId;
                             return Padding(
                               padding: const EdgeInsets.only(left: 8),
                               child: ChoiceChip(
                                 label: Text(c.name),
                                 selected: isSelected,
                                 selectedColor: const Color(0xFF98D100),
-                                backgroundColor: theme.colorScheme.muted.withOpacity(0.3),
+                                backgroundColor: theme.colorScheme.muted
+                                    .withOpacity(0.3),
                                 labelStyle: TextStyle(
-                                  color: isSelected ? Colors.black : theme.colorScheme.foreground,
+                                  color: isSelected
+                                      ? Colors.black
+                                      : theme.colorScheme.foreground,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                 ),
@@ -273,12 +293,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                   side: BorderSide(
                                     color: isSelected
                                         ? Colors.transparent
-                                        : theme.colorScheme.border.withOpacity(0.3),
+                                        : theme.colorScheme.border.withOpacity(
+                                            0.3,
+                                          ),
                                   ),
                                 ),
                                 onSelected: (selected) {
                                   setState(() {
-                                    _selectedCategory = selected ? c.supabaseId : null;
+                                    _selectedCategory = selected
+                                        ? c.supabaseId
+                                        : null;
                                   });
                                 },
                               ),
@@ -347,7 +371,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         itemBuilder: (context, index) {
                           final product = filteredProducts[index];
                           final categoryName =
-                              categoryMap[product.categoryId] ?? 'Tanpa Kategori';
+                              categoryMap[product.categoryId] ??
+                              'Tanpa Kategori';
                           return _buildProductCard(
                             context,
                             product,
@@ -430,9 +455,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       decoration: BoxDecoration(
         color: theme.colorScheme.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.border.withOpacity(0.4),
-        ),
+        border: Border.all(color: theme.colorScheme.border.withOpacity(0.4)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -462,13 +485,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         fit: BoxFit.cover,
                       )
                     : (product.localImagePath != null
-                        ? DecorationImage(
-                            image: FileImage(File(product.localImagePath!)),
-                            fit: BoxFit.cover,
-                          )
-                        : null),
+                          ? DecorationImage(
+                              image: FileImage(File(product.localImagePath!)),
+                              fit: BoxFit.cover,
+                            )
+                          : null),
               ),
-              child: (product.imageUrl == null && product.localImagePath == null)
+              child:
+                  (product.imageUrl == null && product.localImagePath == null)
                   ? Icon(
                       TablerIcons.package,
                       color: theme.colorScheme.mutedForeground,
@@ -477,7 +501,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   : null,
             ),
             const SizedBox(width: 14),
-            
+
             // Middle: Product Info
             Expanded(
               child: Column(
@@ -514,10 +538,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  
+
                   // Category tag
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.muted.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(6),
@@ -559,16 +586,26 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       _openBarcodeViewer(context, product, categoryName);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.blue.shade50.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.shade100, width: 0.8),
+                        border: Border.all(
+                          color: Colors.blue.shade100,
+                          width: 0.8,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(TablerIcons.barcode, size: 12, color: Colors.blue.shade700),
+                          Icon(
+                            TablerIcons.barcode,
+                            size: 12,
+                            color: Colors.blue.shade700,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             product.sku!,
@@ -597,7 +634,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       message: 'Edit Produk',
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
-                        onTap: () => context.push('/products/edit', extra: product),
+                        onTap: () =>
+                            context.push('/products/edit', extra: product),
                         child: Container(
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
@@ -671,9 +709,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         Text(
           'Coba gunakan kata kunci lain atau\ntambah produk baru ke katalog Anda.',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: theme.colorScheme.mutedForeground,
-          ),
+          style: TextStyle(color: theme.colorScheme.mutedForeground),
         ),
         const SizedBox(height: 24),
         ShadButton.outline(
@@ -690,7 +726,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     );
   }
 }
-
 
 class _BarcodeViewerSheet extends StatefulWidget {
   final Product product;
@@ -715,7 +750,9 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       // Small delay to allow the repaint boundary to layout fully
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final boundary = _globalKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      final boundary =
+          _globalKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 3.0);
@@ -724,13 +761,14 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       final pngBytes = byteData.buffer.asUint8List();
 
       final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/barcode_${widget.product.sku}.png').create();
+      final file = await File(
+        '${tempDir.path}/barcode_${widget.product.sku}.png',
+      ).create();
       await file.writeAsBytes(pngBytes);
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Barcode untuk ${widget.product.name} (${widget.product.sku})',
-      );
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Barcode untuk ${widget.product.name} (${widget.product.sku})');
     } catch (e) {
       if (mounted) {
         mySnackBar(
@@ -747,7 +785,7 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
   void _copyToClipboard() {
     Clipboard.setData(ClipboardData(text: widget.product.sku ?? ''));
     HapticFeedback.lightImpact();
-    
+
     mySnackBar(
       context: context,
       text: 'SKU berhasil disalin ke clipboard.',
@@ -784,16 +822,13 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Barcode Produk',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   IconButton(
                     icon: const Icon(TablerIcons.x),
@@ -802,12 +837,15 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                 ],
               ),
               const SizedBox(height: 12),
-    
+
               // RepaintBoundary card to capture for download/share
               RepaintBoundary(
                 key: _globalKey,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -844,7 +882,7 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       // Barcode itself
                       Container(
                         height: 90,
@@ -855,14 +893,18 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                           width: double.infinity,
                           height: 70,
                           color: Colors.black,
-                          drawText: false, // We render SKU in our custom styled font below
+                          drawText:
+                              false, // We render SKU in our custom styled font below
                         ),
                       ),
                       const SizedBox(height: 12),
-    
+
                       // Readable SKU code
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(8),
@@ -883,7 +925,7 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                 ),
               ),
               const SizedBox(height: 16),
-    
+
               // Actions Row
               Row(
                 children: [
