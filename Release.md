@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.2.0+4**
+**1.3.0+5**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Offline & Analytics Update**
+**ZelloPOS Auth Refactor & Search Optimization**
 
 ---
 
@@ -64,3 +64,15 @@ Ringkasan perubahan sejak commit `679b5d0c1e99e1f12ca2aeb6d65899dab6707e61`:
 * **Penyempurnaan POS & Pembayaran**: Memperbarui layar POS, detail keranjang, pembayaran, struk, dan riwayat transaksi agar selaras dengan alur offline dan pemindaian barcode.
 * **Pembaruan Navigasi & Pengaturan**: Menyesuaikan router, navbar, drawer, serta beberapa halaman pengaturan untuk mengakomodasi fitur sinkronisasi dan perubahan alur aplikasi.
 * **Dokumentasi Perencanaan**: Menambahkan dokumen perencanaan fitur offline dan AI sebagai referensi pengembangan lanjutan.
+
+---
+
+**Versi 1.3.0+5 (Auth Refactor & Search Optimization)**
+
+Ringkasan perubahan sejak commit `b8119c8019a4d7be3421acd0fc3eacc8b7052ed0`:
+
+* **Redesain Antarmuka Autentikasi (UI/UX Auth)**: Merancang ulang halaman Login (`login_screen.dart`), Register (`register_screen.dart`), dan Setup Password (`setup_password_screen.dart`) dengan gaya minimalis, elegan, dan warna brand *Vibrant Lime* yang terpadu.
+* **Validasi Input Autentikasi Ketat**: Mengimplementasikan pemeriksaan validasi instan untuk memastikan seluruh kolom input tidak kosong sebelum memproses otorisasi, lengkap dengan *toggle show/hide password* yang interaktif.
+* **Pencarian POS & Manajemen dengan Debouncing**: Menambahkan utilitas debouncer (`debouncer.dart`) pada bilah pencarian produk layar Kasir/POS (`pos_screen.dart`) serta halaman produk/stok untuk mengoptimalkan performa input dan mencegah lag saat mengetik.
+* **Tooltips & Aksesibilitas POS**: Memberikan petunjuk visual (*tooltips*) di setiap tombol ikonik layar POS kasir guna mempercepat adaptasi pengguna.
+* **Integrasi Lihat Produk per Kategori**: Memperbarui alur visual pada pengelolaan kategori agar pengguna dapat melihat katalog produk per kategori secara langsung.
