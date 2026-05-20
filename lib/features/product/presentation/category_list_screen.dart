@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class CategoryListScreen extends ConsumerStatefulWidget {
   const CategoryListScreen({super.key});
@@ -16,7 +17,15 @@ class CategoryListScreen extends ConsumerStatefulWidget {
 }
 
 class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
+  // Optimization: Debouncer prevents expensive UI rebuilds and local filtering on every keystroke.
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _debouncer.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +78,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
-                        onChanged: (value) => setState(() => _searchQuery = value),
+                        onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.muted.withOpacity(0.3),

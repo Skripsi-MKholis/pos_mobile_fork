@@ -18,6 +18,7 @@ import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   const ProductListScreen({super.key});
@@ -27,8 +28,16 @@ class ProductListScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductListScreenState extends ConsumerState<ProductListScreen> {
+  // Optimization: Debouncer prevents expensive UI rebuilds and local filtering on every keystroke.
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String? _selectedCategory;
+
+  @override
+  void dispose() {
+    _debouncer.dispose();
+    super.dispose();
+  }
 
   Future<void> _showDeleteDialog(Product product) async {
     final confirmed = await showShadDialog<bool>(
@@ -195,7 +204,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
                         ),
-                        onChanged: (value) => setState(() => _searchQuery = value),
+                        onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
                         decoration: ShadDecoration(
                           border: ShadBorder.none,
                           color: theme.colorScheme.muted.withOpacity(0.3),
@@ -669,6 +678,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         const SizedBox(height: 24),
         ShadButton.outline(
           onPressed: () {
+            _debouncer.dispose(); // Cancel pending updates
             setState(() {
               _searchQuery = '';
               _selectedCategory = null;

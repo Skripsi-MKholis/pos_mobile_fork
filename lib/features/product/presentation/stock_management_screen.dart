@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
@@ -20,12 +21,15 @@ class StockManagementScreen extends ConsumerStatefulWidget {
 }
 
 class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
+  // Optimization: Debouncer prevents expensive UI rebuilds and local filtering on every keystroke.
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String? _selectedCategory;
   final Map<String, TextEditingController> _controllers = {};
 
   @override
   void dispose() {
+    _debouncer.dispose();
     for (var controller in _controllers.values) {
       controller.dispose();
     }
@@ -146,7 +150,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         child: Icon(TablerIcons.search, size: 20),
                       ),
                       onChanged: (value) =>
-                          setState(() => _searchQuery = value),
+                          _debouncer.run(() => setState(() => _searchQuery = value)),
                       decoration: ShadDecoration(
                         border: ShadBorder.none,
                         color: theme.colorScheme.background,
@@ -211,6 +215,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                             child: ShadButton.ghost(
                               size: ShadButtonSize.sm,
                               onPressed: () {
+                                _debouncer.dispose(); // Cancel pending updates
                                 setState(() {
                                   _searchQuery = '';
                                   _selectedCategory = null;
