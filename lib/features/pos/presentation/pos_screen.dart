@@ -12,6 +12,7 @@ import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:intl/intl.dart';
 
 import 'package:pos_mobile/features/pos/providers/table_provider.dart';
@@ -29,6 +30,8 @@ class POSScreen extends ConsumerStatefulWidget {
 }
 
 class _POSScreenState extends ConsumerState<POSScreen> {
+  // Optimization: Debouncer prevents expensive UI rebuilds and local filtering on every keystroke.
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _searchQuery = '';
@@ -37,6 +40,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   @override
   void dispose() {
+    _debouncer.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -356,12 +360,15 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       padding: EdgeInsets.all(8.0),
                       child: Icon(TablerIcons.search, size: 20),
                     ),
+                    onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
+                    onSubmitted: (value) => _handleSearchSubmitted(value, products),
                     onChanged: (value) => setState(() => _searchQuery = value),
                     onSubmitted: (value) =>
                         _handleSearchSubmitted(value, products),
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
+                              _debouncer.dispose(); // Cancel any pending debounced search update
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },

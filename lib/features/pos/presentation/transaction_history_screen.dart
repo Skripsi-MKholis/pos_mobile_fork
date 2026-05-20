@@ -7,6 +7,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/core/utils/debouncer.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -18,6 +19,8 @@ class TransactionHistoryScreen extends ConsumerStatefulWidget {
 
 class _TransactionHistoryScreenState
     extends ConsumerState<TransactionHistoryScreen> {
+  // Optimization: Debouncer prevents expensive UI rebuilds and local filtering on every keystroke.
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String _filterStatus = 'Semua';
   String _sortOrder = 'desc'; // 'desc' for newest, 'asc' for oldest
@@ -46,6 +49,7 @@ class _TransactionHistoryScreenState
 
   @override
   void dispose() {
+    _debouncer.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
@@ -465,7 +469,7 @@ class _TransactionHistoryScreenState
                       color: Colors.grey,
                     ),
                   ),
-                  onChanged: (val) => setState(() => _searchQuery = val),
+                  onChanged: (val) => _debouncer.run(() => setState(() => _searchQuery = val)),
                   decoration: ShadDecoration(
                     border: ShadBorder.all(
                       color: theme.colorScheme.border.withOpacity(0.5),
