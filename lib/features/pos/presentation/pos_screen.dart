@@ -362,6 +362,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     ),
                     onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
                     onSubmitted: (value) => _handleSearchSubmitted(value, products),
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                    onSubmitted: (value) =>
+                        _handleSearchSubmitted(value, products),
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
@@ -375,9 +378,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ShadIconButton.outline(
-                  onPressed: () => _openBarcodeScanner(products),
-                  icon: const Icon(TablerIcons.barcode, size: 20),
+                Tooltip(
+                  message: 'Scan Barcode',
+                  child: ShadIconButton.outline(
+                    onPressed: () => _openBarcodeScanner(products),
+                    icon: const Icon(TablerIcons.barcode, size: 20),
+                  ),
                 ),
                 const SizedBox(width: 8),
                 productsAsync.when(
@@ -388,7 +394,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         activeStore?['settings'] as Map<String, dynamic>?;
                     final features =
                         settings?['features'] as Map<String, dynamic>?;
-                    final hasTables = features?['tables'] == true && activeStore == null; // Sembunyikan untuk sementara waktu
+                    final hasTables =
+                        features?['tables'] == true &&
+                        activeStore ==
+                            null; // Sembunyikan untuk sementara waktu
 
                     if (!hasTables) return const SizedBox.shrink();
 
@@ -933,18 +942,21 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             ),
             const SizedBox(width: 16),
             if (cartNotifier.totalItems > 0) ...[
-              ShadIconButton.outline(
-                onPressed: () => cartNotifier.clearCart(),
-                icon: const Icon(
-                  TablerIcons.trash,
-                  size: 18,
-                  color: Colors.red,
-                ),
-                width: 48,
-                decoration: ShadDecoration(
-                  border: ShadBorder.all(
-                    color: theme.colorScheme.destructive,
-                    width: 1,
+              Tooltip(
+                message: 'Kosongkan Keranjang',
+                child: ShadIconButton.outline(
+                  onPressed: () => cartNotifier.clearCart(),
+                  icon: const Icon(
+                    TablerIcons.trash,
+                    size: 18,
+                    color: Colors.red,
+                  ),
+                  width: 48,
+                  decoration: ShadDecoration(
+                    border: ShadBorder.all(
+                      color: theme.colorScheme.destructive,
+                      width: 1,
+                    ),
                   ),
                 ),
               ),
@@ -1009,20 +1021,21 @@ class _BarcodeScannerModal extends StatefulWidget {
   State<_BarcodeScannerModal> createState() => _BarcodeScannerModalState();
 }
 
-class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleTickerProviderStateMixin {
+class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
+    with SingleTickerProviderStateMixin {
   final MobileScannerController _controller = MobileScannerController();
-  
+
   // Scanned history in this session
   final List<Map<String, dynamic>> _sessionScanned = [];
-  
+
   // Scanning state
   String? _lastScannedSku;
   DateTime? _lastScanTime;
-  
+
   // Notification Toast Overlay inside scanner
   String? _notificationText;
   bool _isSuccessNotification = true;
-  
+
   // Flash / Torch state
   bool _isTorchOn = false;
 
@@ -1049,7 +1062,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
       _notificationText = text;
       _isSuccessNotification = isSuccess;
     });
-    
+
     // Auto hide after 1.5 seconds
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
@@ -1063,23 +1076,23 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
   void _onDetect(BarcodeCapture capture) {
     final List<Barcode> barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
-    
+
     final barcodeValue = barcodes.first.rawValue;
     if (barcodeValue == null || barcodeValue.trim().isEmpty) return;
-    
+
     final code = barcodeValue.trim().toLowerCase();
     final now = DateTime.now();
-    
+
     // 1.5 seconds debounce for the same barcode to prevent accidental multiple scans
     if (_lastScannedSku == code &&
         _lastScanTime != null &&
         now.difference(_lastScanTime!) < const Duration(milliseconds: 1500)) {
       return;
     }
-    
+
     _lastScannedSku = code;
     _lastScanTime = now;
-    
+
     // Search product
     Product? foundProduct;
     for (final p in widget.products) {
@@ -1089,29 +1102,29 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
         break;
       }
     }
-    
+
     if (foundProduct != null) {
       // Add to cart
       widget.cartNotifier.addItem(foundProduct);
-      
+
       // Haptic Feedback for success scan
       HapticFeedback.lightImpact();
-      
+
       // Show success notification inside scanner
       _showNotification('1x ${foundProduct.name} ditambahkan', true);
-      
+
       // Add to session history or increment if exists
       setState(() {
         final existingIndex = _sessionScanned.indexWhere(
-          (item) => (item['product'] as Product).supabaseId == foundProduct!.supabaseId,
+          (item) =>
+              (item['product'] as Product).supabaseId ==
+              foundProduct!.supabaseId,
         );
         if (existingIndex != -1) {
-          _sessionScanned[existingIndex]['quantity'] = _sessionScanned[existingIndex]['quantity'] + 1;
+          _sessionScanned[existingIndex]['quantity'] =
+              _sessionScanned[existingIndex]['quantity'] + 1;
         } else {
-          _sessionScanned.insert(0, {
-            'product': foundProduct,
-            'quantity': 1,
-          });
+          _sessionScanned.insert(0, {'product': foundProduct, 'quantity': 1});
         }
       });
     } else {
@@ -1120,7 +1133,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
       Future.delayed(const Duration(milliseconds: 100), () {
         HapticFeedback.heavyImpact();
       });
-      
+
       _showNotification('SKU/Barcode "$barcodeValue" tidak terdaftar!', false);
     }
   }
@@ -1129,10 +1142,15 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final size = MediaQuery.of(context).size;
-    final totalSessionItems = _sessionScanned.fold<int>(0, (sum, item) => sum + (item['quantity'] as int));
+    final totalSessionItems = _sessionScanned.fold<int>(
+      0,
+      (sum, item) => sum + (item['quantity'] as int),
+    );
     final totalSessionPrice = _sessionScanned.fold<double>(
       0,
-      (sum, item) => sum + ((item['product'] as Product).price * (item['quantity'] as int)),
+      (sum, item) =>
+          sum +
+          ((item['product'] as Product).price * (item['quantity'] as int)),
     );
 
     return Container(
@@ -1153,7 +1171,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                 onDetect: _onDetect,
               ),
             ),
-            
+
             // Scanner Viewport cutout & glowing red/green scanner line
             Positioned.fill(
               bottom: 220,
@@ -1187,7 +1205,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                       ],
                     ),
                   ),
-                  
+
                   // Scanning target corners
                   Align(
                     alignment: Alignment.center,
@@ -1200,10 +1218,26 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                       child: Stack(
                         children: [
                           // Custom corner markers
-                          _buildCorner(Alignment.topLeft, rotateX: false, rotateY: false),
-                          _buildCorner(Alignment.topRight, rotateX: true, rotateY: false),
-                          _buildCorner(Alignment.bottomLeft, rotateX: false, rotateY: true),
-                          _buildCorner(Alignment.bottomRight, rotateX: true, rotateY: true),
+                          _buildCorner(
+                            Alignment.topLeft,
+                            rotateX: false,
+                            rotateY: false,
+                          ),
+                          _buildCorner(
+                            Alignment.topRight,
+                            rotateX: true,
+                            rotateY: false,
+                          ),
+                          _buildCorner(
+                            Alignment.bottomLeft,
+                            rotateX: false,
+                            rotateY: true,
+                          ),
+                          _buildCorner(
+                            Alignment.bottomRight,
+                            rotateX: true,
+                            rotateY: true,
+                          ),
                         ],
                       ),
                     ),
@@ -1216,7 +1250,10 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                       animation: _laserController,
                       builder: (context, child) {
                         return Transform.translate(
-                          offset: Offset(0, -90 + (180 * _laserController.value)),
+                          offset: Offset(
+                            0,
+                            -90 + (180 * _laserController.value),
+                          ),
                           child: Container(
                             width: size.width * 0.65,
                             height: 2.5,
@@ -1224,7 +1261,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                               color: const Color(0xFF98D100),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF98D100).withOpacity(0.8),
+                                  color: const Color(
+                                    0xFF98D100,
+                                  ).withOpacity(0.8),
                                   blurRadius: 8,
                                   spreadRadius: 2,
                                 ),
@@ -1245,7 +1284,10 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [Colors.black.withOpacity(0.8), Colors.transparent],
@@ -1294,7 +1336,10 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                 left: 20,
                 right: 20,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: _isSuccessNotification
                         ? const Color(0xFF98D100).withOpacity(0.9)
@@ -1311,15 +1356,21 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                   child: Row(
                     children: [
                       Icon(
-                        _isSuccessNotification ? TablerIcons.circle_check : TablerIcons.circle_x,
-                        color: _isSuccessNotification ? Colors.black : Colors.white,
+                        _isSuccessNotification
+                            ? TablerIcons.circle_check
+                            : TablerIcons.circle_x,
+                        color: _isSuccessNotification
+                            ? Colors.black
+                            : Colors.white,
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           _notificationText!,
                           style: TextStyle(
-                            color: _isSuccessNotification ? Colors.black : Colors.white,
+                            color: _isSuccessNotification
+                                ? Colors.black
+                                : Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -1339,7 +1390,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.background,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.15),
@@ -1361,7 +1414,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    
+
                     // Header of the session list
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1415,18 +1468,27 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                                 final item = _sessionScanned[index];
                                 final Product product = item['product'];
                                 final int quantity = item['quantity'];
-                                
+
                                 return Container(
                                   width: 140,
-                                  margin: const EdgeInsets.only(right: 12, top: 4, bottom: 4),
+                                  margin: const EdgeInsets.only(
+                                    right: 12,
+                                    top: 4,
+                                    bottom: 4,
+                                  ),
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.muted.withOpacity(0.3),
+                                    color: theme.colorScheme.muted.withOpacity(
+                                      0.3,
+                                    ),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: theme.colorScheme.border),
+                                    border: Border.all(
+                                      color: theme.colorScheme.border,
+                                    ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
@@ -1440,7 +1502,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        widget.currencyFormat.format(product.price),
+                                        widget.currencyFormat.format(
+                                          product.price,
+                                        ),
                                         style: TextStyle(
                                           color: theme.colorScheme.primary,
                                           fontSize: 11,
@@ -1449,7 +1513,8 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
                                       ),
                                       const Spacer(),
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             'Qty: $quantity',
@@ -1528,7 +1593,11 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal> with SingleT
     );
   }
 
-  Widget _buildCorner(Alignment alignment, {required bool rotateX, required bool rotateY}) {
+  Widget _buildCorner(
+    Alignment alignment, {
+    required bool rotateX,
+    required bool rotateY,
+  }) {
     return Align(
       alignment: alignment,
       child: Transform(
