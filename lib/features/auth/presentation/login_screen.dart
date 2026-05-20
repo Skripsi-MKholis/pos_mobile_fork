@@ -20,12 +20,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      mySnackBar(
+        context: context,
+        text: 'Email dan Password tidak boleh kosong',
+        status: ToastStatus.error,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      await ref.read(authProvider.notifier).signIn(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-          );
+      await ref.read(authProvider.notifier).signIn(email, password);
       if (mounted) context.go('/select-store');
     } catch (e) {
       if (mounted) {
@@ -92,6 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     
                     Text(
                       'Selamat Datang Kembali',
+                      textAlign: TextAlign.center,
                       style: theme.textTheme.h2.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 28,

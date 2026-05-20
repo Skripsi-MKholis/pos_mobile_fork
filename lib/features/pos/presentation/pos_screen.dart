@@ -360,15 +360,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       padding: EdgeInsets.all(8.0),
                       child: Icon(TablerIcons.search, size: 20),
                     ),
-                    onChanged: (value) => _debouncer.run(() => setState(() => _searchQuery = value)),
-                    onSubmitted: (value) => _handleSearchSubmitted(value, products),
-                    onChanged: (value) => setState(() => _searchQuery = value),
+                    onChanged: (value) => _debouncer.run(
+                      () => setState(() => _searchQuery = value),
+                    ),
                     onSubmitted: (value) =>
                         _handleSearchSubmitted(value, products),
                     trailing: _searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
-                              _debouncer.dispose(); // Cancel any pending debounced search update
+                              _debouncer
+                                  .dispose(); // Cancel any pending debounced search update
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },

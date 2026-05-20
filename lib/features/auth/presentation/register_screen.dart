@@ -22,7 +22,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      mySnackBar(
+        context: context,
+        text: 'Semua kolom wajib diisi',
+        status: ToastStatus.error,
+      );
+      return;
+    }
+
+    if (password != confirmPassword) {
       mySnackBar(
         context: context,
         text: 'Password tidak cocok',
@@ -34,9 +48,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).signUp(
-            _emailController.text.trim(),
-            _passwordController.text.trim(),
-            data: {'full_name': _nameController.text.trim()},
+            email,
+            password,
+            data: {'full_name': name},
           );
       if (mounted) {
         mySnackBar(
@@ -95,6 +109,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     Text(
                       'Buat Akun Baru',
+                      textAlign: TextAlign.center,
                       style: theme.textTheme.h2.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 32,
