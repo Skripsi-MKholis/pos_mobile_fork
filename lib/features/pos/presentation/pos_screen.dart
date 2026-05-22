@@ -946,7 +946,44 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: 'Kosongkan Keranjang',
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () async {
+                    final confirmed = await showShadDialog<bool>(
+                      context: context,
+                      builder: (context) => ShadDialog.alert(
+                        title: Row(
+                          children: [
+                            const Icon(
+                              TablerIcons.alert_triangle,
+                              color: Colors.red,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text('Kosongkan Keranjang'),
+                          ],
+                        ),
+                        description: const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Apakah Anda yakin ingin mengosongkan keranjang? Semua produk dalam keranjang akan dihapus.',
+                          ),
+                        ),
+                        actions: [
+                          ShadButton.outline(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Batal'),
+                          ),
+                          ShadButton(
+                            backgroundColor: Colors.red,
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('Kosongkan'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      cartNotifier.clearCart();
+                    }
+                  },
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
