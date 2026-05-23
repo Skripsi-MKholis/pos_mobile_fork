@@ -946,7 +946,36 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: 'Kosongkan Keranjang',
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () async {
+                    final confirmed = await showShadDialog<bool>(
+                      context: context,
+                      builder: (context) => ShadDialog(
+                        title: const Text('Kosongkan Keranjang?'),
+                        description: const Text(
+                          'Semua produk di keranjang akan dihapus. Lanjutkan?',
+                        ),
+                        actions: [
+                          ShadButton.outline(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Batal'),
+                          ),
+                          ShadButton(
+                            backgroundColor: Colors.red,
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              'Hapus Semua',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      cartNotifier.clearCart();
+                    }
+                  },
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
