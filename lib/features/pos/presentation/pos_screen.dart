@@ -664,28 +664,31 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   Widget _buildSortButton() {
     final theme = ShadTheme.of(context);
-    return InkWell(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          useRootNavigator: true, // Show over bottom bar
-          backgroundColor: Colors.transparent,
-          builder: (sheetContext) => _buildSortBottomSheet(sheetContext),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: theme.colorScheme.muted,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.colorScheme.border),
-        ),
-        child: Icon(
-          TablerIcons.arrows_sort,
-          size: 18,
-          color: theme.colorScheme.foreground,
+    return Tooltip(
+      message: 'Urutkan Produk',
+      child: InkWell(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true, // Show over bottom bar
+            backgroundColor: Colors.transparent,
+            builder: (sheetContext) => _buildSortBottomSheet(sheetContext),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.muted,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: theme.colorScheme.border),
+          ),
+          child: Icon(
+            TablerIcons.arrows_sort,
+            size: 18,
+            color: theme.colorScheme.foreground,
+          ),
         ),
       ),
     );
