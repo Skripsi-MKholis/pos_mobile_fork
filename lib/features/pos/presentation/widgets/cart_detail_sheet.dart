@@ -392,14 +392,17 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             ],
                           ),
                         ),
-                        IconButton(
-                          onPressed: () => ref
-                              .read(cartNotifierProvider.notifier)
-                              .removeVoucher(),
-                          icon: const Icon(
-                            TablerIcons.trash,
-                            color: Colors.red,
-                            size: 20,
+                        Tooltip(
+                          message: 'Hapus Voucher',
+                          child: IconButton(
+                            onPressed: () => ref
+                                .read(cartNotifierProvider.notifier)
+                                .removeVoucher(),
+                            icon: const Icon(
+                              TablerIcons.trash,
+                              color: Colors.red,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ],
