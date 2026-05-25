@@ -137,13 +137,14 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                final lowerQuery = _searchQuery.toLowerCase(); // ⚡ Bolt: Hoisted invariant query conversion
                 final filtered = transactions.where((tx) {
                   final matchesSearch =
                       tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerQuery,
                       ) ||
                       tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerQuery,
                       );
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;

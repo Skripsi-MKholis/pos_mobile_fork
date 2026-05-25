@@ -5,3 +5,7 @@
 ## 2024-05-20 - [Add Debouncer to ShadInput Review]
 **Learning:** When creating a Debouncer for search inputs with a 'clear' button, the debouncer timer must be cancelled in the clear button's 'onPressed' callback, otherwise the delayed input will overwrite the cleared state. Adding comments is explicitly part of the required guidelines.
 **Action:** Always document optimizations in comments in code. Remember to handle timer cancellation on clear UI actions to prevent state race conditions.
+
+## 2026-05-25 - [Hoist invariant string operations from loops]
+**Learning:** In Dart, calling `.toLowerCase()` repeatedly inside list filtering operations (like `.where()`) on an invariant string like a search query causes redundant O(N) string allocations and computations. Hoisting these operations out of the loop prevents this unnecessary overhead.
+**Action:** Always check loop conditions and closures (like `map`, `where`, `fold`) for operations on variables that don't change during iteration, and hoist them out of the loop.
