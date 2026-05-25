@@ -102,9 +102,10 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               Expanded(
                 child: categoriesAsync.when(
                   data: (categories) {
+                    final lowerQuery = _searchQuery.toLowerCase(); // ⚡ Bolt: Hoisted invariant query conversion
                     final filtered = categories.where((c) {
                       return c.name.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerQuery,
                       );
                     }).toList();
 
