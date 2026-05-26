@@ -191,10 +191,12 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
           _buildStatusBadge(table.status),
           const SizedBox(width: 8),
           IconButton(
+            tooltip: 'Edit Meja',
             icon: const Icon(TablerIcons.edit, size: 18, color: Colors.black54),
             onPressed: () => _showTableModal(theme, table: table),
           ),
           IconButton(
+            tooltip: 'Hapus Meja',
             icon: const Icon(
               TablerIcons.trash,
               size: 18,
