@@ -34,6 +34,7 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
         leading: IconButton(
           icon: const Icon(TablerIcons.chevron_left, color: Colors.black),
           onPressed: () => context.pop(),
+          tooltip: 'Kembali',
         ),
         title: Text(
           'Manajemen Staf',
@@ -186,11 +187,12 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
                       text: 'Kode undangan berhasil disalin!',
                       status: ToastStatus.success,
                     );
-                  }),
+                  }, tooltip: 'Salin Kode Undangan'),
                   const SizedBox(width: 8),
                   _buildCircleIconButton(
                     TablerIcons.refresh,
                     () => _refreshInviteCode(store?['id']),
+                    tooltip: 'Perbarui Kode Undangan',
                   ),
                 ],
               );
@@ -238,7 +240,7 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
     }
   }
 
-  Widget _buildCircleIconButton(IconData icon, VoidCallback onPressed) {
+  Widget _buildCircleIconButton(IconData icon, VoidCallback onPressed, {String? tooltip}) {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -247,6 +249,7 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       child: IconButton(
         icon: Icon(icon, size: 18, color: Colors.black87),
         onPressed: onPressed,
+        tooltip: tooltip,
       ),
     );
   }

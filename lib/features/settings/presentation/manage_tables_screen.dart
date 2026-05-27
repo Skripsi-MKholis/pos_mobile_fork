@@ -32,6 +32,7 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
         leading: IconButton(
           icon: const Icon(TablerIcons.chevron_left, color: Colors.black),
           onPressed: () => context.pop(),
+          tooltip: 'Kembali',
         ),
         title: Text(
           'Manajemen Meja',
@@ -193,6 +194,7 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
           IconButton(
             icon: const Icon(TablerIcons.edit, size: 18, color: Colors.black54),
             onPressed: () => _showTableModal(theme, table: table),
+            tooltip: 'Edit Meja',
           ),
           IconButton(
             icon: const Icon(
@@ -201,6 +203,7 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
               color: Warna.destructive,
             ),
             onPressed: () => _showDeleteDialog(table),
+            tooltip: 'Hapus Meja',
           ),
         ],
       ),
