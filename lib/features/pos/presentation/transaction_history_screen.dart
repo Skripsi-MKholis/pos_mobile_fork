@@ -137,13 +137,13 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                // Optimization: Hoist lowerCase conversion outside loop to prevent O(N) redundant allocations
+                final lowerQuery = _searchQuery.toLowerCase();
                 final filtered = transactions.where((tx) {
                   final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
+                      tx['id'].toString().toLowerCase().contains(lowerQuery) ||
                       tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerQuery,
                       );
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
@@ -469,7 +469,8 @@ class _TransactionHistoryScreenState
                       color: Colors.grey,
                     ),
                   ),
-                  onChanged: (val) => _debouncer.run(() => setState(() => _searchQuery = val)),
+                  onChanged: (val) =>
+                      _debouncer.run(() => setState(() => _searchQuery = val)),
                   decoration: ShadDecoration(
                     border: ShadBorder.all(
                       color: theme.colorScheme.border.withOpacity(0.5),

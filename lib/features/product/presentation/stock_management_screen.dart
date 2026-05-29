@@ -38,8 +38,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
 
   TextEditingController _getController(Product product) {
     if (!_controllers.containsKey(product.supabaseId)) {
-      _controllers[product.supabaseId] =
-          TextEditingController(text: product.stockQuantity.toString());
+      _controllers[product.supabaseId] = TextEditingController(
+        text: product.stockQuantity.toString(),
+      );
     }
     return _controllers[product.supabaseId]!;
   }
@@ -149,8 +150,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         padding: EdgeInsets.all(8.0),
                         child: Icon(TablerIcons.search, size: 20),
                       ),
-                      onChanged: (value) =>
-                          _debouncer.run(() => setState(() => _searchQuery = value)),
+                      onChanged: (value) => _debouncer.run(
+                        () => setState(() => _searchQuery = value),
+                      ),
                       decoration: ShadDecoration(
                         border: ShadBorder.none,
                         color: theme.colorScheme.background,
@@ -180,8 +182,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                 ),
                               ],
                               onChanged: (value) => setState(
-                                () => _selectedCategory =
-                                    value == 'all' ? null : value,
+                                () => _selectedCategory = value == 'all'
+                                    ? null
+                                    : value,
                               ),
                               selectedOptionBuilder: (context, value) => Text(
                                 value == 'all'
@@ -253,14 +256,14 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  // Optimization: Hoist lowerCase conversion outside loop to prevent O(N) redundant allocations
+                  final lowerQuery = _searchQuery.toLowerCase();
                   final filteredProducts = products.where((p) {
-                    final matchesSearch = p.name
-                            .toLowerCase()
-                            .contains(_searchQuery.toLowerCase()) ||
-                        (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase()) ??
-                            false);
-                    final matchesCategory = _selectedCategory == null ||
+                    final matchesSearch =
+                        p.name.toLowerCase().contains(lowerQuery) ||
+                        (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
+                    final matchesCategory =
+                        _selectedCategory == null ||
                         p.categoryId == _selectedCategory;
                     return matchesSearch && matchesCategory;
                   }).toList();
@@ -273,8 +276,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.muted
-                                  .withValues(alpha: 0.5),
+                              color: theme.colorScheme.muted.withValues(
+                                alpha: 0.5,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -310,9 +314,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.background,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: theme.colorScheme.border,
-                          ),
+                          border: Border.all(color: theme.colorScheme.border),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.02),
@@ -335,14 +337,16 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                         fit: BoxFit.cover,
                                       )
                                     : (product.localImagePath != null
-                                        ? DecorationImage(
-                                            image: FileImage(
-                                                File(product.localImagePath!)),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null),
+                                          ? DecorationImage(
+                                              image: FileImage(
+                                                File(product.localImagePath!),
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null),
                               ),
-                              child: (product.imageUrl == null &&
+                              child:
+                                  (product.imageUrl == null &&
                                       product.localImagePath == null)
                                   ? Icon(
                                       TablerIcons.package,
@@ -380,7 +384,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                             // Stock Controls
                             Container(
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                                color: theme.colorScheme.muted.withValues(
+                                  alpha: 0.3,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: theme.colorScheme.border,
@@ -392,17 +398,23 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                   Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      borderRadius: const BorderRadius.horizontal(
-                                          left: Radius.circular(12)),
+                                      borderRadius:
+                                          const BorderRadius.horizontal(
+                                            left: Radius.circular(12),
+                                          ),
                                       onTap: () {
                                         int current =
                                             int.tryParse(controller.text) ?? 0;
-                                        controller.text = (current - 1).toString();
+                                        controller.text = (current - 1)
+                                            .toString();
                                         _updateStock(product, current - 1);
                                       },
                                       child: const Padding(
                                         padding: EdgeInsets.all(12),
-                                        child: Icon(TablerIcons.minus, size: 18),
+                                        child: Icon(
+                                          TablerIcons.minus,
+                                          size: 18,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -411,9 +423,12 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                     child: Focus(
                                       onFocusChange: (hasFocus) {
                                         if (!hasFocus) {
-                                          int newStock = int.tryParse(controller.text) ?? 0;
-                                          if (newStock != product.stockQuantity) {
-                                             _updateStock(product, newStock);
+                                          int newStock =
+                                              int.tryParse(controller.text) ??
+                                              0;
+                                          if (newStock !=
+                                              product.stockQuantity) {
+                                            _updateStock(product, newStock);
                                           }
                                         }
                                       },
@@ -422,13 +437,16 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                         keyboardType: TextInputType.number,
                                         textAlign: TextAlign.center,
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 8, horizontal: 0),
+                                          vertical: 8,
+                                          horizontal: 0,
+                                        ),
                                         decoration: ShadDecoration(
                                           border: ShadBorder.none,
                                           focusedBorder: ShadBorder.none,
                                         ),
                                         onSubmitted: (value) {
-                                          int newStock = int.tryParse(value) ?? 0;
+                                          int newStock =
+                                              int.tryParse(value) ?? 0;
                                           controller.text = newStock.toString();
                                           _updateStock(product, newStock);
                                         },
@@ -438,12 +456,15 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                   Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      borderRadius: const BorderRadius.horizontal(
-                                          right: Radius.circular(12)),
+                                      borderRadius:
+                                          const BorderRadius.horizontal(
+                                            right: Radius.circular(12),
+                                          ),
                                       onTap: () {
                                         int current =
                                             int.tryParse(controller.text) ?? 0;
-                                        controller.text = (current + 1).toString();
+                                        controller.text = (current + 1)
+                                            .toString();
                                         _updateStock(product, current + 1);
                                       },
                                       child: const Padding(
