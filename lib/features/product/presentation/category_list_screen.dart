@@ -102,10 +102,10 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               Expanded(
                 child: categoriesAsync.when(
                   data: (categories) {
+                    // Optimization: Hoist lowerCase conversion outside loop to prevent O(N) redundant allocations
+                    final lowerQuery = _searchQuery.toLowerCase();
                     final filtered = categories.where((c) {
-                      return c.name.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
+                      return c.name.toLowerCase().contains(lowerQuery);
                     }).toList();
 
                     if (filtered.isEmpty) {
