@@ -5,3 +5,6 @@
 ## 2024-05-20 - [Add Debouncer to ShadInput Review]
 **Learning:** When creating a Debouncer for search inputs with a 'clear' button, the debouncer timer must be cancelled in the clear button's 'onPressed' callback, otherwise the delayed input will overwrite the cleared state. Adding comments is explicitly part of the required guidelines.
 **Action:** Always document optimizations in comments in code. Remember to handle timer cancellation on clear UI actions to prevent state race conditions.
+## 2024-05-20 - [Optimize List Filtering Memory Complexity]
+**Learning:** When filtering or sorting lists using properties matched against a search string, always pre-calculate the query's \`.toLowerCase()\` value outside the iteration loop or lambda functions to avoid redundant allocations and $O(N)$ overhead.
+**Action:** Extract \`.toLowerCase()\` on search strings into a local variable before using them inside \`.where()\` closures or sort comparisons.

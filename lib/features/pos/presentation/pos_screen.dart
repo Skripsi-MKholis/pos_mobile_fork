@@ -442,15 +442,13 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
+                  // Optimization: Pre-calculate lower case query to avoid O(N) redundant string allocations inside the loop.
+                  final lowerQuery = _searchQuery.toLowerCase();
                   var filteredProducts = products
                       .where(
                         (p) =>
-                            (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ||
-                                (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ) ??
+                            (p.name.toLowerCase().contains(lowerQuery) ||
+                                (p.sku?.toLowerCase().contains(lowerQuery) ??
                                     false)) &&
                             (_selectedCategoryId == null ||
                                 p.categoryId == _selectedCategoryId),

@@ -87,12 +87,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         // Log to Firebase Analytics
         try {
           final categories = ref.read(categoryNotifierProvider).value;
-          final categoryName = categories?.firstWhere(
-              (c) => c.supabaseId == product.categoryId,
-              orElse: () => Category()..name = 'Tanpa Kategori',
-            ).name ?? 'Tanpa Kategori';
+          final categoryName =
+              categories
+                  ?.firstWhere(
+                    (c) => c.supabaseId == product.categoryId,
+                    orElse: () => Category()..name = 'Tanpa Kategori',
+                  )
+                  .name ??
+              'Tanpa Kategori';
 
-          await AnalyticsService.instance.logProductDeletion(categoryName: categoryName);
+          await AnalyticsService.instance.logProductDeletion(
+            categoryName: categoryName,
+          );
         } catch (_) {}
 
         if (mounted) {
@@ -335,15 +341,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Expanded(
                 child: productsAsync.when(
                   data: (products) {
+                    // Optimization: Pre-calculate lower case query to avoid O(N) redundant string allocations inside the loop.
+                    final lowerQuery = _searchQuery.toLowerCase();
                     final filteredProducts = products.where((p) {
                       final matchesSearch =
-                          p.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
-                          ) ||
-                          (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase(),
-                              ) ??
-                              false);
+                          p.name.toLowerCase().contains(lowerQuery) ||
+                          (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
                       final matchesCategory =
                           _selectedCategory == null ||
                           p.categoryId == _selectedCategory;
