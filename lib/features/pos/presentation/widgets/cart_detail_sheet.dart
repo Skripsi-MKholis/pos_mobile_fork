@@ -9,6 +9,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class CartDetailSheet extends ConsumerStatefulWidget {
   const CartDetailSheet({super.key});
@@ -32,6 +33,9 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
     final code = _voucherController.text.trim();
     if (code.isEmpty) return;
 
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
+
     setState(() {
       _isValidating = true;
       _voucherError = null;
@@ -46,7 +50,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
         if (subtotal < voucher.minPurchase) {
           setState(() {
             _voucherError =
-                'Min. belanja ${NumberFormat.currency(locale: "id_ID", symbol: "Rp ", decimalDigits: 0).format(voucher.minPurchase)}';
+                l10n.minPurchase(NumberFormat.currency(locale: currentLocale, symbol: "Rp ", decimalDigits: 0).format(voucher.minPurchase));
           });
         } else {
           ref.read(cartNotifierProvider.notifier).applyVoucher(voucher);
@@ -64,12 +68,12 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
         }
       } else {
         setState(() {
-          _voucherError = 'Kode voucher tidak valid';
+          _voucherError = l10n.invalidVoucher;
         });
       }
     } catch (e) {
       setState(() {
-        _voucherError = 'Terjadi kesalahan';
+        _voucherError = l10n.anErrorOccurred;
       });
     } finally {
       setState(() {
@@ -83,8 +87,10 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
     final cartState = ref.watch(cartNotifierProvider);
     final cartItems = cartState.items;
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final format = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -124,7 +130,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Detail Pesanan',
+                      l10n.orderDetail,
                       style: theme.textTheme.h3.copyWith(fontSize: 22),
                     ),
                     if (cartState.selectedTable != null)
@@ -139,7 +145,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Meja: ${cartState.selectedTable!.name}',
+                              l10n.tableWithColon(cartState.selectedTable!.name),
                               style: TextStyle(
                                 color: theme.colorScheme.mutedForeground,
                                 fontWeight: FontWeight.w500,
@@ -178,7 +184,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Keranjang masih kosong',
+                      l10n.cartIsEmpty,
                       style: theme.textTheme.muted,
                     ),
                   ],
@@ -330,7 +336,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                         Expanded(
                           child: ShadInput(
                             controller: _voucherController,
-                            placeholder: const Text('Punya kode voucher?'),
+                            placeholder: Text(l10n.haveVoucherCode),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 10,
@@ -352,7 +358,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Pakai'),
+                              : Text(l10n.apply),
                         ),
                       ],
                     ),
@@ -387,13 +393,13 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Voucher: ${cartState.appliedVoucher!.code}',
+                                l10n.voucherWithColon(cartState.appliedVoucher!.code),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
                               Text(
-                                'Hemat ${format.format(cartState.discountAmount)}',
+                                l10n.savedAmount(format.format(cartState.discountAmount)),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade700,
@@ -454,7 +460,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Subtotal',
+                          l10n.subtotal,
                           style: TextStyle(
                             color: theme.colorScheme.mutedForeground,
                           ),
@@ -471,7 +477,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Diskon Voucher',
+                            l10n.voucherDiscount,
                             style: TextStyle(
                               color: theme.colorScheme.mutedForeground,
                             ),
@@ -493,9 +499,9 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Total Bayar',
-                          style: TextStyle(
+                        Text(
+                          l10n.totalPayment,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -541,7 +547,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                               Navigator.pop(context);
                               mySnackBar(
                                 context: context,
-                                text: 'Pesanan berhasil disimpan ke meja.',
+                                text: l10n.orderSavedToTable,
                                 status: ToastStatus.success,
                               );
                             }
@@ -549,13 +555,13 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             if (context.mounted) {
                               mySnackBar(
                                 context: context,
-                                text: 'Gagal menyimpan pesanan: ${e.toString()}',
+                                text: l10n.failedToSaveOrder(e.toString()),
                                 status: ToastStatus.error,
                               );
                             }
                           }
                         },
-                        child: const Text('Simpan ke Meja'),
+                        child: Text(l10n.saveToTable),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -567,9 +573,9 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                         Navigator.pop(context);
                         context.push('/payment');
                       },
-                      child: const Text(
-                        'Lanjut Pembayaran',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text(
+                        l10n.continueToPayment,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

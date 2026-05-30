@@ -18,6 +18,7 @@ import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 
@@ -49,6 +50,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   }
 
   Future<void> _showDeleteDialog(Product product) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showShadDialog<bool>(
       context: context,
       builder: (context) => ShadDialog.alert(
@@ -56,22 +58,22 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           children: [
             Icon(TablerIcons.alert_triangle, color: Colors.red, size: 24),
             const SizedBox(width: 8),
-            const Text('Hapus Produk'),
+            Text(l10n.deleteProduct),
           ],
         ),
         description: Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-            'Apakah Anda yakin ingin menghapus "${product.name}"? Tindakan ini tidak dapat dibatalkan.',
+            l10n.deleteProductConfirm(product.name),
           ),
         ),
         actions: [
           ShadButton.outline(
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           ShadButton.destructive(
-            child: const Text('Hapus Permanen'),
+            child: Text(l10n.deletePermanently),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -98,7 +100,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         if (mounted) {
           mySnackBar(
             context: context,
-            text: 'Produk berhasil dihapus',
+            text: l10n.productDeletedSuccess,
             status: ToastStatus.success,
           );
         }
@@ -106,7 +108,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         if (mounted) {
           mySnackBar(
             context: context,
-            text: 'Gagal menghapus produk: $e',
+            text: l10n.productDeleteFailed(e.toString()),
             status: ToastStatus.error,
           );
         }
@@ -130,12 +132,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final productsAsync = ref.watch(productNotifierProvider);
     final categoriesAsync = ref.watch(categoryNotifierProvider);
     final theme = ShadTheme.of(context);
+    final locale = Localizations.localeOf(context).toString();
     final format = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
+      locale: locale,
+      symbol: locale.startsWith('id') ? 'Rp ' : '\$ ',
       decimalDigits: 0,
     );
 
@@ -155,16 +159,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Katalog Produk',
-                style: TextStyle(
+              Text(
+                l10n.productCatalog,
+                style: const TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 20,
                   letterSpacing: -0.5,
                 ),
               ),
               Text(
-                'Kelola inventaris barang Anda',
+                l10n.manageYourInventory,
                 style: theme.textTheme.muted.copyWith(fontSize: 12),
               ),
             ],
@@ -199,9 +203,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 foregroundColor: Colors.black,
                 onPressed: () => context.push('/products/add'),
                 leading: const Icon(TablerIcons.plus, size: 18),
-                child: const Text(
-                  'Tambah',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text(
+                  l10n.add,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -222,7 +226,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   children: [
                     Expanded(
                       child: ShadInput(
-                        placeholder: const Text('Cari nama atau SKU...'),
+                        placeholder: Text(l10n.searchNameOrSku),
                         leading: const Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
@@ -238,7 +242,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     ),
                     const SizedBox(width: 8),
                     Tooltip(
-                      message: 'Kelola Kategori',
+                      message: l10n.manageCategories,
                       child: ShadButton.outline(
                         onPressed: () => context.push('/categories'),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -260,7 +264,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         scrollDirection: Axis.horizontal,
                         children: [
                           ChoiceChip(
-                            label: const Text('Semua'),
+                            label: Text(l10n.all),
                             selected: _selectedCategory == null,
                             selectedColor: const Color(0xFF98D100),
                             backgroundColor: theme.colorScheme.muted
@@ -418,17 +422,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     if (stock == 0) {
       bgColor = Colors.red.shade50;
       textColor = Colors.red.shade700;
-      label = 'Habis';
+      label = AppLocalizations.of(context)!.outOfStock;
       icon = TablerIcons.circle_x;
     } else if (stock <= 10) {
       bgColor = Colors.amber.shade50;
       textColor = Colors.amber.shade700;
-      label = 'Tipis: $stock';
+      label = AppLocalizations.of(context)!.lowStockCount(stock);
       icon = TablerIcons.alert_triangle;
     } else {
       bgColor = Colors.green.shade50;
       textColor = Colors.green.shade700;
-      label = 'Stok: $stock';
+      label = AppLocalizations.of(context)!.stockCount(stock);
       icon = TablerIcons.circle_check;
     }
 
@@ -537,11 +541,11 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         ),
                       ),
                       if (!product.isSynced)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 6),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
                           child: Tooltip(
-                            message: 'Menunggu sinkronisasi ke cloud',
-                            child: Icon(
+                            message: AppLocalizations.of(context)!.waitingForSync,
+                            child: const Icon(
                               TablerIcons.cloud_off,
                               size: 14,
                               color: Colors.orange,
@@ -644,7 +648,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Tooltip(
-                      message: 'Edit Produk',
+                      message: AppLocalizations.of(context)!.edit,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: () =>
@@ -665,7 +669,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     ),
                     const SizedBox(width: 8),
                     Tooltip(
-                      message: 'Hapus Produk',
+                      message: AppLocalizations.of(context)!.deleteProduct,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),
                         onTap: () => _showDeleteDialog(product),
@@ -711,7 +715,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         ),
         const SizedBox(height: 20),
         Text(
-          'Produk tidak ditemukan',
+          AppLocalizations.of(context)!.productNotFound,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -720,7 +724,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Coba gunakan kata kunci lain atau\ntambah produk baru ke katalog Anda.',
+          AppLocalizations.of(context)!.productNotFoundDesc,
           textAlign: TextAlign.center,
           style: TextStyle(color: theme.colorScheme.mutedForeground),
         ),
@@ -733,7 +737,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               _selectedCategory = null;
             });
           },
-          child: const Text('Reset Filter'),
+          child: Text(AppLocalizations.of(context)!.resetFilter),
         ),
       ],
     );
@@ -779,14 +783,16 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       ).create();
       await file.writeAsBytes(pngBytes);
 
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       await Share.shareXFiles([
         XFile(file.path),
-      ], text: 'Barcode untuk ${widget.product.name} (${widget.product.sku})');
+      ], text: l10n.barcodeShareText(widget.product.name, widget.product.sku ?? ''));
     } catch (e) {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Gagal membagikan: ${e.toString()}',
+          text: AppLocalizations.of(context)!.shareFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -801,7 +807,7 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
 
     mySnackBar(
       context: context,
-      text: 'SKU berhasil disalin ke clipboard.',
+      text: AppLocalizations.of(context)!.skuCopied,
       status: ToastStatus.success,
     );
   }
@@ -839,9 +845,9 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Barcode Produk',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  Text(
+                    AppLocalizations.of(context)!.productBarcode,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   IconButton(
                     icon: const Icon(TablerIcons.x),
@@ -946,9 +952,9 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                     child: ShadButton.outline(
                       onPressed: _copyToClipboard,
                       leading: const Icon(TablerIcons.copy, size: 18),
-                      child: const FittedBox(
+                      child: FittedBox(
                         fit: BoxFit.scaleDown,
-                        child: Text('Salin SKU'),
+                        child: Text(AppLocalizations.of(context)!.copySku),
                       ),
                     ),
                   ),
@@ -968,11 +974,11 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                               ),
                             )
                           : const Icon(TablerIcons.share, size: 18),
-                      child: const FittedBox(
+                      child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'Bagikan',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          AppLocalizations.of(context)!.share,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),

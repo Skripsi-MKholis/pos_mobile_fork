@@ -1,0 +1,392 @@
+{
+  "@@locale": "en",
+  "menu": "Menu",
+  "catalogAndStock": "CATALOG & STOCK",
+  "productList": "Product List",
+  "productCategory": "Product Category",
+  "storeSettings": "STORE SETTINGS",
+  "printerConnection": "Printer Connection",
+  "receiptCustomization": "Receipt Customization",
+  "storeInformation": "Store Information",
+  "employeeManagement": "Employee Management",
+  "broadcastNotification": "Broadcast Notification",
+  "accountAndSecurity": "ACCOUNT & SECURITY",
+  "myProfile": "My Profile",
+  "changePassword": "Change Password",
+  "dataSynchronization": "Data Synchronization",
+  "language": "Language",
+  "languageName": "English",
+  "logoutApp": "Logout Application",
+  "version": "Version",
+  "confirmLogout": "Confirm Logout",
+  "confirmLogoutDesc": "Are you sure you want to log out of the application? Your session will be terminated.",
+  "cancel": "Cancel",
+  "yesLogout": "Yes, Logout",
+  "selectLanguage": "Select Language",
+  "indonesian": "Indonesian",
+  "english": "English",
+  "logoutStore": "Leave Store",
+  "confirmLeaveStore": "Are you sure you want to leave the store {storeName}? You will not be able to access this store again without a new invitation code.",
+  "@confirmLeaveStore": {
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "yesLeave": "Yes, Leave",
+  "leaveSuccess": "You have left the store.",
+  "leaveFailed": "Failed to leave the store: {error}",
+  "@leaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "analytics": "ANALYTICS",
+  "dashboard": "Dashboard",
+  "reports": "Reports",
+  "smartAnalytics": "Smart Analytics",
+  "cashierOperational": "CASHIER OPERATIONAL",
+  "cashierPos": "Cashier (POS)",
+  "transactionHistory": "Transaction History",
+  "tableMonitoring": "Table Monitoring",
+  "tableManagement": "Table Management",
+  "manageStock": "Manage Stock",
+  "categories": "Categories",
+  "settings": "Settings",
+  "printAndReceipt": "Print & Receipt",
+  "superAdmin": "SUPER ADMIN",
+  "adminPanel": "Admin Panel",
+  "selectStore": "Select Store",
+  "tapToChangeOutlet": "Tap to change outlet",
+  "selectStoreOutlet": "Select Store / Outlet",
+  "selectStoreDescription": "Select the store you want to manage now.",
+  "noStoreFound": "No store found",
+  "manageAddStore": "Manage / Add Store",
+  "failedToLoad": "Failed to load: {error}",
+  "@failedToLoad": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTab": "Home",
+  "cashierTab": "Cashier",
+  "historyTab": "History",
+  "reportsTab": "Reports",
+  "menuTab": "Menu",
+  "dashboardTitle": "Dashboard",
+  "transactionHistoryTitle": "Transaction History",
+  "reportsTitle": "Analytics Report",
+  "settingsTitle": "Settings",
+  "pressAgainToExit": "Press once more to exit",
+  "dashboardHeader": "DASHBOARD",
+  "performanceSummary": "Performance Summary",
+  "today": "Today",
+  "thisWeek": "This Week",
+  "thisMonth": "This Month",
+  "revenueToday": "Today's Revenue",
+  "revenueThisWeek": "This Week's Revenue",
+  "revenueThisMonth": "This Month's Revenue",
+  "transactionsToday": "Today's Transactions",
+  "transactionsThisWeek": "This Week's Transactions",
+  "transactionsThisMonth": "This Month's Transactions",
+  "transactionsCompleted": "Transactions Completed",
+  "lowStock": "Low Stock",
+  "activeProducts": "Active Products",
+  "salesPerformance": "Sales Performance",
+  "revenueTrend7Days": "Revenue trend last 7 days",
+  "quickAccess": "QUICK ACCESS",
+  "transaction": "Transaction",
+  "openNewCashier": "Open new cashier",
+  "product": "Product",
+  "manageProductStock": "Manage product stock",
+  "setupTableLayout": "Set up table layout",
+  "kitchenMonitor": "Kitchen Monitor",
+  "kdsDisplay": "KDS Display",
+  "performanceAnalysis": "Performance analysis",
+  "appConfiguration": "App configuration",
+  "productAddedToCart": "{name} has been added to cart.",
+  "@productAddedToCart": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTable": "Select Table",
+  "reset": "Reset",
+  "noTableAvailable": "No tables available",
+  "tableOccupied": "Table Occupied",
+  "tableOccupiedDesc": "This table is currently occupied. Do you want to add orders to this table?",
+  "addOrder": "Add Order",
+  "searchProduct": "Search products...",
+  "scanBarcode": "Scan Barcode",
+  "table": "Table",
+  "all": "All",
+  "sortByNameAsc": "Name (A-Z)",
+  "sortByNameDesc": "Name (Z-A)",
+  "sortByPriceAsc": "Price: Low to High",
+  "sortByPriceDesc": "Price: High to Low",
+  "sortByStockDesc": "Stock: High to Low",
+  "sortBy": "Sort By",
+  "stockLow": "Low Stock",
+  "outOfStock": "Out of Stock",
+  "totalBelanja": "Total Items Price",
+  "clearCart": "Clear Cart",
+  "viewDetails": "View Details",
+  "noProductsYet": "No products yet",
+  "noProductsYetDesc": "Add your first product to start selling.",
+  "addProduct": "Add Product",
+  "manageProduct": "Manage Products",
+  "productNotFound": "Product not found",
+  "productAddedScan": "{name} added",
+  "@productAddedScan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "skuNotRegistered": "SKU/Barcode \"{code}\" is not registered!",
+  "@skuNotRegistered": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "scanSkuBarcode": "Scan SKU / Barcode",
+  "currentScanSession": "Current Scan Session",
+  "pointCameraToBarcode": "Point camera to product barcode",
+  "totalSession": "Total Session",
+  "done": "Done",
+  "minPurchase": "Min. purchase {minPurchase}",
+  "@minPurchase": {
+    "placeholders": {
+      "minPurchase": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidVoucher": "Invalid voucher code",
+  "anErrorOccurred": "An error occurred",
+  "orderDetail": "Order Detail",
+  "tableWithColon": "Table: {tableName}",
+  "@tableWithColon": {
+    "placeholders": {
+      "tableName": {
+        "type": "String"
+      }
+    }
+  },
+  "cartIsEmpty": "Cart is empty",
+  "haveVoucherCode": "Have a voucher code?",
+  "apply": "Apply",
+  "voucherWithColon": "Voucher: {voucherCode}",
+  "@voucherWithColon": {
+    "placeholders": {
+      "voucherCode": {
+        "type": "String"
+      }
+    }
+  },
+  "savedAmount": "Saved {amount}",
+  "@savedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "subtotal": "Subtotal",
+  "voucherDiscount": "Voucher Discount",
+  "totalPayment": "Total Payment",
+  "saveToTable": "Save to Table",
+  "orderSavedToTable": "Order successfully saved to table.",
+  "failedToSaveOrder": "Failed to save order: {error}",
+  "@failedToSaveOrder": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "continueToPayment": "Continue to Payment",
+  "payment": "Payment",
+  "paymentMethod": "Payment Method",
+  "cashReceived": "Cash Received",
+  "enterAmount": "Enter amount...",
+  "confirmAndSaveTransaction": "Confirm & Save Transaction",
+  "totalBill": "TOTAL BILL",
+  "cash": "Cash",
+  "change": "CHANGE",
+  "insufficientCash": "Insufficient Cash",
+  "cashNotSufficient": "Cash is not sufficient",
+  "activeStoreNotFound": "Active store not found. Please select a store first.",
+  "transactionSynced": "Transaction of {amount} has been saved & synced.",
+  "@transactionSynced": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionSavedLocal": "Transaction of {amount} saved locally (Not Synced).",
+  "@transactionSavedLocal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedWithReason": "Failed: {error}",
+  "@failedWithReason": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentSuccess": "Payment Successful",
+  "paymentSuccessDesc": "Your transaction has been successfully recorded in the system. Please choose the next step.",
+  "toHistory": "To History",
+  "viewReceipt": "View Receipt",
+  "receiptPrinting": "Receipt is printing.",
+  "failedToPrint": "Failed to print: {error}",
+  "@failedToPrint": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "digitalReceipt": "Digital Receipt",
+  "transactionNo": "Transaction No.",
+  "date": "Date",
+  "method": "Method",
+  "cashier": "Cashier",
+  "parzelloStaff": "Parzello Staff",
+  "paid": "Paid",
+  "scanToViewOnlineReceipt": "Scan to view online receipt",
+  "share": "Share",
+  "printing": "Printing...",
+  "setPrinter": "Setup Printer",
+  "printReceipt": "Print Receipt",
+  "connectPrinter": "Connect Printer",
+  "connectPrinterDesc": "Select your Bluetooth printer to print receipt directly.",
+  "noBluetoothPrinterFound": "No paired Bluetooth printers found.",
+  "thermalPrinter": "Thermal Printer",
+  "select": "Select",
+  "splitBillWithTable": "Split Bill - Table {tableName}",
+  "@splitBillWithTable": {
+    "placeholders": {
+      "tableName": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerItem": "{price} / item",
+  "@pricePerItem": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "totalSelected": "Total Selected",
+  "cancel": "Cancel",
+  "settings": "Settings",
+  "revenue": "Revenue",
+  "searchTransaction": "Search transaction...",
+  "success": "Success",
+  "pending": "Pending",
+  "cancelled": "Cancelled",
+  "yesterday": "Yesterday",
+  "selectDate": "Select Date",
+  "noTransactions": "No transactions",
+  "smartAnalyticsDesc": "Stock & trend predictions with AI",
+  "realTimeData": "Real-time data",
+  "noSalesData": "No sales data",
+  "salesTrend": "Sales Trend",
+  "noTopProductsData": "No top products sold data",
+  "topProducts": "Best Sellers",
+  "highestSalesVolume": "Highest sales volume",
+  "sold": "sold",
+  "salesTrendToday": "SALES TREND (TODAY)",
+  "salesTrend7Days": "SALES TREND (7 DAYS)",
+  "salesTrendThisMonth": "SALES TREND (THIS MONTH)",
+  "comingSoon": "Coming Soon",
+  "aiProFeature": "AI PRO FEATURE",
+  "smartAnalyticsLockedDesc": "The AI-powered Smart Analytics feature is under active development to bring you the best business projections.",
+  "productCatalog": "Product Catalog",
+  "manageYourInventory": "Manage your item inventory",
+  "deleteProduct": "Delete Product",
+  "deleteProductConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteProductConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePermanently": "Delete Permanently",
+  "productDeletedSuccess": "Product successfully deleted",
+  "productDeleteFailed": "Failed to delete product: {error}",
+  "@productDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNameOrSku": "Search name or SKU...",
+  "manageCategories": "Manage Categories",
+  "productNotFound": "Product not found",
+  "productNotFoundDesc": "Try using another keyword or add a new product to your catalog.",
+  "resetFilter": "Reset Filter",
+  "lowStockCount": "Low: {count}",
+  "@lowStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stockCount": "Stock: {count}",
+  "@stockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "waitingForSync": "Waiting for cloud sync",
+  "skuCopied": "SKU successfully copied to clipboard.",
+  "barcodeShareText": "Barcode for {name} ({sku})",
+  "@barcodeShareText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "shareFailed": "Failed to share: {error}",
+  "@shareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "productBarcode": "Product Barcode",
+  "copySku": "Copy SKU",
+  "add": "Add",
+  "edit": "Edit"
+}

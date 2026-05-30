@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -45,6 +46,7 @@ class _DrawerMenuContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
+    final l10n = AppLocalizations.of(context)!;
     final bool isAdmin =
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
@@ -59,96 +61,96 @@ class _DrawerMenuContent extends ConsumerWidget {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
-        const _SectionHeader(title: 'ANALYTICS'),
-        const _DrawerItem(
+        _SectionHeader(title: l10n.analytics),
+        _DrawerItem(
           icon: TablerIcons.layout_dashboard,
-          title: 'Dashboard',
+          title: l10n.dashboard,
           route: '/dashboard',
         ),
         if (isAdmin)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.chart_dots,
-            title: 'Analitik',
+            title: l10n.reports,
             route: '/reports',
           ),
         if (isAdmin)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.brain,
-            title: 'Smart Analitik',
+            title: l10n.smartAnalytics,
             route: '/smart-analytics',
           ),
 
         const _SectionSpacing(),
-        const _SectionHeader(title: 'OPERASIONAL KASIR'),
-        const _DrawerItem(
+        _SectionHeader(title: l10n.cashierOperational),
+        _DrawerItem(
           icon: TablerIcons.shopping_cart,
-          title: 'Kasir (POS)',
+          title: l10n.cashierPos,
           route: '/pos',
         ),
-        const _DrawerItem(
+        _DrawerItem(
           icon: TablerIcons.history,
-          title: 'Riwayat Transaksi',
+          title: l10n.transactionHistory,
           route: '/transactions',
         ),
         if (hasTables)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.device_desktop_analytics,
-            title: 'Monitoring Meja',
+            title: l10n.tableMonitoring,
             route: '/table-monitoring',
           ),
         if (hasTables)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.table,
-            title: 'Manajemen Meja',
+            title: l10n.tableManagement,
             route: '/manage-tables',
           ),
 
         if (isAdmin) ...[
           const _SectionSpacing(),
-          const _SectionHeader(title: 'KATALOG & STOK'),
-          const _DrawerItem(
+          _SectionHeader(title: l10n.catalogAndStock),
+          _DrawerItem(
             icon: TablerIcons.box,
-            title: 'Daftar Produk',
+            title: l10n.productList,
             route: '/products',
           ),
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.packages,
-            title: 'Kelola Stok',
+            title: l10n.manageStock,
             route: '/stock',
           ),
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.category,
-            title: 'Kategori',
+            title: l10n.categories,
             route: '/categories',
           ),
         ],
 
         const _SectionSpacing(),
-        const _SectionHeader(title: 'PENGATURAN'),
-        const _DrawerItem(
+        _SectionHeader(title: l10n.settings),
+        _DrawerItem(
           icon: TablerIcons.printer,
-          title: 'Cetak & Struk',
+          title: l10n.printAndReceipt,
           route: '/printer-settings',
         ),
         if (isAdmin)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.receipt,
-            title: 'Kustomisasi Struk',
+            title: l10n.receiptCustomization,
             route: '/receipt-customization',
           ),
         if (isAdmin)
-          const _DrawerItem(
+          _DrawerItem(
             icon: TablerIcons.building_store,
-            title: 'Informasi Toko',
+            title: l10n.storeInformation,
             route: '/settings',
           ),
 
         if (user?.appMetadata['role'] == 'admin') ...[
           const _SectionSpacing(),
-          const _SectionHeader(title: 'SUPER ADMIN'),
-          const _DrawerItem(
+          _SectionHeader(title: l10n.superAdmin),
+          _DrawerItem(
             icon: TablerIcons.shield_check,
-            title: 'Admin Panel',
+            title: l10n.adminPanel,
             route: '/admin',
             isSoon: true,
           ),
@@ -164,10 +166,9 @@ class _StoreHeaderSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeStoreAsync = ref.watch(activeStoreProvider);
-    final storesAsync = ref.watch(
-      userStoresProvider,
-    ); // Watch to ensure data is fetched
+    final storesAsync = ref.watch(userStoresProvider);
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return activeStoreAsync.when(
       data: (store) => Container(
@@ -186,7 +187,7 @@ class _StoreHeaderSection extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      store?['name'] ?? 'Pilih Toko',
+                      store?['name'] ?? l10n.selectStore,
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 15,
@@ -195,13 +196,13 @@ class _StoreHeaderSection extends ConsumerWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      'Tap untuk ganti outlet',
+                      l10n.tapToChangeOutlet,
                       style: theme.textTheme.muted.copyWith(fontSize: 10),
                     ),
                   ],
                 ),
               ),
-              Icon(TablerIcons.chevron_down, size: 16, color: Colors.black26),
+              const Icon(TablerIcons.chevron_down, size: 16, color: Colors.black26),
             ],
           ),
         ),
@@ -249,21 +250,22 @@ class _StoreHeaderSection extends ConsumerWidget {
     WidgetRef ref,
     AsyncValue<List<Map<String, dynamic>>> storesAsync,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showShadSheet(
       context: context,
       side: ShadSheetSide.bottom,
       builder: (context) => ShadSheet(
-        title: const Text('Pilih Toko / Outlet'),
-        description: const Text('Pilih toko yang ingin Anda kelola sekarang.'),
+        title: Text(l10n.selectStoreOutlet),
+        description: Text(l10n.selectStoreDescription),
         child: Material(
           color: Colors.transparent,
           child: Padding(
             padding: const EdgeInsets.only(top: 16),
             child: storesAsync.when(
               data: (stores) => stores.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Center(child: Text('Tidak ada toko ditemukan')),
+                  ? Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(child: Text(l10n.noStoreFound)),
                     )
                   : Column(
                       mainAxisSize: MainAxisSize.min,
@@ -301,18 +303,18 @@ class _StoreHeaderSection extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                const Icon(
                                   TablerIcons.settings,
                                   size: 20,
                                   color: Colors.black87,
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Text(
-                                  'Kelola / Tambah Toko',
-                                  style: TextStyle(
+                                  l10n.manageAddStore,
+                                  style: const TextStyle(
                                     color: Colors.black87,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
@@ -331,7 +333,7 @@ class _StoreHeaderSection extends ConsumerWidget {
               ),
               error: (err, _) => Padding(
                 padding: const EdgeInsets.all(20),
-                child: Center(child: Text('Gagal memuat: $err')),
+                child: Center(child: Text(l10n.failedToLoad(err.toString()))),
               ),
             ),
           ),
@@ -385,7 +387,6 @@ class _DrawerItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final bool isActive = route.isNotEmpty && location.startsWith(route);
-    final theme = ShadTheme.of(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -525,22 +526,23 @@ class _UserFooter extends ConsumerWidget {
   }
 
   void _handleLogout(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog(
-        title: const Text('Konfirmasi Keluar'),
-        description: const Text('Apakah Anda yakin ingin keluar?'),
+        title: Text(l10n.confirmLogout),
+        description: Text(l10n.confirmLogoutDesc),
         actions: [
           ShadButton.outline(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
           ),
           ShadButton.destructive(
             onPressed: () {
               ref.read(authProvider.notifier).signOut();
               Navigator.pop(context);
             },
-            child: const Text('Ya, Keluar'),
+            child: Text(l10n.yesLogout),
           ),
         ],
       ),

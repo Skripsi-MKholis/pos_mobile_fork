@@ -10,6 +10,8 @@ import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/providers/locale_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -20,6 +22,8 @@ class SettingsScreen extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
     final activeStore = ref.watch(activeStoreProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = ref.watch(localeNotifierProvider);
     final isAdmin =
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
@@ -27,7 +31,7 @@ class SettingsScreen extends ConsumerWidget {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(theme),
+          _buildSliverAppBar(context, theme),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -41,30 +45,30 @@ class SettingsScreen extends ConsumerWidget {
                         .slideX(begin: 0.1, end: 0),
                   const SizedBox(height: 32),
                   if (isAdmin) ...[
-                    _buildMenuSection(theme, 'KATALOG & STOK', [
+                    _buildMenuSection(theme, l10n.catalogAndStock, [
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.package,
-                        'Daftar Produk',
+                        l10n.productList,
                         () => context.push('/products'),
                       ),
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.category,
-                        'Kategori Produk',
+                        l10n.productCategory,
                         () => context.push('/categories'),
                       ),
                     ]),
                     const SizedBox(height: 32),
                   ],
-                  _buildMenuSection(theme, 'PENGATURAN TOKO', [
+                  _buildMenuSection(theme, l10n.storeSettings, [
                     _buildMenuItem(
                       context,
                       theme,
                       TablerIcons.printer,
-                      'Koneksi Printer',
+                      l10n.printerConnection,
                       () => context.push('/printer-settings'),
                     ),
                     if (isAdmin) ...[
@@ -72,76 +76,83 @@ class SettingsScreen extends ConsumerWidget {
                         context,
                         theme,
                         TablerIcons.receipt,
-                        'Kustomisasi Struk',
+                        l10n.receiptCustomization,
                         () => context.push('/receipt-customization'),
                       ),
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.building_store,
-                        'Informasi Toko',
+                        l10n.storeInformation,
                         () => context.push('/store-info'),
                       ),
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.users,
-                        'Manajemen Karyawan',
+                        l10n.employeeManagement,
                         () => context.push('/staff-management'),
                       ),
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.speakerphone,
-                        'Broadcast Notifikasi',
+                        l10n.broadcastNotification,
                         () => context.push('/broadcast-notification'),
                       ),
-                      // _buildMenuItem(context, theme, TablerIcons.table, 'Manajemen Meja', () => context.push('/manage-tables')),
                     ],
                   ]),
                   const SizedBox(height: 32),
-                  _buildMenuSection(theme, 'AKUN & KEAMANAN', [
+                  _buildMenuSection(theme, l10n.accountAndSecurity, [
                     _buildMenuItem(
                       context,
                       theme,
                       TablerIcons.user,
-                      'Profil Saya',
+                      l10n.myProfile,
                       () => context.push('/profile'),
                     ),
                     _buildMenuItem(
                       context,
                       theme,
                       TablerIcons.lock,
-                      'Ganti Kata Sandi',
+                      l10n.changePassword,
                       () => context.push('/setup-password'),
                     ),
                     _buildMenuItem(
                       context,
                       theme,
                       TablerIcons.refresh,
-                      'Sinkronisasi Data',
+                      l10n.dataSynchronization,
                       () => context.push('/settings/sync-monitoring'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.language,
+                      l10n.language,
+                      () => _showLanguageSelector(context, ref, currentLocale),
+                      trailingText: l10n.languageName,
                     ),
                     if (role?.toLowerCase() == 'karyawan')
                       _buildMenuItem(
                         context,
                         theme,
                         TablerIcons.logout,
-                        'Keluar dari Toko',
-                        () => _handleLeaveStore(context, ref),
+                        l10n.logoutStore,
+                        () => _handleLeaveStore(context, ref, l10n),
                         color: Colors.redAccent,
                       ),
                   ]),
                   const SizedBox(height: 48),
                   ShadButton.destructive(
                     width: double.infinity,
-                    onPressed: () => _handleLogout(context, ref),
-                    child: const Text('Keluar Aplikasi'),
+                    onPressed: () => _handleLogout(context, ref, l10n),
+                    child: Text(l10n.logoutApp),
                   ).animate().fadeIn(delay: 400.ms),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(
-                      'Antigravity POS • Versi 1.0.0',
+                      'Antigravity POS • ${l10n.version} 1.0.0',
                       style: theme.textTheme.muted.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -159,7 +170,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliverAppBar(ShadThemeData theme) {
+  Widget _buildSliverAppBar(BuildContext context, ShadThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return SliverAppBar(
       expandedHeight: 100,
       pinned: true,
@@ -171,7 +183,7 @@ class SettingsScreen extends ConsumerWidget {
         titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         centerTitle: false,
         title: Text(
-          'Menu',
+          l10n.menu,
           style: theme.textTheme.h3.copyWith(
             color: Colors.black,
             fontWeight: FontWeight.w900,
@@ -311,6 +323,7 @@ class SettingsScreen extends ConsumerWidget {
     String title,
     VoidCallback onTap, {
     Color? color,
+    String? trailingText,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -332,16 +345,134 @@ class SettingsScreen extends ConsumerWidget {
           color: color ?? Colors.black,
         ),
       ),
-      trailing: Icon(
-        TablerIcons.chevron_right,
-        size: 16,
-        color: color?.withOpacity(0.5) ?? Colors.black26,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText != null) ...[
+            Text(
+              trailingText,
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Icon(
+            TablerIcons.chevron_right,
+            size: 16,
+            color: color?.withOpacity(0.5) ?? Colors.black26,
+          ),
+        ],
       ),
       onTap: onTap,
     );
   }
 
-  Future<void> _handleLeaveStore(BuildContext context, WidgetRef ref) async {
+  Future<void> _showLanguageSelector(
+    BuildContext context,
+    WidgetRef ref,
+    Locale currentLocale,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = ShadTheme.of(context);
+
+    await showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: Text(l10n.selectLanguage),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxWidth: 320),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.indonesian,
+                  isSelected: currentLocale.languageCode == 'id',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('id');
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.english,
+                  isSelected: currentLocale.languageCode == 'en',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('en');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String title,
+    required bool isSelected,
+    required ShadThemeData theme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary.withOpacity(0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary.withOpacity(0.3)
+                : theme.colorScheme.border.withOpacity(0.5),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.black : Colors.black87,
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                TablerIcons.check,
+                color: theme.colorScheme.primary,
+                size: 18,
+              )
+            else
+              const SizedBox(width: 18, height: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLeaveStore(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
     final activeStore = ref.read(activeStoreProvider).value;
     final user = ref.read(currentUserProvider);
     if (activeStore == null || user == null) return;
@@ -349,17 +480,17 @@ class SettingsScreen extends ConsumerWidget {
     final confirmed = await showShadDialog<bool>(
       context: context,
       builder: (context) => ShadDialog(
-        title: const Text('Keluar dari Toko'),
+        title: Text(l10n.logoutStore),
         description: Text(
-          'Apakah Anda yakin ingin keluar dari toko ${activeStore['name']}? Anda tidak akan bisa mengakses toko ini lagi tanpa kode undangan baru.',
+          l10n.confirmLeaveStore(activeStore['name'] ?? ''),
         ),
         actions: [
           ShadButton.outline(
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           ShadButton.destructive(
-            child: const Text('Ya, Keluar'),
+            child: Text(l10n.yesLeave),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],
@@ -382,7 +513,7 @@ class SettingsScreen extends ConsumerWidget {
           context.go('/select-store');
           mySnackBar(
             context: context,
-            text: 'Anda telah keluar dari toko.',
+            text: l10n.leaveSuccess,
             status: ToastStatus.success,
           );
         }
@@ -390,7 +521,7 @@ class SettingsScreen extends ConsumerWidget {
         if (context.mounted) {
           mySnackBar(
             context: context,
-            text: 'Gagal keluar dari toko: $e',
+            text: l10n.leaveFailed(e.toString()),
             status: ToastStatus.error,
           );
         }
@@ -398,21 +529,23 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleLogout(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
     final confirmed = await showShadDialog<bool>(
       context: context,
       builder: (context) => ShadDialog(
-        title: const Text('Konfirmasi Keluar'),
-        description: const Text(
-          'Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.',
-        ),
+        title: Text(l10n.confirmLogout),
+        description: Text(l10n.confirmLogoutDesc),
         actions: [
           ShadButton.outline(
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(false),
           ),
           ShadButton.destructive(
-            child: const Text('Ya, Keluar'),
+            child: Text(l10n.yesLogout),
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ],

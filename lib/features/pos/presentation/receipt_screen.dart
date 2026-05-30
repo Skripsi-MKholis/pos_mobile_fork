@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
@@ -68,7 +69,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Struk sedang dicetak.',
+          text: AppLocalizations.of(context)!.receiptPrinting,
           status: ToastStatus.success,
         );
       }
@@ -76,7 +77,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Gagal mencetak: ${e.toString()}',
+          text: AppLocalizations.of(context)!.failedToPrint(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -101,8 +102,10 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -150,9 +153,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
         appBar: AppBar(
           backgroundColor: theme.colorScheme.muted,
           elevation: 0,
-          title: const Text(
-            'Struk Digital',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: Text(
+            l10n.digitalReceipt,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           leading: IconButton(
             icon: const Icon(TablerIcons.chevron_left),
@@ -256,21 +259,21 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         const Divider(),
                         const SizedBox(height: 16),
                         _buildRow(
-                          'No. Transaksi',
+                          l10n.transactionNo,
                           '#${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}',
                         ),
                         _buildRow(
-                          'Tanggal',
+                          l10n.date,
                           dateFormat.format(
                             DateTime.parse(widget.transaction['created_at']).toLocal(),
                           ),
                         ),
                         _buildRow(
-                          'Metode',
+                          l10n.method,
                           widget.transaction['payment_method'],
                         ),
                         if (showCashier) ...[
-                          _buildRow('Kasir', 'Staf Parzello'),
+                          _buildRow(l10n.cashier, l10n.parzelloStaff),
                         ],
                         const SizedBox(height: 16),
                         const Divider(),
@@ -316,20 +319,20 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         const Divider(),
                         const SizedBox(height: 16),
                         _buildRow(
-                          'Total Belanja',
+                          l10n.totalBelanja,
                           currencyFormat.format(
                             widget.transaction['total_amount'],
                           ),
                           isBold: true,
                         ),
                         _buildRow(
-                          'Bayar',
+                          l10n.paid,
                           currencyFormat.format(
                             widget.transaction['cash_paid'],
                           ),
                         ),
                         _buildRow(
-                          'Kembalian',
+                          l10n.change,
                           currencyFormat.format(
                             widget.transaction['change_amount'],
                           ),
@@ -411,7 +414,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Pindai untuk melihat struk online',
+                                  l10n.scanToViewOnlineReceipt,
                                   style: theme.textTheme.muted.copyWith(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
@@ -545,15 +548,15 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       ${storeName.toUpperCase()}       
 =================================
 ${showHeaderMsg && headerMsg.isNotEmpty ? '$headerMsg\n' : ''}${showAddress && address.isNotEmpty ? '$address\n' : ''}${showPhone && phone.isNotEmpty ? 'Telp: $phone\n' : ''}---------------------------------
-No. Transaksi: #${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
-Tanggal: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
-Metode: ${widget.transaction['payment_method']}
-${showCashier ? 'Kasir: Staf Parzello\n' : ''}---------------------------------
+${l10n.transactionNo}: #${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
+${l10n.date}: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
+${l10n.method}: ${widget.transaction['payment_method']}
+${showCashier ? '${l10n.cashier}: ${l10n.parzelloStaff}\n' : ''}---------------------------------
 ${widget.items.map((item) => "${item['product_name']}\n${item['quantity']} x ${currencyFormat.format(item['unit_price'])}   ${currencyFormat.format(item['subtotal'])}").join('\n---------------------------------\n')}
 ---------------------------------
-Total Belanja: ${currencyFormat.format(widget.transaction['total_amount'])}
-Bayar: ${currencyFormat.format(widget.transaction['cash_paid'])}
-Kembalian: ${currencyFormat.format(widget.transaction['change_amount'])}
+${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'])}
+${l10n.paid}: ${currencyFormat.format(widget.transaction['cash_paid'])}
+${l10n.change}: ${currencyFormat.format(widget.transaction['change_amount'])}
 ---------------------------------
 ${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
 =================================
@@ -564,7 +567,7 @@ ${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
                         );
                       },
                       leading: const Icon(TablerIcons.share),
-                      child: const Text('Bagikan'),
+                      child: Text(l10n.share),
                     ),
                     const SizedBox(width: 12),
                     ShadButton(
@@ -584,10 +587,10 @@ ${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
                           : const Icon(TablerIcons.printer),
                       child: Text(
                         _isPrinting
-                            ? 'Mencetak...'
+                            ? l10n.printing
                             : (connectedPrinter == null
-                                  ? 'Set Printer'
-                                  : 'Cetak Struk'),
+                                  ? l10n.setPrinter
+                                  : l10n.printReceipt),
                       ),
                     ),
                   ],
@@ -667,19 +670,18 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ShadDialog(
-      title: const Text('Hubungkan Printer'),
-      description: const Text(
-        'Pilih printer bluetooth Anda untuk langsung mencetak struk.',
-      ),
+      title: Text(l10n.connectPrinter),
+      description: Text(l10n.connectPrinterDesc),
       child: Container(
         width: double.maxFinite,
         constraints: const BoxConstraints(maxHeight: 250),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _devices.isEmpty
-            ? const Center(
-                child: Text('Tidak ada bluetooth printer terpasang.'),
+            ? Center(
+                child: Text(l10n.noBluetoothPrinterFound),
               )
             : ListView.builder(
                 shrinkWrap: true,
@@ -693,7 +695,7 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
                       color: Warna.primary,
                     ),
                     title: Text(
-                      device.name ?? 'Printer Thermal',
+                      device.name ?? l10n.thermalPrinter,
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(device.address ?? ''),
@@ -709,13 +711,13 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
                           if (context.mounted) {
                           mySnackBar(
                               context: context,
-                              text: 'Gagal menghubungkan: $e',
+                              text: l10n.failedWithReason(e.toString()),
                               status: ToastStatus.error,
                             );
                           }
                         }
                       },
-                      child: const Text('Pilih'),
+                      child: Text(l10n.select),
                     ),
                   );
                 },
@@ -724,14 +726,14 @@ class _QuickConnectDialogState extends ConsumerState<_QuickConnectDialog> {
       actions: [
         ShadButton.outline(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Batal'),
+          child: Text(l10n.cancel),
         ),
         ShadButton.ghost(
           onPressed: () {
             Navigator.of(context).pop();
             context.push('/printer-settings');
           },
-          child: const Text('Pengaturan'),
+          child: Text(l10n.settings),
         ),
       ],
     );

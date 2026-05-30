@@ -11,6 +11,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class SplitBillScreen extends ConsumerStatefulWidget {
   final TableOrder order;
@@ -44,8 +45,10 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -57,7 +60,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Bayar Pisah - Meja ${widget.order.table.name}',
+          l10n.splitBillWithTable(widget.order.table.name),
           style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -99,7 +102,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${currencyFormat.format(item['unit_price'])} / item',
+                              l10n.pricePerItem(currencyFormat.format(item['unit_price'])),
                               style: theme.textTheme.muted.copyWith(fontSize: 12),
                             ),
                           ],
@@ -164,9 +167,9 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Total Terpilih',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                Text(
+                  AppLocalizations.of(context)!.totalSelected,
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 Text(
                   format.format(_selectedTotal),
@@ -184,9 +187,9 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
                       _proceedToPayment(products);
                     }
                   : null,
-              child: const Text(
-                'Lanjut Pembayaran',
-                style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              child: Text(
+                AppLocalizations.of(context)!.continueToPayment,
+                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
               ),
             ),
           ],

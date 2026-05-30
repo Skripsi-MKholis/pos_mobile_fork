@@ -5,6 +5,7 @@ import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -36,8 +37,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final total = ref.read(cartNotifierProvider.notifier).totalAmount;
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -51,7 +54,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         surfaceTintColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          'Pembayaran',
+          l10n.payment,
           style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -73,7 +76,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             _buildTotalCard(total, currencyFormat),
             const SizedBox(height: 24),
             Text(
-              'Metode Pembayaran',
+              l10n.paymentMethod,
               style: theme.textTheme.large.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -84,7 +87,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             if (_paymentMethod == 'Tunai') ...[
               const SizedBox(height: 24),
               Text(
-                'Uang Tunai Diterima',
+                l10n.cashReceived,
                 style: theme.textTheme.large.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -94,7 +97,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ShadInput(
                 controller: _cashController,
                 keyboardType: TextInputType.number,
-                placeholder: const Text('Masukkan jumlah uang...'),
+                placeholder: Text(l10n.enterAmount),
                 style: theme.textTheme.h3.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
@@ -145,7 +148,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       ),
                     )
                   : Text(
-                      'Konfirmasi & Simpan Transaksi',
+                      l10n.confirmAndSaveTransaction,
                       style: theme.textTheme.p.copyWith(
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
@@ -184,7 +187,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       child: Column(
         children: [
           Text(
-            'TOTAL TAGIHAN',
+            AppLocalizations.of(context)!.totalBill,
             style: theme.textTheme.small.copyWith(
               letterSpacing: 2.0,
               fontWeight: FontWeight.bold,
@@ -208,16 +211,17 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Widget _buildPaymentMethodSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
-        Expanded(child: _methodTile('Tunai', TablerIcons.cash)),
+        Expanded(child: _methodTile('Tunai', l10n.cash, TablerIcons.cash)),
         const SizedBox(width: 12),
-        Expanded(child: _methodTile('QRIS', TablerIcons.qrcode)),
+        Expanded(child: _methodTile('QRIS', 'QRIS', TablerIcons.qrcode)),
       ],
     );
   }
 
-  Widget _methodTile(String method, IconData icon) {
+  Widget _methodTile(String method, String label, IconData icon) {
     final isSelected = _paymentMethod == method;
     final theme = ShadTheme.of(context);
     final popController = PopController();
@@ -253,7 +257,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                method,
+                label,
                 style: theme.textTheme.small.copyWith(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   color: isSelected
@@ -272,13 +276,14 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     final suggestions = [total, 50000.0, 100000.0];
     final theme = ShadTheme.of(context);
     final currentCashText = _cashController.text;
+    final currentLocale = Localizations.localeOf(context).toString();
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: suggestions.map((val) {
         final formatted = NumberFormat.compactCurrency(
-          locale: 'id_ID',
+          locale: currentLocale,
           symbol: 'Rp ',
         ).format(val);
         final isSelected = currentCashText == val.toInt().toString();
@@ -348,7 +353,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'KEMBALIAN',
+                AppLocalizations.of(context)!.change,
                 style: theme.textTheme.small.copyWith(
                   color: theme.colorScheme.mutedForeground,
                   fontWeight: FontWeight.bold,
@@ -359,7 +364,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               const SizedBox(height: 6),
               Text(
                 isNegative
-                    ? 'Uang Kurang'
+                    ? AppLocalizations.of(context)!.insufficientCash
                     : (cash == 0 ? '-' : format.format(change)),
                 style: theme.textTheme.h3.copyWith(
                   fontWeight: FontWeight.bold,
@@ -386,11 +391,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
   Future<void> _processPayment(double totalAmount) async {
     final cartState = ref.read(cartNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
     final cash = double.tryParse(_cashController.text.replaceAll('.', '')) ?? 0;
     if (_paymentMethod == 'Tunai' && cash < totalAmount) {
       mySnackBar(
         context: context,
-        text: 'Uang tunai tidak mencukupi',
+        text: l10n.cashNotSufficient,
         status: ToastStatus.warning,
       );
       return;
@@ -405,7 +411,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       final storeId = activeStore?['id'];
 
       if (storeId == null) {
-        throw 'Toko aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.';
+        throw l10n.activeStoreNotFound;
       }
 
       final itemsToProcess = cartState.items
@@ -503,15 +509,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
       if (mounted) {
         HapticFeedback.heavyImpact();
+        final currentLocale = Localizations.localeOf(context).toString();
         final currencyFormat = NumberFormat.currency(
-          locale: 'id_ID',
+          locale: currentLocale,
           symbol: 'Rp ',
           decimalDigits: 0,
         );
         
         final String toastMsg = syncedSuccessfully
-            ? 'Transaksi senilai ${currencyFormat.format(totalAmount)} telah disimpan & disinkronkan.'
-            : 'Transaksi senilai ${currencyFormat.format(totalAmount)} disimpan lokal (Belum Sinkron).';
+            ? l10n.transactionSynced(currencyFormat.format(totalAmount))
+            : l10n.transactionSavedLocal(currencyFormat.format(totalAmount));
 
         mySnackBar(
           context: context,
@@ -549,7 +556,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Gagal: $e',
+          text: l10n.failedWithReason(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -563,6 +570,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     List<Map<String, dynamic>> items,
   ) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -584,7 +592,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Pembayaran Berhasil',
+                l10n.paymentSuccess,
                 style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.bold),
               ),
             ],
@@ -593,7 +601,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         description: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Text(
-            'Transaksi Anda telah berhasil dicatat ke sistem. Silakan pilih langkah selanjutnya.',
+            l10n.paymentSuccessDesc,
             textAlign: TextAlign.center,
             style: theme.textTheme.muted,
           ),
@@ -604,7 +612,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               Expanded(
                 child: ShadButton.outline(
                   onPressed: () => context.go('/transactions'),
-                  child: const Text('Ke Riwayat'),
+                  child: Text(l10n.toHistory),
                 ),
               ),
               const SizedBox(width: 12),
@@ -623,9 +631,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       },
                     );
                   },
-                  child: const Text(
-                    'Lihat Struk',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.viewReceipt,
+                    style: const TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),

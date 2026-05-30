@@ -1,0 +1,392 @@
+{
+  "@@locale": "id",
+  "menu": "Menu",
+  "catalogAndStock": "KATALOG & STOK",
+  "productList": "Daftar Produk",
+  "productCategory": "Kategori Produk",
+  "storeSettings": "PENGATURAN TOKO",
+  "printerConnection": "Koneksi Printer",
+  "receiptCustomization": "Kustomisasi Struk",
+  "storeInformation": "Informasi Toko",
+  "employeeManagement": "Manajemen Karyawan",
+  "broadcastNotification": "Broadcast Notifikasi",
+  "accountAndSecurity": "AKUN & KEAMANAN",
+  "myProfile": "Profil Saya",
+  "changePassword": "Ganti Kata Sandi",
+  "dataSynchronization": "Sinkronisasi Data",
+  "language": "Bahasa",
+  "languageName": "Bahasa Indonesia",
+  "logoutApp": "Keluar Aplikasi",
+  "version": "Versi",
+  "confirmLogout": "Konfirmasi Keluar",
+  "confirmLogoutDesc": "Apakah Anda yakin ingin keluar dari aplikasi? Sesi Anda akan dihentikan.",
+  "cancel": "Batal",
+  "yesLogout": "Ya, Keluar",
+  "selectLanguage": "Pilih Bahasa",
+  "indonesian": "Bahasa Indonesia",
+  "english": "English",
+  "logoutStore": "Keluar dari Toko",
+  "confirmLeaveStore": "Apakah Anda yakin ingin keluar dari toko {storeName}? Anda tidak akan bisa mengakses toko ini lagi tanpa kode undangan baru.",
+  "@confirmLeaveStore": {
+    "placeholders": {
+      "storeName": {
+        "type": "String"
+      }
+    }
+  },
+  "yesLeave": "Ya, Keluar",
+  "leaveSuccess": "Anda telah keluar dari toko.",
+  "leaveFailed": "Gagal keluar dari toko: {error}",
+  "@leaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "analytics": "ANALITIK",
+  "dashboard": "Dashboard",
+  "reports": "Laporan",
+  "smartAnalytics": "Smart Analitik",
+  "cashierOperational": "OPERASIONAL KASIR",
+  "cashierPos": "Kasir (POS)",
+  "transactionHistory": "Riwayat Transaksi",
+  "tableMonitoring": "Monitoring Meja",
+  "tableManagement": "Manajemen Meja",
+  "manageStock": "Kelola Stok",
+  "categories": "Kategori",
+  "settings": "Pengaturan",
+  "printAndReceipt": "Cetak & Struk",
+  "superAdmin": "SUPER ADMIN",
+  "adminPanel": "Admin Panel",
+  "selectStore": "Pilih Toko",
+  "tapToChangeOutlet": "Tap untuk ganti outlet",
+  "selectStoreOutlet": "Pilih Toko / Outlet",
+  "selectStoreDescription": "Pilih toko yang ingin Anda kelola sekarang.",
+  "noStoreFound": "Tidak ada toko ditemukan",
+  "manageAddStore": "Kelola / Tambah Toko",
+  "failedToLoad": "Gagal memuat: {error}",
+  "@failedToLoad": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTab": "Home",
+  "cashierTab": "Kasir",
+  "historyTab": "Riwayat",
+  "reportsTab": "Laporan",
+  "menuTab": "Menu",
+  "dashboardTitle": "Dashboard",
+  "transactionHistoryTitle": "Riwayat Transaksi",
+  "reportsTitle": "Laporan Analitik",
+  "settingsTitle": "Pengaturan",
+  "pressAgainToExit": "Tekan sekali lagi untuk keluar",
+  "dashboardHeader": "DASHBOARD",
+  "performanceSummary": "Ringkasan Performa",
+  "today": "Hari Ini",
+  "thisWeek": "Minggu Ini",
+  "thisMonth": "Bulan Ini",
+  "revenueToday": "Omzet Hari Ini",
+  "revenueThisWeek": "Omzet Minggu Ini",
+  "revenueThisMonth": "Omzet Bulan Ini",
+  "transactionsToday": "Transaksi Hari Ini",
+  "transactionsThisWeek": "Transaksi Minggu Ini",
+  "transactionsThisMonth": "Transaksi Bulan Ini",
+  "transactionsCompleted": "Transaksi Selesai",
+  "lowStock": "Stok Rendah",
+  "activeProducts": "Produk Aktif",
+  "salesPerformance": "Performa Penjualan",
+  "revenueTrend7Days": "Tren omzet 7 hari terakhir",
+  "quickAccess": "AKSES CEPAT",
+  "transaction": "Transaksi",
+  "openNewCashier": "Buka kasir baru",
+  "product": "Produk",
+  "manageProductStock": "Kelola stok barang",
+  "setupTableLayout": "Atur layout meja",
+  "kitchenMonitor": "Monitor Dapur",
+  "kdsDisplay": "KDS Display",
+  "performanceAnalysis": "Analisis performa",
+  "appConfiguration": "Konfigurasi aplikasi",
+  "productAddedToCart": "{name} telah ditambahkan ke keranjang.",
+  "@productAddedToCart": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTable": "Pilih Meja",
+  "reset": "Reset",
+  "noTableAvailable": "Tidak ada meja tersedia",
+  "tableOccupied": "Meja Terisi",
+  "tableOccupiedDesc": "Meja ini sedang digunakan. Ingin menambah pesanan ke meja ini?",
+  "addOrder": "Tambah Pesanan",
+  "searchProduct": "Cari produk...",
+  "scanBarcode": "Scan Barcode",
+  "table": "Meja",
+  "all": "Semua",
+  "sortByNameAsc": "Nama (A-Z)",
+  "sortByNameDesc": "Nama (Z-A)",
+  "sortByPriceAsc": "Harga Terendah",
+  "sortByPriceDesc": "Harga Tertinggi",
+  "sortByStockDesc": "Stok Terbanyak",
+  "sortBy": "Urutkan Berdasarkan",
+  "stockLow": "Stok Menipis",
+  "outOfStock": "Stok 0",
+  "totalBelanja": "Total Belanja",
+  "clearCart": "Kosongkan Keranjang",
+  "viewDetails": "Cek Detail",
+  "noProductsYet": "Belum ada produk",
+  "noProductsYetDesc": "Tambahkan produk pertama Anda untuk mulai berjualan.",
+  "addProduct": "Tambah Produk",
+  "manageProduct": "Kelola Produk",
+  "productNotFound": "Produk tidak ditemukan",
+  "productAddedScan": "{name} ditambahkan",
+  "@productAddedScan": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "skuNotRegistered": "SKU/Barcode \"{code}\" tidak terdaftar!",
+  "@skuNotRegistered": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "scanSkuBarcode": "Scan SKU / Barcode",
+  "currentScanSession": "Sesi Scan Ini",
+  "pointCameraToBarcode": "Arahkan kamera ke barcode produk",
+  "totalSession": "Total Sesi",
+  "done": "Selesai",
+  "minPurchase": "Min. belanja {minPurchase}",
+  "@minPurchase": {
+    "placeholders": {
+      "minPurchase": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidVoucher": "Kode voucher tidak valid",
+  "anErrorOccurred": "Terjadi kesalahan",
+  "orderDetail": "Detail Pesanan",
+  "tableWithColon": "Meja: {tableName}",
+  "@tableWithColon": {
+    "placeholders": {
+      "tableName": {
+        "type": "String"
+      }
+    }
+  },
+  "cartIsEmpty": "Keranjang masih kosong",
+  "haveVoucherCode": "Punya kode voucher?",
+  "apply": "Pakai",
+  "voucherWithColon": "Voucher: {voucherCode}",
+  "@voucherWithColon": {
+    "placeholders": {
+      "voucherCode": {
+        "type": "String"
+      }
+    }
+  },
+  "savedAmount": "Hemat {amount}",
+  "@savedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "subtotal": "Subtotal",
+  "voucherDiscount": "Diskon Voucher",
+  "totalPayment": "Total Bayar",
+  "saveToTable": "Simpan ke Meja",
+  "orderSavedToTable": "Pesanan berhasil disimpan ke meja.",
+  "failedToSaveOrder": "Gagal menyimpan pesanan: {error}",
+  "@failedToSaveOrder": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "continueToPayment": "Lanjut Pembayaran",
+  "payment": "Pembayaran",
+  "paymentMethod": "Metode Pembayaran",
+  "cashReceived": "Uang Tunai Diterima",
+  "enterAmount": "Masukkan jumlah uang...",
+  "confirmAndSaveTransaction": "Konfirmasi & Simpan Transaksi",
+  "totalBill": "TOTAL TAGIHAN",
+  "cash": "Tunai",
+  "change": "KEMBALIAN",
+  "insufficientCash": "Uang Kurang",
+  "cashNotSufficient": "Uang tunai tidak mencukupi",
+  "activeStoreNotFound": "Toko aktif tidak ditemukan. Silakan pilih toko terlebih dahulu.",
+  "transactionSynced": "Transaksi senilai {amount} telah disimpan & disinkronkan.",
+  "@transactionSynced": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "transactionSavedLocal": "Transaksi senilai {amount} disimpan lokal (Belum Sinkron).",
+  "@transactionSavedLocal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "failedWithReason": "Gagal: {error}",
+  "@failedWithReason": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentSuccess": "Pembayaran Berhasil",
+  "paymentSuccessDesc": "Transaksi Anda telah berhasil dicatat ke sistem. Silakan pilih langkah selanjutnya.",
+  "toHistory": "Ke Riwayat",
+  "viewReceipt": "Lihat Struk",
+  "receiptPrinting": "Struk sedang dicetak.",
+  "failedToPrint": "Gagal mencetak: {error}",
+  "@failedToPrint": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "digitalReceipt": "Struk Digital",
+  "transactionNo": "No. Transaksi",
+  "date": "Tanggal",
+  "method": "Metode",
+  "cashier": "Kasir",
+  "parzelloStaff": "Staf Parzello",
+  "paid": "Bayar",
+  "scanToViewOnlineReceipt": "Pindai untuk melihat struk online",
+  "share": "Bagikan",
+  "printing": "Mencetak...",
+  "setPrinter": "Set Printer",
+  "printReceipt": "Cetak Struk",
+  "connectPrinter": "Hubungkan Printer",
+  "connectPrinterDesc": "Pilih printer bluetooth Anda untuk langsung mencetak struk.",
+  "noBluetoothPrinterFound": "Tidak ada bluetooth printer terpasang.",
+  "thermalPrinter": "Printer Thermal",
+  "select": "Pilih",
+  "splitBillWithTable": "Bayar Pisah - Meja {tableName}",
+  "@splitBillWithTable": {
+    "placeholders": {
+      "tableName": {
+        "type": "String"
+      }
+    }
+  },
+  "pricePerItem": "{price} / item",
+  "@pricePerItem": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "totalSelected": "Total Terpilih",
+  "cancel": "Batal",
+  "settings": "Pengaturan",
+  "revenue": "Omzet",
+  "searchTransaction": "Cari transaksi...",
+  "success": "Berhasil",
+  "pending": "Pending",
+  "cancelled": "Batal",
+  "yesterday": "Kemarin",
+  "selectDate": "Pilih Tanggal",
+  "noTransactions": "Tidak ada transaksi",
+  "smartAnalyticsDesc": "Prediksi stok & tren dengan AI",
+  "realTimeData": "Data real-time",
+  "noSalesData": "Tidak ada data penjualan",
+  "salesTrend": "Tren Penjualan",
+  "noTopProductsData": "Belum ada data produk terjual",
+  "topProducts": "Produk Terlaris",
+  "highestSalesVolume": "Volume penjualan tertinggi",
+  "sold": "terjual",
+  "salesTrendToday": "TREN PENJUALAN (HARI INI)",
+  "salesTrend7Days": "TREN PENJUALAN (7 HARI)",
+  "salesTrendThisMonth": "TREN PENJUALAN (BULAN INI)",
+  "comingSoon": "Segera Hadir",
+  "aiProFeature": "FITUR PRO AI",
+  "smartAnalyticsLockedDesc": "Fitur Smart Analitik berbasis kecerdasan buatan sedang dalam tahap pengembangan aktif untuk menyajikan proyeksi bisnis terbaik bagi Anda.",
+  "productCatalog": "Katalog Produk",
+  "manageYourInventory": "Kelola inventaris barang Anda",
+  "deleteProduct": "Hapus Produk",
+  "deleteProductConfirm": "Apakah Anda yakin ingin menghapus \"{name}\"? Tindakan ini tidak dapat dibatalkan.",
+  "@deleteProductConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "deletePermanently": "Hapus Permanen",
+  "productDeletedSuccess": "Produk berhasil dihapus",
+  "productDeleteFailed": "Gagal menghapus produk: {error}",
+  "@productDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "searchNameOrSku": "Cari nama atau SKU...",
+  "manageCategories": "Kelola Kategori",
+  "productNotFound": "Produk tidak ditemukan",
+  "productNotFoundDesc": "Coba gunakan kata kunci lain atau tambah produk baru ke katalog Anda.",
+  "resetFilter": "Reset Filter",
+  "lowStockCount": "Tipis: {count}",
+  "@lowStockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "stockCount": "Stok: {count}",
+  "@stockCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "waitingForSync": "Menunggu sinkronisasi ke cloud",
+  "skuCopied": "SKU berhasil disalin ke clipboard.",
+  "barcodeShareText": "Barcode untuk {name} ({sku})",
+  "@barcodeShareText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "shareFailed": "Gagal membagikan: {error}",
+  "@shareFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "productBarcode": "Barcode Produk",
+  "copySku": "Salin SKU",
+  "add": "Tambah",
+  "edit": "Ubah"
+}

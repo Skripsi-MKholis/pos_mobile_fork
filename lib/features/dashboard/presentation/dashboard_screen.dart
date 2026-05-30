@@ -9,6 +9,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -16,6 +17,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final analyticsAsync = ref.watch(analyticsProvider);
     final productsAsync = ref.watch(productNotifierProvider);
     final role = ref.watch(userRoleProvider);
@@ -35,14 +37,13 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: Localizations.localeOf(context).toString() == 'en' ? 'en_US' : 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
     );
 
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -60,14 +61,15 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(theme),
+                _buildHeader(l10n, theme),
                 const SizedBox(height: 24),
                 if (isAdmin) ...[
-                  _buildTimeFilter(ref, theme),
+                  _buildTimeFilter(ref, l10n, theme),
                   const SizedBox(height: 16),
                 ],
                 _buildStatsGrid(
                   context,
+                  l10n,
                   analyticsAsync,
                   productsAsync,
                   currencyFormat,
@@ -76,11 +78,11 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 if (isAdmin) ...[
                   const SizedBox(height: 24),
-                  _buildSalesPerformanceCard(analyticsAsync, theme),
+                  _buildSalesPerformanceCard(analyticsAsync, l10n, theme),
                 ],
                 const SizedBox(height: 24),
                 Text(
-                  'AKSES CEPAT',
+                  l10n.quickAccess,
                   style: theme.textTheme.muted.copyWith(
                     fontSize: 10,
                     fontWeight: FontWeight.w900,
@@ -88,7 +90,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildQuickAccessGrid(context, theme, ref, isAdmin),
+                _buildQuickAccessGrid(context, l10n, theme, ref, isAdmin),
                 const SizedBox(height: 85),
               ],
             ),
@@ -100,6 +102,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildQuickAccessGrid(
     BuildContext context,
+    AppLocalizations l10n,
     ShadThemeData theme,
     WidgetRef ref,
     bool isAdmin,
@@ -123,47 +126,47 @@ class DashboardScreen extends ConsumerWidget {
         _buildAccessCard(
           theme,
           TablerIcons.cash,
-          'Transaksi',
-          'Buka kasir baru',
+          l10n.transaction,
+          l10n.openNewCashier,
           onTap: () => context.go('/pos'),
         ),
         if (isAdmin)
           _buildAccessCard(
             theme,
             TablerIcons.package,
-            'Produk',
-            'Kelola stok barang',
+            l10n.product,
+            l10n.manageProductStock,
             onTap: () => context.push('/products'),
           ),
         if (hasTables)
           _buildAccessCard(
             theme,
             TablerIcons.armchair,
-            'Manajemen Meja',
-            'Atur layout meja',
+            l10n.tableManagement,
+            l10n.setupTableLayout,
             onTap: () => context.push('/tables'),
           ),
         if (hasKds)
           _buildAccessCard(
             theme,
             TablerIcons.device_desktop,
-            'Monitor Dapur',
-            'KDS Display',
+            l10n.kitchenMonitor,
+            l10n.kdsDisplay,
             onTap: () => context.push('/kds'),
           ),
         if (isAdmin) ...[
           _buildAccessCard(
             theme,
             TablerIcons.chart_dots,
-            'Laporan',
-            'Analisis performa',
+            l10n.reports,
+            l10n.performanceAnalysis,
             onTap: () => context.go('/reports'),
           ),
           _buildAccessCard(
             theme,
             TablerIcons.settings,
-            'Pengaturan',
-            'Konfigurasi aplikasi',
+            l10n.settings,
+            l10n.appConfiguration,
             onTap: () => context.go('/settings'),
           ),
         ],
@@ -236,6 +239,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildStatsGrid(
     BuildContext context,
+    AppLocalizations l10n,
     AsyncValue<AnalyticsState> analyticsAsync,
     AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
@@ -257,21 +261,21 @@ class DashboardScreen extends ConsumerWidget {
 
     final range = analytics?.timeRange ?? AnalyticsTimeRange.week;
 
-    String revenueLabel = 'Omzet Hari Ini';
-    String txLabel = 'Transaksi Selesai';
+    String revenueLabel = l10n.revenueToday;
+    String txLabel = l10n.transactionsCompleted;
 
     switch (range) {
       case AnalyticsTimeRange.today:
-        revenueLabel = 'Omzet Hari Ini';
-        txLabel = 'Transaksi Hari Ini';
+        revenueLabel = l10n.revenueToday;
+        txLabel = l10n.transactionsToday;
         break;
       case AnalyticsTimeRange.week:
-        revenueLabel = 'Omzet Minggu Ini';
-        txLabel = 'Transaksi Minggu Ini';
+        revenueLabel = l10n.revenueThisWeek;
+        txLabel = l10n.transactionsThisWeek;
         break;
       case AnalyticsTimeRange.month:
-        revenueLabel = 'Omzet Bulan Ini';
-        txLabel = 'Transaksi Bulan Ini';
+        revenueLabel = l10n.revenueThisMonth;
+        txLabel = l10n.transactionsThisMonth;
         break;
     }
 
@@ -299,7 +303,7 @@ class DashboardScreen extends ConsumerWidget {
           isLoading: isLoading,
         ),
         _buildStatCard(
-          'Stok Rendah',
+          l10n.lowStock,
           lowStockCount.toString(),
           TablerIcons.package,
           theme,
@@ -308,7 +312,7 @@ class DashboardScreen extends ConsumerWidget {
           onTap: () => context.push('/stock'),
         ),
         _buildStatCard(
-          'Produk Aktif',
+          l10n.activeProducts,
           (products?.length ?? 0).toString(),
           TablerIcons.box,
           theme,
@@ -319,12 +323,12 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(ShadThemeData theme) {
+  Widget _buildHeader(AppLocalizations l10n, ShadThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'DASHBOARD',
+          l10n.dashboardHeader,
           style: theme.textTheme.muted.copyWith(
             fontSize: 10,
             fontWeight: FontWeight.w900,
@@ -333,14 +337,14 @@ class DashboardScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'Ringkasan Performa',
+          l10n.performanceSummary,
           style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
-  Widget _buildTimeFilter(WidgetRef ref, ShadThemeData theme) {
+  Widget _buildTimeFilter(WidgetRef ref, AppLocalizations l10n, ShadThemeData theme) {
     final analytics = ref.watch(analyticsProvider).value;
     final currentRange = analytics?.timeRange ?? AnalyticsTimeRange.week;
 
@@ -354,19 +358,19 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           _buildFilterChip(
             ref,
-            'Hari Ini',
+            l10n.today,
             AnalyticsTimeRange.today,
             currentRange == AnalyticsTimeRange.today,
           ),
           _buildFilterChip(
             ref,
-            'Minggu Ini',
+            l10n.thisWeek,
             AnalyticsTimeRange.week,
             currentRange == AnalyticsTimeRange.week,
           ),
           _buildFilterChip(
             ref,
-            'Bulan Ini',
+            l10n.thisMonth,
             AnalyticsTimeRange.month,
             currentRange == AnalyticsTimeRange.month,
           ),
@@ -505,6 +509,7 @@ class DashboardScreen extends ConsumerWidget {
 
   Widget _buildSalesPerformanceCard(
     AsyncValue<AnalyticsState> analyticsAsync,
+    AppLocalizations l10n,
     ShadThemeData theme,
   ) {
     final state = analyticsAsync.value;
@@ -522,13 +527,13 @@ class DashboardScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Performa Penjualan',
+                    l10n.salesPerformance,
                     style: theme.textTheme.h4.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
                   ),
                   Text(
-                    'Tren omzet 7 hari terakhir',
+                    l10n.revenueTrend7Days,
                     style: theme.textTheme.muted.copyWith(fontSize: 11),
                   ),
                 ],

@@ -11,6 +11,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -20,8 +21,10 @@ class ReportsScreen extends ConsumerWidget {
     final analyticsAsync = ref.watch(analyticsProvider);
     final productsAsync = ref.watch(productNotifierProvider);
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -42,7 +45,7 @@ class ReportsScreen extends ConsumerWidget {
                   children: [
                     _buildSmartAnalyticsButton(context, theme),
                     const SizedBox(height: 24),
-                    _buildTimeFilter(ref, theme),
+                    _buildTimeFilter(context, ref, theme),
                     const SizedBox(height: 24),
                     analyticsAsync.when(
                       data: (state) => _buildAnalyticsContent(
@@ -53,7 +56,7 @@ class ReportsScreen extends ConsumerWidget {
                         theme,
                       ),
                       loading: () => _buildLoadingState(theme),
-                      error: (err, _) => Center(child: Text('Error: $err')),
+                      error: (err, _) => Center(child: Text(l10n.failedToLoad(err.toString()))),
                     ),
                   ],
                 ),
@@ -90,6 +93,7 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildSmartAnalyticsButton(BuildContext context, ShadThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
           padding: const EdgeInsets.all(1.5), // Border thickness
           decoration: BoxDecoration(
@@ -142,7 +146,7 @@ class ReportsScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Smart Analitik',
+                              l10n.smartAnalytics,
                               style: theme.textTheme.h4.copyWith(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -150,7 +154,7 @@ class ReportsScreen extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              'Prediksi stok & tren dengan AI',
+                              l10n.smartAnalyticsDesc,
                               style: theme.textTheme.muted.copyWith(
                                 fontSize: 11,
                               ),
@@ -181,25 +185,26 @@ class ReportsScreen extends ConsumerWidget {
     NumberFormat format,
     ShadThemeData theme,
   ) {
-    String revenueLabel = 'Omzet Hari Ini';
-    String txLabel = 'Transaksi Hari Ini';
-    String trendLabel = 'TREN PENJUALAN (HARI INI)';
+    final l10n = AppLocalizations.of(context)!;
+    String revenueLabel = l10n.revenueToday;
+    String txLabel = l10n.transactionsToday;
+    String trendLabel = l10n.salesTrendToday;
 
     switch (state.timeRange) {
       case AnalyticsTimeRange.today:
-        revenueLabel = 'Omzet Hari Ini';
-        txLabel = 'Transaksi Hari Ini';
-        trendLabel = 'TREN PENJUALAN (HARI INI)';
+        revenueLabel = l10n.revenueToday;
+        txLabel = l10n.transactionsToday;
+        trendLabel = l10n.salesTrendToday;
         break;
       case AnalyticsTimeRange.week:
-        revenueLabel = 'Omzet Minggu Ini';
-        txLabel = 'Transaksi Minggu Ini';
-        trendLabel = 'TREN PENJUALAN (7 HARI)';
+        revenueLabel = l10n.revenueThisWeek;
+        txLabel = l10n.transactionsThisWeek;
+        trendLabel = l10n.salesTrend7Days;
         break;
       case AnalyticsTimeRange.month:
-        revenueLabel = 'Omzet Bulan Ini';
-        txLabel = 'Transaksi Bulan Ini';
-        trendLabel = 'TREN PENJUALAN (BULAN INI)';
+        revenueLabel = l10n.revenueThisMonth;
+        txLabel = l10n.transactionsThisMonth;
+        trendLabel = l10n.salesTrendThisMonth;
         break;
     }
 
@@ -216,9 +221,9 @@ class ReportsScreen extends ConsumerWidget {
           txLabel,
         ),
         const SizedBox(height: 16),
-        _buildSalesChartCard(state, format, theme, trendLabel),
+        _buildSalesChartCard(context, state, format, theme, trendLabel),
         const SizedBox(height: 20),
-        _buildTopProductsCard(state, format, theme, productsAsync),
+        _buildTopProductsCard(context, state, format, theme, productsAsync),
         const SizedBox(height: 85),
       ],
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05, end: 0);
@@ -251,6 +256,7 @@ class ReportsScreen extends ConsumerWidget {
       childAspectRatio: 1.4,
       children: [
         _buildStatCard(
+          context,
           revenueLabel,
           format.format(state.totalRevenue),
           TablerIcons.wallet,
@@ -259,6 +265,7 @@ class ReportsScreen extends ConsumerWidget {
           isLoading: isLoading,
         ),
         _buildStatCard(
+          context,
           txLabel,
           state.totalTransactions.toString(),
           TablerIcons.shopping_cart,
@@ -266,7 +273,8 @@ class ReportsScreen extends ConsumerWidget {
           isLoading: isLoading,
         ),
         _buildStatCard(
-          'Stok Rendah',
+          context,
+          AppLocalizations.of(context)!.lowStock,
           lowStockCount.toString(),
           TablerIcons.package,
           theme,
@@ -275,7 +283,8 @@ class ReportsScreen extends ConsumerWidget {
           onTap: () => context.go('/stock'),
         ),
         _buildStatCard(
-          'Produk Aktif',
+          context,
+          AppLocalizations.of(context)!.activeProducts,
           (products?.length ?? 0).toString(),
           TablerIcons.box,
           theme,
@@ -287,6 +296,7 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildStatCard(
+    BuildContext context,
     String title,
     String value,
     IconData icon,
@@ -358,7 +368,7 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Real-time data',
+                    AppLocalizations.of(context)!.realTimeData,
                     style: TextStyle(
                       fontSize: 8,
                       color: theme.colorScheme.mutedForeground,
@@ -374,11 +384,13 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildSalesChartCard(
+    BuildContext context,
     AnalyticsState state,
     NumberFormat format,
     ShadThemeData theme,
     String trendLabel,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.dailySales.isEmpty) {
       return Container(
         height: 220,
@@ -388,7 +400,7 @@ class ReportsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade100, width: 1.5),
         ),
-        child: const Center(child: Text('Tidak ada data penjualan')),
+        child: Center(child: Text(l10n.noSalesData)),
       );
     }
 
@@ -439,7 +451,7 @@ class ReportsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Tren Penjualan',
+                        l10n.salesTrend,
                         style: theme.textTheme.h4.copyWith(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -449,6 +461,7 @@ class ReportsScreen extends ConsumerWidget {
                       Text(
                         trendLabel
                             .replaceAll('TREN PENJUALAN (', '')
+                            .replaceAll('SALES TREND (', '')
                             .replaceAll(')', ''),
                         style: TextStyle(
                           fontSize: 10,
@@ -589,11 +602,13 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildTopProductsCard(
+    BuildContext context,
     AnalyticsState state,
     NumberFormat format,
     ShadThemeData theme,
     AsyncValue<List<dynamic>> productsAsync,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (state.topProducts.isEmpty) {
       return Container(
         height: 150,
@@ -603,7 +618,7 @@ class ReportsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.grey.shade100, width: 1.5),
         ),
-        child: const Center(child: Text('Belum ada data produk terjual')),
+        child: Center(child: Text(l10n.noTopProductsData)),
       );
     }
 
@@ -632,7 +647,7 @@ class ReportsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Produk Terlaris',
+                      l10n.topProducts,
                       style: theme.textTheme.h4.copyWith(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -641,7 +656,7 @@ class ReportsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Volume penjualan tertinggi',
+                      l10n.highestSalesVolume,
                       style: TextStyle(
                         fontSize: 11,
                         color: theme.colorScheme.mutedForeground,
@@ -667,6 +682,7 @@ class ReportsScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final p = state.topProducts[index];
               return _buildProductRow(
+                context,
                 p,
                 index + 1,
                 format,
@@ -681,6 +697,7 @@ class ReportsScreen extends ConsumerWidget {
   }
 
   Widget _buildProductRow(
+    BuildContext context,
     Map<String, dynamic> p,
     int rank,
     NumberFormat format,
@@ -805,7 +822,7 @@ class ReportsScreen extends ConsumerWidget {
                 ),
               ),
               Text(
-                'terjual',
+                AppLocalizations.of(context)!.sold,
                 style: TextStyle(
                   fontSize: 9,
                   color: theme.colorScheme.mutedForeground,
@@ -846,7 +863,8 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimeFilter(WidgetRef ref, ShadThemeData theme) {
+  Widget _buildTimeFilter(BuildContext context, WidgetRef ref, ShadThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final analytics = ref.watch(analyticsProvider).value;
     final currentRange = analytics?.timeRange ?? AnalyticsTimeRange.week;
 
@@ -860,19 +878,19 @@ class ReportsScreen extends ConsumerWidget {
         children: [
           _buildFilterChip(
             ref,
-            'Hari Ini',
+            l10n.today,
             AnalyticsTimeRange.today,
             currentRange == AnalyticsTimeRange.today,
           ),
           _buildFilterChip(
             ref,
-            'Minggu Ini',
+            l10n.thisWeek,
             AnalyticsTimeRange.week,
             currentRange == AnalyticsTimeRange.week,
           ),
           _buildFilterChip(
             ref,
-            'Bulan Ini',
+            l10n.thisMonth,
             AnalyticsTimeRange.month,
             currentRange == AnalyticsTimeRange.month,
           ),

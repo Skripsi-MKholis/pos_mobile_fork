@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +42,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final user = ref.watch(currentUserProvider);
     final role = ref.watch(userRoleProvider);
     final isAdmin =
@@ -106,43 +108,43 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
     // Tentukan item navigasi berdasarkan Role dengan pemetaan Branch yang eksplisit
     final List<Map<String, dynamic>> navItems = isAdmin
         ? [
-            {'icon': TablerIcons.chart_pie, 'label': 'Home', 'branch': 0},
-            {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
-            {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
-            {'icon': TablerIcons.report_money, 'label': 'Laporan', 'branch': 3},
-            {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
+            {'icon': TablerIcons.chart_pie, 'label': l10n.homeTab, 'branch': 0},
+            {'icon': TablerIcons.shopping_cart, 'label': l10n.cashierTab, 'branch': 1},
+            {'icon': TablerIcons.history, 'label': l10n.historyTab, 'branch': 2},
+            {'icon': TablerIcons.report_money, 'label': l10n.reportsTab, 'branch': 3},
+            {'icon': TablerIcons.layout_grid, 'label': l10n.menuTab, 'branch': 4},
           ]
         : [
             {
               'icon': TablerIcons.layout_dashboard,
-              'label': 'Home',
+              'label': l10n.homeTab,
               'branch': 0,
             },
-            {'icon': TablerIcons.shopping_cart, 'label': 'Kasir', 'branch': 1},
-            {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 2},
-            {'icon': TablerIcons.layout_grid, 'label': 'Menu', 'branch': 4},
+            {'icon': TablerIcons.shopping_cart, 'label': l10n.cashierTab, 'branch': 1},
+            {'icon': TablerIcons.history, 'label': l10n.historyTab, 'branch': 2},
+            {'icon': TablerIcons.layout_grid, 'label': l10n.menuTab, 'branch': 4},
           ];
 
     // Judul AppBar berdasarkan branch yang aktif (bukan berdasarkan index bottom bar)
     final String pageTitle;
     switch (widget.navigationShell.currentIndex) {
       case 0:
-        pageTitle = 'Dashboard';
+        pageTitle = l10n.dashboardTitle;
         break;
       case 1:
-        pageTitle = 'Kasir';
+        pageTitle = l10n.cashierTab;
         break;
       case 2:
-        pageTitle = 'Riwayat Transaksi';
+        pageTitle = l10n.transactionHistoryTitle;
         break;
       case 3:
-        pageTitle = 'Laporan Analitik';
+        pageTitle = l10n.reportsTitle;
         break;
       case 4:
-        pageTitle = 'Pengaturan';
+        pageTitle = l10n.settingsTitle;
         break;
       default:
-        pageTitle = 'POS Mobile';
+        pageTitle = 'Parzello POS';
     }
 
     // Cari index yang terpilih di GNav berdasarkan branch yang aktif di GoRouter
@@ -171,7 +173,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           if (mounted) {
             mySnackBar(
               context: context,
-              text: 'Tekan sekali lagi untuk keluar',
+              text: l10n.pressAgainToExit,
               status: ToastStatus.warning,
             );
           }

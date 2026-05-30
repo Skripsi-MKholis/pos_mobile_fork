@@ -1,28 +1,26 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'transaction_history_provider.dart';
+part of 'locale_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionHistoryHash() =>
-    r'f3246ad393c6a1bb3584aafe1330e4e24123e3e7';
+String _$localeNotifierHash() => r'096f12dfe348a303928e4e2c14f7488509077f97';
 
-/// See also [TransactionHistory].
-@ProviderFor(TransactionHistory)
-final transactionHistoryProvider = AutoDisposeAsyncNotifierProvider<
-    TransactionHistory, TransactionHistoryState>.internal(
-  TransactionHistory.new,
-  name: r'transactionHistoryProvider',
+/// See also [LocaleNotifier].
+@ProviderFor(LocaleNotifier)
+final localeNotifierProvider =
+    AutoDisposeNotifierProvider<LocaleNotifier, Locale>.internal(
+  LocaleNotifier.new,
+  name: r'localeNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$transactionHistoryHash,
+      : _$localeNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$TransactionHistory
-    = AutoDisposeAsyncNotifier<TransactionHistoryState>;
+typedef _$LocaleNotifier = AutoDisposeNotifier<Locale>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

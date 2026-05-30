@@ -8,6 +8,9 @@ import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/env/env.dart';
 import 'package:pos_mobile/core/router/router.dart';
 import 'package:pos_mobile/core/providers/sync_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/providers/locale_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,10 +76,21 @@ class MyApp extends ConsumerWidget {
       selection: const HSLColor.fromAHSL(1.0, 75, 0.941, 0.439).toColor(),
     );
 
+    final selectedLocale = ref.watch(localeNotifierProvider);
+
     return ShadApp.router(
       title: 'Parzello POS',
       routerConfig: router,
       debugShowCheckedModeBanner: false,
+      locale: selectedLocale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalShadLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       themeMode: ThemeMode
           .light, // Memaksa Light Mode agar tidak terpengaruh sistem HP
       theme: ShadThemeData(

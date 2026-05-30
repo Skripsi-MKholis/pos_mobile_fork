@@ -11,6 +11,7 @@ import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 enum ForecastTab { daily, weekly, monthly, custom }
 
@@ -248,7 +249,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                 .shimmer(delay: 1.seconds, duration: 1.5.seconds),
             const SizedBox(width: 10),
             Text(
-              'Smart Analitik',
+              AppLocalizations.of(context)!.smartAnalytics,
               style: theme.textTheme.h4.copyWith(
                 fontWeight: FontWeight.w900,
                 letterSpacing: -0.5,
@@ -363,7 +364,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                               const SizedBox(height: 24),
                               // "Coming Soon" Title
                               Text(
-                                'Coming Soon',
+                                AppLocalizations.of(context)!.comingSoon,
                                 style: theme.textTheme.h3.copyWith(
                                   fontWeight: FontWeight.w900,
                                   color: Colors.black,
@@ -392,7 +393,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'FITUR PRO AI',
+                                      AppLocalizations.of(context)!.aiProFeature,
                                       style: TextStyle(
                                         fontSize: 9,
                                         fontWeight: FontWeight.w900,
@@ -406,7 +407,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                               const SizedBox(height: 16),
                               // Friendly descriptive subtext
                               Text(
-                                'Fitur Smart Analitik berbasis kecerdasan buatan sedang dalam tahap pengembangan aktif untuk menyajikan proyeksi bisnis terbaik bagi Anda.',
+                                AppLocalizations.of(context)!.smartAnalyticsLockedDesc,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 11.5,

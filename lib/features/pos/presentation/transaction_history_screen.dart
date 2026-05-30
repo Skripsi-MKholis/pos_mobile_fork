@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -60,8 +61,10 @@ class _TransactionHistoryScreenState
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(transactionHistoryProvider);
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -99,18 +102,18 @@ class _TransactionHistoryScreenState
                       child: Row(
                         children: [
                           if (isAdmin) ...[
-                            _buildDateChip('Semua', 'Semua'),
-                            _buildDateChip('Hari Ini', 'Hari Ini'),
-                            _buildDateChip('Kemarin', 'Kemarin'),
+                            _buildDateChip(l10n.all, 'Semua'),
+                            _buildDateChip(l10n.today, 'Hari Ini'),
+                            _buildDateChip(l10n.yesterday, 'Kemarin'),
                             _buildDateChip(
                               _dateFilter == 'Custom' && _customDate != null
                                   ? DateFormat('dd MMM').format(_customDate!)
-                                  : 'Pilih Tanggal',
+                                  : l10n.selectDate,
                               'Custom',
                               isCalendar: true,
                             ),
                           ] else
-                            _buildDateChip('Hari Ini', 'Hari Ini'),
+                            _buildDateChip(l10n.today, 'Hari Ini'),
                         ],
                       ),
                     ),
@@ -211,7 +214,7 @@ class _TransactionHistoryScreenState
                           ),
                           child: Text(
                             date == dateFullFormat.format(DateTime.now())
-                                ? 'HARI INI'
+                                ? l10n.today.toUpperCase()
                                 : date.toUpperCase(),
                             style: theme.textTheme.small.copyWith(
                               fontWeight: FontWeight.w900,
@@ -238,7 +241,7 @@ class _TransactionHistoryScreenState
               error: (err, stack) => SliverFillRemaining(
                 child: Center(
                   child: Text(
-                    'Terjadi kesalahan: $err',
+                    l10n.failedToLoad(err.toString()),
                     style: theme.textTheme.muted,
                   ),
                 ),
@@ -261,7 +264,7 @@ class _TransactionHistoryScreenState
             color: theme.colorScheme.mutedForeground.withOpacity(0.5),
           ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
           const SizedBox(height: 16),
-          Text('Tidak ada transaksi', style: theme.textTheme.muted),
+          Text(AppLocalizations.of(context)!.noTransactions, style: theme.textTheme.muted),
         ],
       ),
     );
@@ -365,7 +368,7 @@ class _TransactionHistoryScreenState
           children: [
             Expanded(
               child: _buildStatCard(
-                'Omzet',
+                AppLocalizations.of(context)!.revenue,
                 format.format(totalRevenue),
                 Warna.primary,
               ),
@@ -373,7 +376,7 @@ class _TransactionHistoryScreenState
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Transaksi',
+                AppLocalizations.of(context)!.transaction,
                 filtered.length.toString(),
                 Colors.blue,
               ),
@@ -450,6 +453,7 @@ class _TransactionHistoryScreenState
   }
 
   Widget _buildFilters(ShadThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       color: Colors.white,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
@@ -460,7 +464,7 @@ class _TransactionHistoryScreenState
               Expanded(
                 child: ShadInput(
                   controller: _searchController,
-                  placeholder: const Text('Cari transaksi...'),
+                  placeholder: Text(l10n.searchTransaction),
                   leading: const Padding(
                     padding: EdgeInsets.all(8.0),
                     child: Icon(
@@ -510,12 +514,17 @@ class _TransactionHistoryScreenState
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ['Semua', 'Berhasil', 'Pending', 'Batal'].map((status) {
-                final isSelected = _filterStatus == status;
+              children: [
+                {'label': l10n.all, 'value': 'Semua'},
+                {'label': l10n.success, 'value': 'Berhasil'},
+                {'label': l10n.pending, 'value': 'Pending'},
+                {'label': l10n.cancelled, 'value': 'Batal'},
+              ].map((status) {
+                final isSelected = _filterStatus == status['value'];
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: GestureDetector(
-                    onTap: () => setState(() => _filterStatus = status),
+                    onTap: () => setState(() => _filterStatus = status['value']!),
                     child: AnimatedContainer(
                       duration: 200.ms,
                       padding: const EdgeInsets.symmetric(
@@ -532,7 +541,7 @@ class _TransactionHistoryScreenState
                         ),
                       ),
                       child: Text(
-                        status,
+                        status['label']!,
                         style: TextStyle(
                           color: isSelected
                               ? Colors.black
@@ -640,9 +649,17 @@ class _TransactionHistoryScreenState
     DateFormat timeFormat,
     ShadThemeData theme,
   ) {
+    final cardL10n = AppLocalizations.of(context)!;
     final status = tx['status'] ?? 'Berhasil';
-    final paymentMethod = tx['payment_method'] ?? 'Tunai';
+    final paymentMethodRaw = tx['payment_method'] ?? 'Tunai';
+    final paymentMethod = paymentMethodRaw == 'Tunai' ? cardL10n.cash : paymentMethodRaw;
     final items = tx['transaction_items'] as List? ?? [];
+
+    final displayStatus = status == 'Berhasil'
+        ? cardL10n.success
+        : (status == 'Pending'
+            ? cardL10n.pending
+            : cardL10n.cancelled);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -699,7 +716,7 @@ class _TransactionHistoryScreenState
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      status.toUpperCase(),
+                      displayStatus.toUpperCase(),
                       style: TextStyle(
                         color: status == 'Berhasil'
                             ? Warna.primary.withOpacity(0.8)

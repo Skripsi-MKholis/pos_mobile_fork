@@ -21,6 +21,7 @@ import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -65,7 +66,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
       mySnackBar(
         context: context,
-        text: '${foundProduct.name} telah ditambahkan ke keranjang.',
+        text: AppLocalizations.of(context)!.productAddedToCart(foundProduct.name),
         status: ToastStatus.success,
       );
 
@@ -82,6 +83,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   void _openBarcodeScanner(List<Product> products) {
     FocusScope.of(context).unfocus();
+    final currentLocale = Localizations.localeOf(context).toString();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -90,7 +92,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         products: products,
         cartNotifier: ref.read(cartNotifierProvider.notifier),
         currencyFormat: NumberFormat.currency(
-          locale: 'id_ID',
+          locale: currentLocale,
           symbol: 'Rp ',
           decimalDigits: 0,
         ),
@@ -126,9 +128,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Pilih Meja',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.selectTable,
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -141,9 +143,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                               .selectTable(null);
                           Navigator.pop(context);
                         },
-                        child: const Text(
-                          'Reset',
-                          style: TextStyle(color: Colors.red),
+                        child: Text(
+                          AppLocalizations.of(context)!.reset,
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                   ],
@@ -151,7 +153,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 const SizedBox(height: 16),
                 tablesAsync.when(
                   data: (tables) => tables.isEmpty
-                      ? const Center(child: Text('Tidak ada meja tersedia'))
+                      ? Center(child: Text(AppLocalizations.of(context)!.noTableAvailable))
                       : Wrap(
                           spacing: 12,
                           runSpacing: 12,
@@ -165,23 +167,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                   final confirmed = await showShadDialog<bool>(
                                     context: context,
                                     builder: (context) => ShadDialog(
-                                      title: const Text('Meja Terisi'),
-                                      description: const Text(
-                                        'Meja ini sedang digunakan. Ingin menambah pesanan ke meja ini?',
+                                      title: Text(AppLocalizations.of(context)!.tableOccupied),
+                                      description: Text(
+                                        AppLocalizations.of(context)!.tableOccupiedDesc,
                                       ),
                                       actions: [
                                         ShadButton.outline(
                                           onPressed: () =>
                                               Navigator.pop(context, false),
-                                          child: const Text('Batal'),
+                                          child: Text(AppLocalizations.of(context)!.cancel),
                                         ),
                                         ShadButton(
                                           backgroundColor: Warna.primary,
                                           onPressed: () =>
                                               Navigator.pop(context, true),
-                                          child: const Text(
-                                            'Tambah Pesanan',
-                                            style: TextStyle(
+                                          child: Text(
+                                            AppLocalizations.of(context)!.addOrder,
+                                            style: const TextStyle(
                                               color: Colors.black,
                                             ),
                                           ),
@@ -334,8 +336,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     final cartState = ref.watch(cartNotifierProvider);
     final cartItems = cartState.items;
     final cartNotifier = ref.read(cartNotifierProvider.notifier);
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = Localizations.localeOf(context).toString();
     final currencyFormat = NumberFormat.currency(
-      locale: 'id_ID',
+      locale: currentLocale,
       symbol: 'Rp ',
       decimalDigits: 0,
     );
@@ -355,7 +359,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   child: ShadInput(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
-                    placeholder: const Text('Cari produk...'),
+                    placeholder: Text(l10n.searchProduct),
                     leading: const Padding(
                       padding: EdgeInsets.all(8.0),
                       child: Icon(TablerIcons.search, size: 20),
@@ -380,7 +384,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Scan Barcode',
+                  message: l10n.scanBarcode,
                   child: ShadIconButton.outline(
                     onPressed: () => _openBarcodeScanner(products),
                     icon: const Icon(TablerIcons.barcode, size: 20),
@@ -419,7 +423,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       return ShadButton.outline(
                         onPressed: () => _showTablePicker(context, ref),
                         leading: const Icon(TablerIcons.armchair, size: 18),
-                        child: const Text('Meja'),
+                        child: Text(l10n.table),
                       );
                     }
                   },
@@ -501,25 +505,25 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             color: Colors.grey[200],
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            'Belum ada produk',
-                            style: TextStyle(
+                          Text(
+                            l10n.noProductsYet,
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'Tambahkan produk pertama Anda untuk\nmulai berjualan.',
+                          Text(
+                            l10n.noProductsYetDesc,
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                           const SizedBox(height: 24),
                           if (isAdmin) ...[
                             ShadButton(
                               onPressed: () => context.push('/products/add'),
                               leading: const Icon(TablerIcons.plus, size: 18),
-                              child: const Text('Tambah Produk'),
+                              child: Text(l10n.addProduct),
                             ),
                             const SizedBox(height: 12),
                             ShadButton.outline(
@@ -528,7 +532,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                 TablerIcons.settings,
                                 size: 18,
                               ),
-                              child: const Text('Kelola Produk'),
+                              child: Text(l10n.manageProduct),
                             ),
                           ],
                         ],
@@ -547,9 +551,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             color: Colors.grey[300],
                           ),
                           const SizedBox(height: 16),
-                          const Text(
-                            'Produk tidak ditemukan',
-                            style: TextStyle(
+                          Text(
+                            l10n.productNotFound,
+                            style: const TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
                             ),
@@ -613,7 +617,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           children: [
             _buildSortButton(),
             const SizedBox(width: 8),
-            _buildCategoryChip(null, 'Semua'),
+            _buildCategoryChip(null, AppLocalizations.of(context)!.all),
             ...categories.map((c) => _buildCategoryChip(c.supabaseId, c.name)),
           ],
         ),
@@ -693,12 +697,13 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   Widget _buildSortBottomSheet(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final options = [
-      {'label': 'Nama (A-Z)', 'value': 'name_asc'},
-      {'label': 'Nama (Z-A)', 'value': 'name_desc'},
-      {'label': 'Harga Terendah', 'value': 'price_asc'},
-      {'label': 'Harga Tertinggi', 'value': 'price_desc'},
-      {'label': 'Stok Terbanyak', 'value': 'stock_desc'},
+      {'label': l10n.sortByNameAsc, 'value': 'name_asc'},
+      {'label': l10n.sortByNameDesc, 'value': 'name_desc'},
+      {'label': l10n.sortByPriceAsc, 'value': 'price_asc'},
+      {'label': l10n.sortByPriceDesc, 'value': 'price_desc'},
+      {'label': l10n.sortByStockDesc, 'value': 'stock_desc'},
     ];
 
     return Container(
@@ -714,9 +719,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Urutkan Berdasarkan',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.sortBy,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ...options.map(
@@ -825,9 +830,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           color: Colors.orange.withValues(alpha: 0.9),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text(
-                          'Stok Menipis',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context)!.stockLow,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -839,10 +844,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     Positioned.fill(
                       child: Container(
                         color: Colors.red.withValues(alpha: 0.1),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'Stok 0',
-                            style: TextStyle(
+                            AppLocalizations.of(context)!.outOfStock,
+                            style: const TextStyle(
                               color: Colors.red,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
@@ -904,6 +909,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     NumberFormat format,
   ) {
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
@@ -925,7 +931,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Total Belanja',
+                    l10n.totalBelanja,
                     style: TextStyle(
                       color: theme.colorScheme.mutedForeground,
                       fontSize: 12,
@@ -944,7 +950,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             const SizedBox(width: 16),
             if (cartNotifier.totalItems > 0) ...[
               Tooltip(
-                message: 'Kosongkan Keranjang',
+                message: l10n.clearCart,
                 child: ShadIconButton.outline(
                   onPressed: () => cartNotifier.clearCart(),
                   icon: const Icon(
@@ -974,7 +980,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   builder: (context) => const CartDetailSheet(),
                 ).then((_) => _searchFocusNode.unfocus());
               },
-              child: const Text('Cek Detail'),
+              child: Text(l10n.viewDetails),
             ),
           ],
         ),
@@ -1112,7 +1118,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
       HapticFeedback.lightImpact();
 
       // Show success notification inside scanner
-      _showNotification('1x ${foundProduct.name} ditambahkan', true);
+      _showNotification(AppLocalizations.of(context)!.productAddedScan(foundProduct.name), true);
 
       // Add to session history or increment if exists
       setState(() {
@@ -1135,7 +1141,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
         HapticFeedback.heavyImpact();
       });
 
-      _showNotification('SKU/Barcode "$barcodeValue" tidak terdaftar!', false);
+      _showNotification(AppLocalizations.of(context)!.skuNotRegistered(barcodeValue), false);
     }
   }
 
@@ -1312,9 +1318,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                         });
                       },
                     ),
-                    const Text(
-                      'Scan SKU / Barcode',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context)!.scanSkuBarcode,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -1420,9 +1426,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Sesi Scan Ini',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!.currentScanSession,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -1453,7 +1459,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Arahkan kamera ke barcode produk',
+                                    AppLocalizations.of(context)!.pointCameraToBarcode,
                                     style: TextStyle(
                                       color: Colors.grey.shade500,
                                       fontSize: 12,
@@ -1554,7 +1560,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Total Sesi',
+                                AppLocalizations.of(context)!.totalSession,
                                 style: TextStyle(
                                   color: theme.colorScheme.mutedForeground,
                                   fontSize: 11,
@@ -1574,9 +1580,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                         ShadButton(
                           onPressed: () => Navigator.pop(context),
                           backgroundColor: const Color(0xFF98D100),
-                          child: const Text(
-                            'Selesai',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.done,
+                            style: const TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.bold,
                             ),
