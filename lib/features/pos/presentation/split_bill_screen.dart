@@ -195,7 +195,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
     );
   }
 
-  void _proceedToPayment(List<Product> allProducts) {
+  void _proceedToPayment(List<Product> allProducts) async {
     final List<CartItem> selectedItems = [];
     
     for (var item in widget.order.items) {
@@ -227,7 +227,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
       final splitItemsCount = selectedItems.fold<int>(0, (sum, item) => sum + item.quantity);
       await AnalyticsService.instance.logSplitBill(
         tableNumber: widget.order.table.name,
-        originalAmount: widget.order.totalAmount.toDouble(),
+        originalAmount: (widget.order.transaction?['total_amount'] as num?)?.toDouble() ?? 0.0,
         splitCount: splitItemsCount,
       );
     } catch (_) {}
