@@ -19,6 +19,7 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:barcode_widget/barcode_widget.dart' as bc;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 
 class ProductFormScreen extends ConsumerStatefulWidget {
@@ -70,6 +71,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   void _generateRandomSku() {
+    final l10n = AppLocalizations.of(context)!;
     final random = Random();
     final randomNumber = random.nextInt(90000000) + 10000000; // 8-digit random number
     _skuController.text = 'SKU-$randomNumber';
@@ -77,7 +79,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     
     mySnackBar(
       context: context,
-      text: 'SKU acak berhasil dibuat',
+      text: l10n.randomSkuCreated,
       status: ToastStatus.success,
     );
   }
@@ -86,6 +88,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   bool _isSharingPreview = false;
 
   Future<void> _sharePreviewBarcode() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isSharingPreview = true);
     try {
       await Future.delayed(const Duration(milliseconds: 100));
@@ -104,13 +107,16 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Barcode untuk ${_nameController.text.isNotEmpty ? _nameController.text : "Produk Baru"} (${_skuController.text})',
+        text: l10n.barcodeFor(
+          _nameController.text.isNotEmpty ? _nameController.text : l10n.newProduct,
+          _skuController.text,
+        ),
       );
     } catch (e) {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Gagal membagikan: ${e.toString()}',
+          text: l10n.shareFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -141,12 +147,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     if (result != null) setState(() => _skuController.text = result);
   }
 
-  @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoryNotifierProvider);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.product == null ? 'Tambah Produk' : 'Edit Produk', style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.product == null ? l10n.addProduct : l10n.editProduct, style: const TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(TablerIcons.chevron_left),
           onPressed: () {
@@ -167,21 +173,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             children: [
               _buildImagePicker(),
               const SizedBox(height: 32),
-              _buildFieldLabel('Nama Produk'),
+              _buildFieldLabel(l10n.productName),
               ShadInput(
                 controller: _nameController,
-                placeholder: const Text('Masukkan nama produk...'),
+                placeholder: Text(l10n.enterProductName),
               ),
               const SizedBox(height: 20),
-              _buildFieldLabel('Kategori'),
+              _buildFieldLabel(l10n.category),
               categoriesAsync.when(
                 data: (categories) => ShadSelect<String>(
-                  placeholder: const Text('Pilih Kategori'),
+                  placeholder: Text(l10n.selectCategory),
                   initialValue: _selectedCategoryId,
                   options: [
-                    const ShadOption(
+                    ShadOption(
                       value: 'none',
-                      child: Text('Tanpa Kategori'),
+                      child: Text(l10n.noCategory),
                     ),
                     ...categories.map(
                       (c) => ShadOption(
@@ -195,39 +201,39 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   ),
                   selectedOptionBuilder: (context, value) => Text(
                     value == 'none'
-                        ? 'Tanpa Kategori'
+                        ? l10n.noCategory
                         : categories
                             .firstWhere(
                               (c) => c.supabaseId == value,
-                              orElse: () => Category()..name = 'Tanpa Kategori',
+                              orElse: () => Category()..name = l10n.noCategory,
                             )
                             .name,
                   ),
                 ),
-                loading: () => const ShadSelect<String>(
-                  placeholder: Text('Loading kategori...'),
-                  options: [],
+                loading: () => ShadSelect<String>(
+                  placeholder: Text(l10n.loadingCategories),
+                  options: const [],
                   selectedOptionBuilder: null,
                 ),
                 error: (err, _) => ShadSelect<String>(
-                  placeholder: Text('Error: $err'),
-                  options: [],
+                  placeholder: Text(l10n.errorCategories(err.toString())),
+                  options: const [],
                   selectedOptionBuilder: null,
                 ),
               ),
               const SizedBox(height: 20),
-              _buildFieldLabel('SKU / Barcode'),
+              _buildFieldLabel(l10n.skuBarcode),
               Row(
                 children: [
                   Expanded(
                     child: ShadInput(
                       controller: _skuController,
-                      placeholder: const Text('Scan atau ketik SKU...'),
+                      placeholder: Text(l10n.scanOrTypeSku),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Tooltip(
-                    message: 'Generate SKU Acak',
+                    message: l10n.generateRandomSku,
                     child: ShadButton.outline(
                       onPressed: _generateRandomSku,
                       child: const Icon(TablerIcons.refresh, size: 20),
@@ -235,7 +241,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   ),
                   const SizedBox(width: 8),
                   Tooltip(
-                    message: 'Scan Barcode Kamera',
+                    message: l10n.scanBarcodeCamera,
                     child: ShadButton.outline(
                       onPressed: _scanBarcode,
                       child: const Icon(TablerIcons.barcode, size: 20),
@@ -245,7 +251,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ),
               if (_skuController.text.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _buildFieldLabel('Barcode Preview'),
+                _buildFieldLabel(l10n.barcodePreview),
                 RepaintBoundary(
                   key: _previewKey,
                   child: Container(
@@ -267,7 +273,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                         Text(
                           _nameController.text.isNotEmpty 
                               ? _nameController.text.toUpperCase() 
-                              : 'PRODUK BARU',
+                              : l10n.newProduct.toUpperCase(),
                           style: const TextStyle(
                             color: Colors.black,
                             fontWeight: FontWeight.bold,
@@ -314,9 +320,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                                   else
                                     const Icon(TablerIcons.share, size: 16, color: Colors.blue),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    'Bagikan',
-                                    style: TextStyle(
+                                  Text(
+                                    l10n.share,
+                                    style: const TextStyle(
                                       color: Colors.blue,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -339,7 +345,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFieldLabel('Harga Modal'),
+                        _buildFieldLabel(l10n.costPrice),
                         ShadInput(
                           controller: _modalPriceController,
                           keyboardType: TextInputType.number,
@@ -353,7 +359,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildFieldLabel('Harga Jual'),
+                        _buildFieldLabel(l10n.sellingPrice),
                         ShadInput(
                           controller: _priceController,
                           keyboardType: TextInputType.number,
@@ -365,7 +371,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildFieldLabel('Stok Awal'),
+              _buildFieldLabel(l10n.initialStock),
               ShadInput(
                 controller: _stockController,
                 keyboardType: TextInputType.number,
@@ -377,7 +383,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 onPressed: _isSaving ? null : _saveProduct,
                 child: _isSaving 
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Simpan Produk'),
+                  : Text(l10n.saveProduct),
               ),
             ],
           ),
@@ -394,6 +400,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   Widget _buildImagePicker() {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: _pickImage,
       child: Container(
@@ -412,7 +419,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     children: [
                       Icon(TablerIcons.photo_plus, size: 48, color: Colors.grey.shade300),
                       const SizedBox(height: 8),
-                      const Text('Ketuk untuk tambah foto', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                      Text(l10n.tapToAddPhoto, style: const TextStyle(color: Colors.grey, fontSize: 13)),
                     ],
                   ),
       ),
@@ -420,10 +427,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   Future<void> _saveProduct() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_nameController.text.isEmpty) {
       mySnackBar(
         context: context,
-        text: 'Nama produk wajib diisi',
+        text: l10n.productNameRequired,
         status: ToastStatus.error,
       );
       return;
@@ -451,11 +459,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         if (widget.product == null) {
           final categories = ref.read(categoryNotifierProvider).value;
           final categoryName = _selectedCategoryId == null
-              ? 'Tanpa Kategori'
+              ? l10n.noCategory
               : categories?.firstWhere(
                   (c) => c.supabaseId == _selectedCategoryId,
-                  orElse: () => Category()..name = 'Tanpa Kategori',
-                ).name ?? 'Tanpa Kategori';
+                  orElse: () => Category()..name = l10n.noCategory,
+                ).name ?? l10n.noCategory;
 
           await AnalyticsService.instance.logProductCreation(
             categoryName: categoryName,
@@ -476,7 +484,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     } catch (e) {
       if (mounted) mySnackBar(
         context: context,
-        text: 'Gagal menyimpan: $e',
+        text: l10n.productSaveFailed(e.toString()),
         status: ToastStatus.error,
       );
     } finally {

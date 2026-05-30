@@ -6,6 +6,8 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/providers/locale_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -22,6 +24,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _isLoading = false;
 
   Future<void> _handleRegister() async {
+    final l10n = AppLocalizations.of(context)!;
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -30,7 +33,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (name.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       mySnackBar(
         context: context,
-        text: 'Semua kolom wajib diisi',
+        text: l10n.allFieldsRequired,
         status: ToastStatus.error,
       );
       return;
@@ -39,7 +42,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (password != confirmPassword) {
       mySnackBar(
         context: context,
-        text: 'Password tidak cocok',
+        text: l10n.passwordsDoNotMatch,
         status: ToastStatus.error,
       );
       return;
@@ -55,7 +58,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Registrasi berhasil! Silakan cek email Anda.',
+          text: l10n.registrationSuccess,
           status: ToastStatus.success,
         );
         context.pushReplacement('/setup-password');
@@ -64,7 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Registrasi Gagal: ${e.toString()}',
+          text: l10n.registrationFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -74,6 +77,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).signInWithGoogle();
@@ -82,7 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Google Sign-In Gagal: ${e.toString()}',
+          text: l10n.googleSignInFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -91,10 +95,108 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
+  Future<void> _showLanguageSelector(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = ShadTheme.of(context);
+    final currentLocale = ref.read(localeNotifierProvider);
+
+    await showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: Text(l10n.selectLanguage),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxWidth: 320),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.indonesian,
+                  isSelected: currentLocale.languageCode == 'id',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('id');
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.english,
+                  isSelected: currentLocale.languageCode == 'en',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('en');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String title,
+    required bool isSelected,
+    required ShadThemeData theme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary.withOpacity(0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary.withOpacity(0.3)
+                : theme.colorScheme.border.withOpacity(0.5),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.black : Colors.black87,
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                TablerIcons.check,
+                color: theme.colorScheme.primary,
+                size: 18,
+              )
+            else
+              const SizedBox(width: 18, height: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = ref.watch(localeNotifierProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -108,7 +210,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Buat Akun Baru',
+                      l10n.createAccount,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.h2.copyWith(
                         fontWeight: FontWeight.bold,
@@ -119,7 +221,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 8),
                     
                     Text(
-                      'Mulai kelola bisnis Anda dengan sistem POS modern.',
+                      l10n.registerSubtitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.muted.copyWith(fontSize: 16),
                     ).animate().fadeIn(delay: 200.ms),
@@ -137,7 +239,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Daftar',
+                            l10n.register,
                             style: theme.textTheme.h3.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -145,24 +247,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Lengkapi data di bawah untuk membuat akun.',
+                            l10n.registerInstructions,
                             style: theme.textTheme.muted.copyWith(fontSize: 14),
                           ),
                           
                           const SizedBox(height: 24),
                           
                           // Name Field
-                          const Text(
-                            'Nama Lengkap',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          Text(
+                            l10n.fullName,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           ShadInput(
                             controller: _nameController,
                             placeholder: const Text('John Doe'),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFF1F3F5),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFF1F3F5),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -170,17 +272,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           const SizedBox(height: 20),
                           
                           // Email Field
-                          const Text(
-                            'Email',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          Text(
+                            l10n.email,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           ShadInput(
                             controller: _emailController,
                             placeholder: const Text('contoh@email.com'),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFEDF2FF),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFEDF2FF),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -188,9 +290,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           const SizedBox(height: 20),
                           
                           // Password Field
-                          const Text(
-                            'Password',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          Text(
+                            l10n.password,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           ShadInput(
@@ -198,8 +300,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             placeholder: const Text('••••••••'),
                             obscureText: true,
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFEDF2FF),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFEDF2FF),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -207,9 +309,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           const SizedBox(height: 20),
 
                           // Confirm Password Field
-                          const Text(
-                            'Konfirmasi Password',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          Text(
+                            l10n.confirmPassword,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           ShadInput(
@@ -217,8 +319,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             placeholder: const Text('••••••••'),
                             obscureText: true,
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFF1F3F5),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFF1F3F5),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -245,9 +347,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                       width: 20,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                                     )
-                                  : const Text(
-                                      'Daftar Sekarang',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  : Text(
+                                      l10n.registerNow,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                     ),
                             ),
                           ),
@@ -261,7 +363,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  'ATAU DAFTAR DENGAN',
+                                  l10n.orRegisterWith,
                                   style: theme.textTheme.small.copyWith(
                                     color: Colors.grey[500],
                                     letterSpacing: 0.5,
@@ -312,11 +414,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               onPressed: () => context.pop(),
                               child: Text.rich(
                                 TextSpan(
-                                  text: 'Sudah punya akun? ',
+                                  text: l10n.alreadyHaveAccount,
                                   style: TextStyle(color: Colors.grey[600], fontSize: 14),
                                   children: [
                                     TextSpan(
-                                      text: 'Login di sini',
+                                      text: l10n.loginHere,
                                       style: TextStyle(
                                         color: primaryColor,
                                         fontWeight: FontWeight.bold,
@@ -332,6 +434,51 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
                   ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _showLanguageSelector(context),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(TablerIcons.language, size: 16, color: Colors.black54),
+                        const SizedBox(width: 6),
+                        Text(
+                          currentLocale.languageCode == 'id' ? 'ID' : 'EN',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(TablerIcons.chevron_down, size: 12, color: Colors.black54),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

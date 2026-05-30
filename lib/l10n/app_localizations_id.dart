@@ -729,4 +729,253 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get edit => 'Ubah';
+
+  @override
+  String get searchCategory => 'Cari kategori...';
+
+  @override
+  String get noCategoriesYet => 'Belum ada kategori';
+
+  @override
+  String get noCategoriesYetDesc =>
+      'Tambah kategori baru untuk mulai mengelompokkan produk Anda.';
+
+  @override
+  String get viewProducts => 'Lihat Produk';
+
+  @override
+  String get editCategory => 'Edit Kategori';
+
+  @override
+  String get addCategory => 'Tambah Kategori';
+
+  @override
+  String get deleteCategory => 'Hapus Kategori';
+
+  @override
+  String get fillCategoryInfo => 'Isi informasi kategori dengan lengkap.';
+
+  @override
+  String get categoryName => 'Nama Kategori';
+
+  @override
+  String get categoryNameExample => 'Contoh: Makanan, Minuman...';
+
+  @override
+  String get categoryNameEmpty => 'Nama kategori tidak boleh kosong';
+
+  @override
+  String get categoryUpdatedSuccess => 'Kategori berhasil diperbarui';
+
+  @override
+  String get categoryAddedSuccess => 'Kategori berhasil ditambahkan';
+
+  @override
+  String categoryActionFailed(String error) {
+    return 'Gagal: $error';
+  }
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return 'Apakah Anda yakin ingin menghapus kategori \"$name\"? Tindakan ini tidak dapat dibatalkan.';
+  }
+
+  @override
+  String get categoryDeletedSuccess => 'Kategori berhasil dihapus';
+
+  @override
+  String categoryDeleteFailed(String error) {
+    return 'Gagal menghapus: $error';
+  }
+
+  @override
+  String get delete => 'Hapus';
+
+  @override
+  String get save => 'Simpan';
+
+  @override
+  String get randomSkuCreated => 'SKU acak berhasil dibuat';
+
+  @override
+  String barcodeFor(String productName, String sku) {
+    return 'Barcode untuk $productName ($sku)';
+  }
+
+  @override
+  String get newProduct => 'Produk Baru';
+
+  @override
+  String get editProduct => 'Edit Produk';
+
+  @override
+  String get productName => 'Nama Produk';
+
+  @override
+  String get enterProductName => 'Masukkan nama produk...';
+
+  @override
+  String get category => 'Kategori';
+
+  @override
+  String get selectCategory => 'Pilih Kategori';
+
+  @override
+  String get noCategory => 'Tanpa Kategori';
+
+  @override
+  String get loadingCategories => 'Loading kategori...';
+
+  @override
+  String errorCategories(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get skuBarcode => 'SKU / Barcode';
+
+  @override
+  String get scanOrTypeSku => 'Scan atau ketik SKU...';
+
+  @override
+  String get generateRandomSku => 'Generate SKU Acak';
+
+  @override
+  String get scanBarcodeCamera => 'Scan Barcode Kamera';
+
+  @override
+  String get barcodePreview => 'Barcode Preview';
+
+  @override
+  String get costPrice => 'Harga Modal';
+
+  @override
+  String get sellingPrice => 'Harga Jual';
+
+  @override
+  String get initialStock => 'Stok Awal';
+
+  @override
+  String get saveProduct => 'Simpan Produk';
+
+  @override
+  String get tapToAddPhoto => 'Ketuk untuk tambah foto';
+
+  @override
+  String get productNameRequired => 'Nama produk wajib diisi';
+
+  @override
+  String productSaveFailed(String error) {
+    return 'Gagal menyimpan: $error';
+  }
+
+  @override
+  String get monitorAndUpdateStock => 'Pantau dan perbarui stok produk Anda';
+
+  @override
+  String get allCategories => 'Semua Kategori';
+
+  @override
+  String stockUpdated(String productName, int stock) {
+    return 'Stok $productName diperbarui menjadi $stock';
+  }
+
+  @override
+  String stockUpdateFailed(String error) {
+    return 'Gagal memperbarui stok: $error';
+  }
+
+  @override
+  String get welcomeBack => 'Selamat Datang Kembali';
+
+  @override
+  String get loginSubtitle =>
+      'Masukkan email dan password untuk masuk ke dashboard POS.';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get useRegisteredAccount => 'Gunakan akun yang sudah terdaftar.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get forgotPassword => 'Lupa password?';
+
+  @override
+  String get signIn => 'Masuk';
+
+  @override
+  String get orContinueWith => 'ATAU LANJUT DENGAN';
+
+  @override
+  String get dontHaveAccount => 'Belum punya akun? ';
+
+  @override
+  String get signUpHere => 'Daftar di sini';
+
+  @override
+  String get emailPasswordRequired => 'Email dan Password tidak boleh kosong';
+
+  @override
+  String loginFailed(String error) {
+    return 'Login Gagal: $error';
+  }
+
+  @override
+  String googleSignInFailed(String error) {
+    return 'Google Sign-In Gagal: $error';
+  }
+
+  @override
+  String get createAccount => 'Buat Akun Baru';
+
+  @override
+  String get registerSubtitle =>
+      'Mulai kelola bisnis Anda dengan sistem POS modern.';
+
+  @override
+  String get register => 'Daftar';
+
+  @override
+  String get registerInstructions =>
+      'Lengkapi data di bawah untuk membuat akun.';
+
+  @override
+  String get fullName => 'Nama Lengkap';
+
+  @override
+  String get confirmPassword => 'Konfirmasi Password';
+
+  @override
+  String get registerNow => 'Daftar Sekarang';
+
+  @override
+  String get orRegisterWith => 'ATAU DAFTAR DENGAN';
+
+  @override
+  String get alreadyHaveAccount => 'Sudah punya akun? ';
+
+  @override
+  String get loginHere => 'Login di sini';
+
+  @override
+  String get allFieldsRequired => 'Semua kolom wajib diisi';
+
+  @override
+  String get passwordsDoNotMatch => 'Password tidak cocok';
+
+  @override
+  String get registrationSuccess =>
+      'Registrasi berhasil! Silakan cek email Anda.';
+
+  @override
+  String registrationFailed(String error) {
+    return 'Registrasi Gagal: $error';
+  }
 }

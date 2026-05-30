@@ -727,4 +727,253 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get edit => 'Edit';
+
+  @override
+  String get searchCategory => 'Search category...';
+
+  @override
+  String get noCategoriesYet => 'No categories yet';
+
+  @override
+  String get noCategoriesYetDesc =>
+      'Add a new category to start grouping your products.';
+
+  @override
+  String get viewProducts => 'View Products';
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get deleteCategory => 'Delete Category';
+
+  @override
+  String get fillCategoryInfo => 'Fill category details completely.';
+
+  @override
+  String get categoryName => 'Category Name';
+
+  @override
+  String get categoryNameExample => 'e.g., Food, Beverage...';
+
+  @override
+  String get categoryNameEmpty => 'Category name cannot be empty';
+
+  @override
+  String get categoryUpdatedSuccess => 'Category successfully updated';
+
+  @override
+  String get categoryAddedSuccess => 'Category successfully added';
+
+  @override
+  String categoryActionFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String deleteCategoryConfirm(String name) {
+    return 'Are you sure you want to delete \"$name\"? This action cannot be undone.';
+  }
+
+  @override
+  String get categoryDeletedSuccess => 'Category successfully deleted';
+
+  @override
+  String categoryDeleteFailed(String error) {
+    return 'Failed to delete: $error';
+  }
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get randomSkuCreated => 'Random SKU successfully created';
+
+  @override
+  String barcodeFor(String productName, String sku) {
+    return 'Barcode for $productName ($sku)';
+  }
+
+  @override
+  String get newProduct => 'New Product';
+
+  @override
+  String get editProduct => 'Edit Product';
+
+  @override
+  String get productName => 'Product Name';
+
+  @override
+  String get enterProductName => 'Enter product name...';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get selectCategory => 'Select Category';
+
+  @override
+  String get noCategory => 'No Category';
+
+  @override
+  String get loadingCategories => 'Loading categories...';
+
+  @override
+  String errorCategories(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get skuBarcode => 'SKU / Barcode';
+
+  @override
+  String get scanOrTypeSku => 'Scan or type SKU...';
+
+  @override
+  String get generateRandomSku => 'Generate Random SKU';
+
+  @override
+  String get scanBarcodeCamera => 'Scan Barcode (Camera)';
+
+  @override
+  String get barcodePreview => 'Barcode Preview';
+
+  @override
+  String get costPrice => 'Cost Price';
+
+  @override
+  String get sellingPrice => 'Selling Price';
+
+  @override
+  String get initialStock => 'Initial Stock';
+
+  @override
+  String get saveProduct => 'Save Product';
+
+  @override
+  String get tapToAddPhoto => 'Tap to add photo';
+
+  @override
+  String get productNameRequired => 'Product name is required';
+
+  @override
+  String productSaveFailed(String error) {
+    return 'Failed to save: $error';
+  }
+
+  @override
+  String get monitorAndUpdateStock => 'Monitor and update your product stock';
+
+  @override
+  String get allCategories => 'All Categories';
+
+  @override
+  String stockUpdated(String productName, int stock) {
+    return 'Stock of $productName updated to $stock';
+  }
+
+  @override
+  String stockUpdateFailed(String error) {
+    return 'Failed to update stock: $error';
+  }
+
+  @override
+  String get welcomeBack => 'Welcome Back';
+
+  @override
+  String get loginSubtitle =>
+      'Enter your email and password to access the POS dashboard.';
+
+  @override
+  String get login => 'Login';
+
+  @override
+  String get useRegisteredAccount => 'Use a registered account.';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get orContinueWith => 'OR CONTINUE WITH';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account? ';
+
+  @override
+  String get signUpHere => 'Sign up here';
+
+  @override
+  String get emailPasswordRequired => 'Email and Password cannot be empty';
+
+  @override
+  String loginFailed(String error) {
+    return 'Login Failed: $error';
+  }
+
+  @override
+  String googleSignInFailed(String error) {
+    return 'Google Sign-In Failed: $error';
+  }
+
+  @override
+  String get createAccount => 'Create New Account';
+
+  @override
+  String get registerSubtitle =>
+      'Start managing your business with a modern POS system.';
+
+  @override
+  String get register => 'Register';
+
+  @override
+  String get registerInstructions =>
+      'Complete the details below to create an account.';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get confirmPassword => 'Confirm Password';
+
+  @override
+  String get registerNow => 'Register Now';
+
+  @override
+  String get orRegisterWith => 'OR REGISTER WITH';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account? ';
+
+  @override
+  String get loginHere => 'Login here';
+
+  @override
+  String get allFieldsRequired => 'All fields are required';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get registrationSuccess =>
+      'Registration successful! Please check your email.';
+
+  @override
+  String registrationFailed(String error) {
+    return 'Registration Failed: $error';
+  }
 }

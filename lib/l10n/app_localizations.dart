@@ -1429,6 +1429,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit'**
   String get edit;
+
+  /// No description provided for @searchCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Search category...'**
+  String get searchCategory;
+
+  /// No description provided for @noCategoriesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories yet'**
+  String get noCategoriesYet;
+
+  /// No description provided for @noCategoriesYetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a new category to start grouping your products.'**
+  String get noCategoriesYetDesc;
+
+  /// No description provided for @viewProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'View Products'**
+  String get viewProducts;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Category'**
+  String get editCategory;
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Category'**
+  String get addCategory;
+
+  /// No description provided for @deleteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Category'**
+  String get deleteCategory;
+
+  /// No description provided for @fillCategoryInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill category details completely.'**
+  String get fillCategoryInfo;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Name'**
+  String get categoryName;
+
+  /// No description provided for @categoryNameExample.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Food, Beverage...'**
+  String get categoryNameExample;
+
+  /// No description provided for @categoryNameEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Category name cannot be empty'**
+  String get categoryNameEmpty;
+
+  /// No description provided for @categoryUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Category successfully updated'**
+  String get categoryUpdatedSuccess;
+
+  /// No description provided for @categoryAddedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Category successfully added'**
+  String get categoryAddedSuccess;
+
+  /// No description provided for @categoryActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String categoryActionFailed(String error);
+
+  /// No description provided for @deleteCategoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This action cannot be undone.'**
+  String deleteCategoryConfirm(String name);
+
+  /// No description provided for @categoryDeletedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Category successfully deleted'**
+  String get categoryDeletedSuccess;
+
+  /// No description provided for @categoryDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete: {error}'**
+  String categoryDeleteFailed(String error);
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @randomSkuCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Random SKU successfully created'**
+  String get randomSkuCreated;
+
+  /// No description provided for @barcodeFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode for {productName} ({sku})'**
+  String barcodeFor(String productName, String sku);
+
+  /// No description provided for @newProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'New Product'**
+  String get newProduct;
+
+  /// No description provided for @editProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Product'**
+  String get editProduct;
+
+  /// No description provided for @productName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Name'**
+  String get productName;
+
+  /// No description provided for @enterProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter product name...'**
+  String get enterProductName;
+
+  /// No description provided for @category.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get category;
+
+  /// No description provided for @selectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Category'**
+  String get selectCategory;
+
+  /// No description provided for @noCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No Category'**
+  String get noCategory;
+
+  /// No description provided for @loadingCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading categories...'**
+  String get loadingCategories;
+
+  /// No description provided for @errorCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorCategories(String error);
+
+  /// No description provided for @skuBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'SKU / Barcode'**
+  String get skuBarcode;
+
+  /// No description provided for @scanOrTypeSku.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan or type SKU...'**
+  String get scanOrTypeSku;
+
+  /// No description provided for @generateRandomSku.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Random SKU'**
+  String get generateRandomSku;
+
+  /// No description provided for @scanBarcodeCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Barcode (Camera)'**
+  String get scanBarcodeCamera;
+
+  /// No description provided for @barcodePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode Preview'**
+  String get barcodePreview;
+
+  /// No description provided for @costPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Price'**
+  String get costPrice;
+
+  /// No description provided for @sellingPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Selling Price'**
+  String get sellingPrice;
+
+  /// No description provided for @initialStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial Stock'**
+  String get initialStock;
+
+  /// No description provided for @saveProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Product'**
+  String get saveProduct;
+
+  /// No description provided for @tapToAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add photo'**
+  String get tapToAddPhoto;
+
+  /// No description provided for @productNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Product name is required'**
+  String get productNameRequired;
+
+  /// No description provided for @productSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {error}'**
+  String productSaveFailed(String error);
+
+  /// No description provided for @monitorAndUpdateStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor and update your product stock'**
+  String get monitorAndUpdateStock;
+
+  /// No description provided for @allCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'All Categories'**
+  String get allCategories;
+
+  /// No description provided for @stockUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock of {productName} updated to {stock}'**
+  String stockUpdated(String productName, int stock);
+
+  /// No description provided for @stockUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update stock: {error}'**
+  String stockUpdateFailed(String error);
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get welcomeBack;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email and password to access the POS dashboard.'**
+  String get loginSubtitle;
+
+  /// No description provided for @login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get login;
+
+  /// No description provided for @useRegisteredAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a registered account.'**
+  String get useRegisteredAccount;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @orContinueWith.
+  ///
+  /// In en, this message translates to:
+  /// **'OR CONTINUE WITH'**
+  String get orContinueWith;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account? '**
+  String get dontHaveAccount;
+
+  /// No description provided for @signUpHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up here'**
+  String get signUpHere;
+
+  /// No description provided for @emailPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email and Password cannot be empty'**
+  String get emailPasswordRequired;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Login Failed: {error}'**
+  String loginFailed(String error);
+
+  /// No description provided for @googleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Sign-In Failed: {error}'**
+  String googleSignInFailed(String error);
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create New Account'**
+  String get createAccount;
+
+  /// No description provided for @registerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start managing your business with a modern POS system.'**
+  String get registerSubtitle;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @registerInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete the details below to create an account.'**
+  String get registerInstructions;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPassword;
+
+  /// No description provided for @registerNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Now'**
+  String get registerNow;
+
+  /// No description provided for @orRegisterWith.
+  ///
+  /// In en, this message translates to:
+  /// **'OR REGISTER WITH'**
+  String get orRegisterWith;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? '**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @loginHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Login here'**
+  String get loginHere;
+
+  /// No description provided for @allFieldsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields are required'**
+  String get allFieldsRequired;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @registrationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful! Please check your email.'**
+  String get registrationSuccess;
+
+  /// No description provided for @registrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration Failed: {error}'**
+  String registrationFailed(String error);
 }
 
 class _AppLocalizationsDelegate

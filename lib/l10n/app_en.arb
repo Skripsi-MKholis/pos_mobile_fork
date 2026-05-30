@@ -388,5 +388,165 @@
   "productBarcode": "Product Barcode",
   "copySku": "Copy SKU",
   "add": "Add",
-  "edit": "Edit"
+  "edit": "Edit",
+  "searchCategory": "Search category...",
+  "noCategoriesYet": "No categories yet",
+  "noCategoriesYetDesc": "Add a new category to start grouping your products.",
+  "viewProducts": "View Products",
+  "editCategory": "Edit Category",
+  "addCategory": "Add Category",
+  "deleteCategory": "Delete Category",
+  "fillCategoryInfo": "Fill category details completely.",
+  "categoryName": "Category Name",
+  "categoryNameExample": "e.g., Food, Beverage...",
+  "categoryNameEmpty": "Category name cannot be empty",
+  "categoryUpdatedSuccess": "Category successfully updated",
+  "categoryAddedSuccess": "Category successfully added",
+  "categoryActionFailed": "Failed: {error}",
+  "@categoryActionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCategoryConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+  "@deleteCategoryConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeletedSuccess": "Category successfully deleted",
+  "categoryDeleteFailed": "Failed to delete: {error}",
+  "@categoryDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Delete",
+  "save": "Save",
+  "randomSkuCreated": "Random SKU successfully created",
+  "barcodeFor": "Barcode for {productName} ({sku})",
+  "@barcodeFor": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "newProduct": "New Product",
+  "editProduct": "Edit Product",
+  "productName": "Product Name",
+  "enterProductName": "Enter product name...",
+  "category": "Category",
+  "selectCategory": "Select Category",
+  "noCategory": "No Category",
+  "loadingCategories": "Loading categories...",
+  "errorCategories": "Error: {error}",
+  "@errorCategories": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "skuBarcode": "SKU / Barcode",
+  "scanOrTypeSku": "Scan or type SKU...",
+  "generateRandomSku": "Generate Random SKU",
+  "scanBarcodeCamera": "Scan Barcode (Camera)",
+  "barcodePreview": "Barcode Preview",
+  "share": "Share",
+  "costPrice": "Cost Price",
+  "sellingPrice": "Selling Price",
+  "initialStock": "Initial Stock",
+  "saveProduct": "Save Product",
+  "tapToAddPhoto": "Tap to add photo",
+  "productNameRequired": "Product name is required",
+  "productSaveFailed": "Failed to save: {error}",
+  "@productSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageStock": "Manage Stock",
+  "monitorAndUpdateStock": "Monitor and update your product stock",
+  "allCategories": "All Categories",
+  "productNotFound": "Product not found",
+  "stockUpdated": "Stock of {productName} updated to {stock}",
+  "@stockUpdated": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "stock": {
+        "type": "int"
+      }
+    }
+  },
+  "stockUpdateFailed": "Failed to update stock: {error}",
+  "@stockUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeBack": "Welcome Back",
+  "loginSubtitle": "Enter your email and password to access the POS dashboard.",
+  "login": "Login",
+  "useRegisteredAccount": "Use a registered account.",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot password?",
+  "signIn": "Sign In",
+  "orContinueWith": "OR CONTINUE WITH",
+  "dontHaveAccount": "Don't have an account? ",
+  "signUpHere": "Sign up here",
+  "emailPasswordRequired": "Email and Password cannot be empty",
+  "loginFailed": "Login Failed: {error}",
+  "@loginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "googleSignInFailed": "Google Sign-In Failed: {error}",
+  "@googleSignInFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createAccount": "Create New Account",
+  "registerSubtitle": "Start managing your business with a modern POS system.",
+  "register": "Register",
+  "registerInstructions": "Complete the details below to create an account.",
+  "fullName": "Full Name",
+  "confirmPassword": "Confirm Password",
+  "registerNow": "Register Now",
+  "orRegisterWith": "OR REGISTER WITH",
+  "alreadyHaveAccount": "Already have an account? ",
+  "loginHere": "Login here",
+  "allFieldsRequired": "All fields are required",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "registrationSuccess": "Registration successful! Please check your email.",
+  "registrationFailed": "Registration Failed: {error}",
+  "@registrationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

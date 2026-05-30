@@ -6,6 +6,8 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/providers/locale_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,13 +22,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       mySnackBar(
         context: context,
-        text: 'Email dan Password tidak boleh kosong',
+        text: l10n.emailPasswordRequired,
         status: ToastStatus.error,
       );
       return;
@@ -40,7 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Login Gagal: ${e.toString()}',
+          text: l10n.loginFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -50,6 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _handleGoogleSignIn() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
     try {
       await ref.read(authProvider.notifier).signInWithGoogle();
@@ -58,7 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Google Sign-In Gagal: ${e.toString()}',
+          text: l10n.googleSignInFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -67,10 +71,108 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _showLanguageSelector(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = ShadTheme.of(context);
+    final currentLocale = ref.read(localeNotifierProvider);
+
+    await showShadDialog(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: Text(l10n.selectLanguage),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: double.maxFinite,
+            constraints: const BoxConstraints(maxWidth: 320),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.indonesian,
+                  isSelected: currentLocale.languageCode == 'id',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('id');
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(height: 10),
+                _buildLanguageOption(
+                  context: context,
+                  title: l10n.english,
+                  isSelected: currentLocale.languageCode == 'en',
+                  theme: theme,
+                  onTap: () {
+                    ref.read(localeNotifierProvider.notifier).changeLocale('en');
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required BuildContext context,
+    required String title,
+    required bool isSelected,
+    required ShadThemeData theme,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary.withOpacity(0.08)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary.withOpacity(0.3)
+                : theme.colorScheme.border.withOpacity(0.5),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.black : Colors.black87,
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                TablerIcons.check,
+                color: theme.colorScheme.primary,
+                size: 18,
+              )
+            else
+              const SizedBox(width: 18, height: 18),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final l10n = AppLocalizations.of(context)!;
+    final currentLocale = ref.watch(localeNotifierProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -100,7 +202,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 24),
                     
                     Text(
-                      'Selamat Datang Kembali',
+                      l10n.welcomeBack,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.h2.copyWith(
                         fontWeight: FontWeight.bold,
@@ -111,7 +213,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 8),
                     
                     Text(
-                      'Masukkan email dan password untuk masuk ke dashboard POS.',
+                      l10n.loginSubtitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.muted.copyWith(fontSize: 15),
                     ).animate().fadeIn(delay: 300.ms),
@@ -129,7 +231,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Login',
+                            l10n.login,
                             style: theme.textTheme.h3.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 24,
@@ -137,24 +239,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Gunakan akun yang sudah terdaftar.',
+                            l10n.useRegisteredAccount,
                             style: theme.textTheme.muted.copyWith(fontSize: 14),
                           ),
                           
                           const SizedBox(height: 24),
                           
                           // Email Field
-                          const Text(
-                            'Email',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          Text(
+                            l10n.email,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           const SizedBox(height: 8),
                           ShadInput(
                             controller: _emailController,
                             placeholder: const Text('contoh@email.com'),
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFEDF2FF),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFEDF2FF),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -165,9 +267,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
-                                'Password',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              Text(
+                                l10n.password,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                               ),
                               TextButton(
                                 onPressed: () {},
@@ -177,7 +279,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 child: Text(
-                                  'Lupa password?',
+                                  l10n.forgotPassword,
                                   style: TextStyle(
                                     color: primaryColor,
                                     fontSize: 13,
@@ -193,8 +295,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             placeholder: const Text('••••••••'),
                             obscureText: true,
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: ShadDecoration(
-                              color: const Color(0xFFEDF2FF),
+                            decoration: const ShadDecoration(
+                              color: Color(0xFFEDF2FF),
                               border: ShadBorder.none,
                             ),
                           ),
@@ -221,9 +323,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       width: 20,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                                     )
-                                  : const Text(
-                                      'Masuk',
-                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  : Text(
+                                      l10n.signIn,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                     ),
                             ),
                           ),
@@ -237,7 +339,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  'ATAU LANJUT DENGAN',
+                                  l10n.orContinueWith,
                                   style: theme.textTheme.small.copyWith(
                                     color: Colors.grey[500],
                                     letterSpacing: 0.5,
@@ -288,11 +390,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed: () => context.push('/register'),
                               child: Text.rich(
                                 TextSpan(
-                                  text: 'Belum punya akun? ',
+                                  text: l10n.dontHaveAccount,
                                   style: TextStyle(color: Colors.grey[600], fontSize: 14),
                                   children: [
                                     TextSpan(
-                                      text: 'Daftar di sini',
+                                      text: l10n.signUpHere,
                                       style: TextStyle(
                                         color: primaryColor,
                                         fontWeight: FontWeight.bold,
@@ -308,6 +410,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
                   ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _showLanguageSelector(context),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(TablerIcons.language, size: 16, color: Colors.black54),
+                        const SizedBox(width: 6),
+                        Text(
+                          currentLocale.languageCode == 'id' ? 'ID' : 'EN',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(TablerIcons.chevron_down, size: 12, color: Colors.black54),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

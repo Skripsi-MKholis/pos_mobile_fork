@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
@@ -32,6 +33,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoryNotifierProvider);
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return PopScope(
       canPop: false,
@@ -46,7 +48,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
-          title: const Text('Kelola Kategori'),
+          title: Text(l10n.manageCategories),
           backgroundColor: theme.colorScheme.background,
           elevation: 0,
           centerTitle: false,
@@ -74,7 +76,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                   children: [
                     Expanded(
                       child: ShadInput(
-                        placeholder: const Text('Cari kategori...'),
+                        placeholder: Text(l10n.searchCategory),
                         leading: const Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Icon(TablerIcons.search, size: 20),
@@ -93,7 +95,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                       backgroundColor: const Color(0xFF98D100), // Lime Green
                       onPressed: () => _showCategoryForm(context),
                       leading: const Icon(TablerIcons.plus, size: 18),
-                      child: const Text('Tambah'),
+                      child: Text(l10n.add),
                     ),
                   ],
                 ),
@@ -138,7 +140,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                                 ),
                                 const SizedBox(height: 20),
                                 Text(
-                                  'Belum ada kategori',
+                                  l10n.noCategoriesYet,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -147,7 +149,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Tambah kategori baru untuk mulai\nmengelompokkan produk Anda.',
+                                  l10n.noCategoriesYetDesc,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: theme.colorScheme.mutedForeground,
@@ -204,6 +206,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
     Category category,
     ShadThemeData theme,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final firstLetter = category.name.isNotEmpty
         ? category.name[0].toUpperCase()
         : '?';
@@ -263,11 +266,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                     ),
                   ),
                   if (!category.isSynced)
-                    const Padding(
-                      padding: EdgeInsets.only(left: 6),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
                       child: Tooltip(
-                        message: 'Menunggu sinkronisasi ke cloud',
-                        child: Icon(
+                        message: l10n.waitingForSync,
+                        child: const Icon(
                           TablerIcons.cloud_off,
                           size: 14,
                           color: Colors.orange,
@@ -284,7 +287,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Tooltip(
-                  message: 'Lihat Produk',
+                  message: l10n.viewProducts,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () {
@@ -309,7 +312,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Edit Kategori',
+                  message: l10n.editCategory,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () => _showCategoryForm(context, category: category),
@@ -329,7 +332,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Hapus Kategori',
+                  message: l10n.deleteCategory,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () => _confirmDelete(context, category),
@@ -356,43 +359,43 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
   }
 
   void _showCategoryForm(BuildContext context, {Category? category}) {
-    final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isEditing = category != null;
     final nameController = TextEditingController(text: category?.name);
 
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog(
-        title: Text(isEditing ? 'Edit Kategori' : 'Tambah Kategori'),
-        description: const Text('Isi informasi kategori dengan lengkap.'),
+        title: Text(isEditing ? l10n.editCategory : l10n.addCategory),
+        description: Text(l10n.fillCategoryInfo),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Nama Kategori',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            Text(
+              l10n.categoryName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             const SizedBox(height: 8),
             ShadInput(
               controller: nameController,
-              placeholder: const Text('Contoh: Makanan, Minuman...'),
+              placeholder: Text(l10n.categoryNameExample),
             ),
           ],
         ),
         actions: [
           ShadButton.outline(
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           ShadButton(
             backgroundColor: const Color(0xFF98D100),
-            child: Text(isEditing ? 'Simpan' : 'Tambah'),
+            child: Text(isEditing ? l10n.save : l10n.add),
             onPressed: () async {
               if (nameController.text.isEmpty) {
                 mySnackBar(
                   context: context,
-                  text: 'Nama kategori tidak boleh kosong',
+                  text: l10n.categoryNameEmpty,
                   status: ToastStatus.warning,
                 );
                 return;
@@ -423,8 +426,8 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                   mySnackBar(
                     context: context,
                     text: isEditing
-                        ? 'Kategori berhasil diperbarui'
-                        : 'Kategori berhasil ditambahkan',
+                        ? l10n.categoryUpdatedSuccess
+                        : l10n.categoryAddedSuccess,
                     status: ToastStatus.success,
                   );
                 }
@@ -432,7 +435,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 if (context.mounted) {
                   mySnackBar(
                     context: context,
-                    text: 'Gagal: $e',
+                    text: l10n.categoryActionFailed(e.toString()),
                     status: ToastStatus.error,
                   );
                 }
@@ -445,20 +448,21 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
   }
 
   void _confirmDelete(BuildContext context, Category category) {
+    final l10n = AppLocalizations.of(context)!;
     showShadDialog(
       context: context,
       builder: (context) => ShadDialog(
-        title: const Text('Hapus Kategori'),
+        title: Text(l10n.deleteCategory),
         description: Text(
-          'Apakah Anda yakin ingin menghapus kategori "${category.name}"? Tindakan ini tidak dapat dibatalkan.',
+          l10n.deleteCategoryConfirm(category.name),
         ),
         actions: [
           ShadButton.outline(
-            child: const Text('Batal'),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.pop(context),
           ),
           ShadButton.destructive(
-            child: const Text('Hapus'),
+            child: Text(l10n.delete),
             onPressed: () async {
               try {
                 await ref
@@ -468,7 +472,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                   Navigator.pop(context);
                   mySnackBar(
                     context: context,
-                    text: 'Kategori berhasil dihapus',
+                    text: l10n.categoryDeletedSuccess,
                     status: ToastStatus.success,
                   );
                 }
@@ -476,7 +480,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                 if (context.mounted) {
                   mySnackBar(
                     context: context,
-                    text: 'Gagal menghapus: $e',
+                    text: l10n.categoryDeleteFailed(e.toString()),
                     status: ToastStatus.error,
                   );
                 }

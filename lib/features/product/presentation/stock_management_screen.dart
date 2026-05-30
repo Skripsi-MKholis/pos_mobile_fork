@@ -10,8 +10,8 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class StockManagementScreen extends ConsumerStatefulWidget {
   const StockManagementScreen({super.key});
@@ -46,6 +46,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
   }
 
   Future<void> _updateStock(Product product, int newStock) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final oldStock = product.stockQuantity;
       await ref
@@ -68,7 +69,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Stok ${product.name} diperbarui menjadi $newStock',
+          text: l10n.stockUpdated(product.name, newStock),
           status: ToastStatus.success,
         );
       }
@@ -76,7 +77,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
       if (mounted) {
         mySnackBar(
           context: context,
-          text: 'Gagal memperbarui stok: $e',
+          text: l10n.stockUpdateFailed(e.toString()),
           status: ToastStatus.error,
         );
       }
@@ -88,9 +89,12 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     final productsAsync = ref.watch(productNotifierProvider);
     final categoriesAsync = ref.watch(categoryNotifierProvider);
     final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    
+    final locale = Localizations.localeOf(context);
     final format = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: 'Rp ',
+      locale: locale.toString(),
+      symbol: locale.languageCode == 'id' ? 'Rp ' : '\$ ',
       decimalDigits: 0,
     );
 
@@ -100,16 +104,16 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Kelola Stok',
-              style: TextStyle(
+            Text(
+              l10n.manageStock,
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 20,
                 letterSpacing: -0.5,
               ),
             ),
             Text(
-              'Pantau dan perbarui stok produk Anda',
+              l10n.monitorAndUpdateStock,
               style: theme.textTheme.muted.copyWith(fontSize: 12),
             ),
           ],
@@ -160,7 +164,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                     final isNarrow = constraints.maxWidth < 450;
 
                     final searchInput = ShadInput(
-                      placeholder: const Text('Cari nama atau SKU...'),
+                      placeholder: Text(l10n.searchNameOrSku),
                       leading: const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Icon(TablerIcons.search, size: 20),
@@ -178,15 +182,15 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         Expanded(
                           child: categoriesAsync.when(
                             data: (categories) => ShadSelect<String>(
-                              placeholder: const Text(
-                                'Semua Kategori',
+                              placeholder: Text(
+                                l10n.allCategories,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
                               options: [
-                                const ShadOption(
+                                ShadOption(
                                   value: 'all',
-                                  child: Text('Semua Kategori'),
+                                  child: Text(l10n.allCategories),
                                 ),
                                 ...categories.map(
                                   (c) => ShadOption(
@@ -201,7 +205,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                               ),
                               selectedOptionBuilder: (context, value) => Text(
                                 value == 'all'
-                                    ? 'Semua'
+                                    ? l10n.all
                                     : categories
                                           .firstWhere(
                                             (c) => c.supabaseId == value,
@@ -217,9 +221,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                               options: [],
                               selectedOptionBuilder: null,
                             ),
-                            error: (err, _) => const ShadSelect<String>(
-                              placeholder: Text('Error'),
-                              options: [],
+                            error: (err, _) => ShadSelect<String>(
+                              placeholder: Text('Error: $err'),
+                              options: const [],
                               selectedOptionBuilder: null,
                             ),
                           ),
@@ -301,7 +305,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Produk tidak ditemukan',
+                            l10n.productNotFound,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

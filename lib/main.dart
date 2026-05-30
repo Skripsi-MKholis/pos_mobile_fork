@@ -11,6 +11,7 @@ import 'package:pos_mobile/core/providers/sync_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,16 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   await IsarService.init();
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final code = prefs.getString('selected_language_code');
+    if (code != null) {
+      initialLanguageCode = code;
+    }
+  } catch (e) {
+    debugPrint('Error loading saved locale in main: $e');
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }

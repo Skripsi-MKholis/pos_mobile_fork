@@ -388,5 +388,165 @@
   "productBarcode": "Barcode Produk",
   "copySku": "Salin SKU",
   "add": "Tambah",
-  "edit": "Ubah"
+  "edit": "Ubah",
+  "searchCategory": "Cari kategori...",
+  "noCategoriesYet": "Belum ada kategori",
+  "noCategoriesYetDesc": "Tambah kategori baru untuk mulai mengelompokkan produk Anda.",
+  "viewProducts": "Lihat Produk",
+  "editCategory": "Edit Kategori",
+  "addCategory": "Tambah Kategori",
+  "deleteCategory": "Hapus Kategori",
+  "fillCategoryInfo": "Isi informasi kategori dengan lengkap.",
+  "categoryName": "Nama Kategori",
+  "categoryNameExample": "Contoh: Makanan, Minuman...",
+  "categoryNameEmpty": "Nama kategori tidak boleh kosong",
+  "categoryUpdatedSuccess": "Kategori berhasil diperbarui",
+  "categoryAddedSuccess": "Kategori berhasil ditambahkan",
+  "categoryActionFailed": "Gagal: {error}",
+  "@categoryActionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCategoryConfirm": "Apakah Anda yakin ingin menghapus kategori \"{name}\"? Tindakan ini tidak dapat dibatalkan.",
+  "@deleteCategoryConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryDeletedSuccess": "Kategori berhasil dihapus",
+  "categoryDeleteFailed": "Gagal menghapus: {error}",
+  "@categoryDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "delete": "Hapus",
+  "save": "Simpan",
+  "randomSkuCreated": "SKU acak berhasil dibuat",
+  "barcodeFor": "Barcode untuk {productName} ({sku})",
+  "@barcodeFor": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "sku": {
+        "type": "String"
+      }
+    }
+  },
+  "newProduct": "Produk Baru",
+  "editProduct": "Edit Produk",
+  "productName": "Nama Produk",
+  "enterProductName": "Masukkan nama produk...",
+  "category": "Kategori",
+  "selectCategory": "Pilih Kategori",
+  "noCategory": "Tanpa Kategori",
+  "loadingCategories": "Loading kategori...",
+  "errorCategories": "Error: {error}",
+  "@errorCategories": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "skuBarcode": "SKU / Barcode",
+  "scanOrTypeSku": "Scan atau ketik SKU...",
+  "generateRandomSku": "Generate SKU Acak",
+  "scanBarcodeCamera": "Scan Barcode Kamera",
+  "barcodePreview": "Barcode Preview",
+  "share": "Bagikan",
+  "costPrice": "Harga Modal",
+  "sellingPrice": "Harga Jual",
+  "initialStock": "Stok Awal",
+  "saveProduct": "Simpan Produk",
+  "tapToAddPhoto": "Ketuk untuk tambah foto",
+  "productNameRequired": "Nama produk wajib diisi",
+  "productSaveFailed": "Gagal menyimpan: {error}",
+  "@productSaveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "manageStock": "Kelola Stok",
+  "monitorAndUpdateStock": "Pantau dan perbarui stok produk Anda",
+  "allCategories": "Semua Kategori",
+  "productNotFound": "Produk tidak ditemukan",
+  "stockUpdated": "Stok {productName} diperbarui menjadi {stock}",
+  "@stockUpdated": {
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      },
+      "stock": {
+        "type": "int"
+      }
+    }
+  },
+  "stockUpdateFailed": "Gagal memperbarui stok: {error}",
+  "@stockUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "welcomeBack": "Selamat Datang Kembali",
+  "loginSubtitle": "Masukkan email dan password untuk masuk ke dashboard POS.",
+  "login": "Login",
+  "useRegisteredAccount": "Gunakan akun yang sudah terdaftar.",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Lupa password?",
+  "signIn": "Masuk",
+  "orContinueWith": "ATAU LANJUT DENGAN",
+  "dontHaveAccount": "Belum punya akun? ",
+  "signUpHere": "Daftar di sini",
+  "emailPasswordRequired": "Email dan Password tidak boleh kosong",
+  "loginFailed": "Login Gagal: {error}",
+  "@loginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "googleSignInFailed": "Google Sign-In Gagal: {error}",
+  "@googleSignInFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "createAccount": "Buat Akun Baru",
+  "registerSubtitle": "Mulai kelola bisnis Anda dengan sistem POS modern.",
+  "register": "Daftar",
+  "registerInstructions": "Lengkapi data di bawah untuk membuat akun.",
+  "fullName": "Nama Lengkap",
+  "confirmPassword": "Konfirmasi Password",
+  "registerNow": "Daftar Sekarang",
+  "orRegisterWith": "ATAU DAFTAR DENGAN",
+  "alreadyHaveAccount": "Sudah punya akun? ",
+  "loginHere": "Login di sini",
+  "allFieldsRequired": "Semua kolom wajib diisi",
+  "passwordsDoNotMatch": "Password tidak cocok",
+  "registrationSuccess": "Registrasi berhasil! Silakan cek email Anda.",
+  "registrationFailed": "Registrasi Gagal: {error}",
+  "@registrationFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }
