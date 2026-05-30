@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/store.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:isar/isar.dart';
 
@@ -79,6 +80,11 @@ class ActiveStore extends _$ActiveStore {
     await _isar.writeTxn(() => _isar.stores.putBySupabaseId(store));
     
     state = AsyncData(storeMap);
+
+    await AnalyticsService.instance.logStoreSelection(
+      storeId: storeMap['id']?.toString() ?? '',
+      storeName: storeMap['name']?.toString() ?? '',
+    );
   }
 
   Future<void> createStore({
@@ -130,6 +136,11 @@ class ActiveStore extends _$ActiveStore {
     
     // 5. Refresh user stores list
     ref.invalidate(userStoresProvider);
+
+    await AnalyticsService.instance.logStoreCreation(
+      storeName: name,
+      businessType: businessType,
+    );
   }
 
   Future<void> updateSettings(Map<String, dynamic> newSettings) async {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -409,6 +410,13 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                   await ref
                       .read(categoryNotifierProvider.notifier)
                       .addCategory(name: nameController.text);
+
+                  // Log to Firebase Analytics
+                  try {
+                    await AnalyticsService.instance.logCategoryCreation(
+                      categoryName: nameController.text,
+                    );
+                  } catch (_) {}
                 }
                 if (context.mounted) {
                   Navigator.pop(context);

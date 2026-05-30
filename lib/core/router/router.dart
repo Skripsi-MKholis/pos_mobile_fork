@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
@@ -44,6 +45,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/onboarding',
     refreshListenable: _RouterRefreshNotifier(ref),
+    observers: [AnalyticsService.instance.observer],
     redirect: (context, state) {
       // Gunakan ref.read di sini agar redirect bersifat reaktif terhadap data terbaru
       // tanpa memicu rebuild instance GoRouter

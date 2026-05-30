@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/core/models/product.dart';
@@ -220,6 +221,16 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
     cartNotifier.clearCart();
     cartNotifier.selectTable(widget.order.table);
     cartNotifier.setItems(selectedItems);
+
+    // Log to Firebase Analytics
+    try {
+      final splitItemsCount = selectedItems.fold<int>(0, (sum, item) => sum + item.quantity);
+      await AnalyticsService.instance.logSplitBill(
+        tableNumber: widget.order.table.name,
+        originalAmount: widget.order.totalAmount.toDouble(),
+        splitCount: splitItemsCount,
+      );
+    } catch (_) {}
 
     context.push('/payment');
   }

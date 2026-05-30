@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pos_mobile/core/services/fcm_service.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 
 part 'auth_provider.g.dart';
 
@@ -18,6 +19,11 @@ class Auth extends _$Auth {
       email: email,
       password: password,
     );
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      await AnalyticsService.instance.setUserId(user.id);
+    }
+    await AnalyticsService.instance.logLogin(method: 'email');
   }
 
   Future<void> signUp(String email, String password, {Map<String, dynamic>? data}) async {
@@ -26,6 +32,7 @@ class Auth extends _$Auth {
       password: password,
       data: data,
     );
+    await AnalyticsService.instance.logSignUp(method: 'email');
   }
 
   Future<void> signInWithGoogle() async {
@@ -47,6 +54,11 @@ class Auth extends _$Auth {
       idToken: idToken,
       accessToken: accessToken,
     );
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      await AnalyticsService.instance.setUserId(user.id);
+    }
+    await AnalyticsService.instance.logLogin(method: 'google');
   }
 
   Future<void> signOut() async {
@@ -55,6 +67,7 @@ class Auth extends _$Auth {
     } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('active_store_id');
+    await AnalyticsService.instance.setUserId(null);
     await Supabase.instance.client.auth.signOut();
     await GoogleSignIn().signOut();
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
@@ -46,9 +47,24 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
 
   Future<void> _updateStock(Product product, int newStock) async {
     try {
+      final oldStock = product.stockQuantity;
       await ref
           .read(productNotifierProvider.notifier)
           .updateStock(product.supabaseId, newStock);
+
+      // Log to Firebase Analytics
+      try {
+        final diff = newStock - oldStock;
+        if (diff != 0) {
+          final adjustmentType = diff > 0 ? 'tambah' : 'kurang';
+          await AnalyticsService.instance.logStockAdjustment(
+            productName: product.name,
+            adjustmentType: adjustmentType,
+            quantity: diff.abs().toDouble(),
+          );
+        }
+      } catch (_) {}
+
       if (mounted) {
         mySnackBar(
           context: context,

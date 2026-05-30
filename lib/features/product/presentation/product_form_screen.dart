@@ -15,6 +15,7 @@ import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:barcode_widget/barcode_widget.dart' as bc;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -444,6 +445,33 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
 
       await ref.read(productNotifierProvider.notifier).saveProduct(product, imageFile: _imageFile);
+
+      // Log to Firebase Analytics
+      try {
+        if (widget.product == null) {
+          final categories = ref.read(categoryNotifierProvider).value;
+          final categoryName = _selectedCategoryId == null
+              ? 'Tanpa Kategori'
+              : categories?.firstWhere(
+                  (c) => c.supabaseId == _selectedCategoryId,
+                  orElse: () => Category()..name = 'Tanpa Kategori',
+                ).name ?? 'Tanpa Kategori';
+
+          await AnalyticsService.instance.logProductCreation(
+            categoryName: categoryName,
+            price: product.price,
+            hasImage: _imageFile != null,
+          );
+        } else {
+          final oldPrice = widget.product!.price;
+          final oldStock = widget.product!.stockQuantity;
+          await AnalyticsService.instance.logProductUpdate(
+            priceChanged: oldPrice != product.price,
+            stockChanged: oldStock != product.stockQuantity,
+          );
+        }
+      } catch (_) {}
+
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) mySnackBar(

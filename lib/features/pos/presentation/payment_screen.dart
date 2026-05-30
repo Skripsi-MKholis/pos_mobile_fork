@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -531,6 +532,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         }
         ref.invalidate(tableMonitoringProvider);
+
+        // Log transaction to Firebase Analytics
+        final totalItemCount = cartState.items.fold<int>(0, (sum, item) => sum + item.quantity);
+        await AnalyticsService.instance.logPurchase(
+          transactionId: transactionId,
+          totalAmount: totalAmount,
+          paymentMethod: _paymentMethod,
+          itemCount: totalItemCount,
+        );
+
         ref.read(cartNotifierProvider.notifier).clearCart();
         _showSuccessDialog(transactionMap, itemsToProcess);
       }

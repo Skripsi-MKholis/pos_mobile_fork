@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/providers/voucher_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
@@ -49,6 +50,16 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
           });
         } else {
           ref.read(cartNotifierProvider.notifier).applyVoucher(voucher);
+
+          // Log to Firebase Analytics
+          try {
+            await AnalyticsService.instance.logApplyVoucher(
+              voucherCode: voucher.code,
+              discountAmount: voucher.value.toDouble(),
+              voucherType: voucher.type,
+            );
+          } catch (_) {}
+
           _voucherController.clear();
         }
       } else {

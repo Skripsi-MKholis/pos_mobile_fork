@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:share_plus/share_plus.dart';
@@ -55,6 +56,15 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       await ref
           .read(printerNotifierProvider.notifier)
           .printReceipt(transaction: widget.transaction, items: widget.items);
+
+      // Log to Firebase Analytics
+      try {
+        await AnalyticsService.instance.logPrintReceipt(
+          printerConnection: 'bluetooth',
+          isReprint: !widget.autoPrint,
+        );
+      } catch (_) {}
+
       if (mounted) {
         mySnackBar(
           context: context,

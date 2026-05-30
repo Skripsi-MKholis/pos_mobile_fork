@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:tabler_icons/tabler_icons.dart';
@@ -13,11 +14,18 @@ import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:intl/intl.dart';
 
-class TableMonitoringScreen extends ConsumerWidget {
+class TableMonitoringScreen extends ConsumerStatefulWidget {
   const TableMonitoringScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TableMonitoringScreen> createState() => _TableMonitoringScreenState();
+}
+
+class _TableMonitoringScreenState extends ConsumerState<TableMonitoringScreen> {
+  bool _loggedView = false;
+
+  @override
+  Widget build(BuildContext context) {
     final monitoringAsync = ref.watch(tableMonitoringProvider);
     final theme = ShadTheme.of(context);
     final currencyFormat = NumberFormat.currency(
@@ -25,6 +33,23 @@ class TableMonitoringScreen extends ConsumerWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
+
+    // Track analytics after the data is loaded
+    if (!_loggedView) {
+      monitoringAsync.whenData((orders) {
+        _loggedView = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          try {
+            final activeTablesCount = orders.where((o) => o.table.status == 'occupied').length;
+            final waitingOrdersCount = orders.where((o) => o.table.status == 'occupied' && o.items.isNotEmpty).length;
+            await AnalyticsService.instance.logTableMonitoringView(
+              activeTablesCount: activeTablesCount,
+              waitingOrdersCount: waitingOrdersCount,
+            );
+          } catch (_) {}
+        });
+      });
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,

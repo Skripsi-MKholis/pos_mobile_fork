@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -82,6 +83,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         await ref
             .read(productNotifierProvider.notifier)
             .deleteProduct(product.supabaseId);
+
+        // Log to Firebase Analytics
+        try {
+          final categories = ref.read(categoryNotifierProvider).value;
+          final categoryName = categories?.firstWhere(
+              (c) => c.supabaseId == product.categoryId,
+              orElse: () => Category()..name = 'Tanpa Kategori',
+            ).name ?? 'Tanpa Kategori';
+
+          await AnalyticsService.instance.logProductDeletion(categoryName: categoryName);
+        } catch (_) {}
+
         if (mounted) {
           mySnackBar(
             context: context,
