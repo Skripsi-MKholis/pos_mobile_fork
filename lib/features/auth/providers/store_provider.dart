@@ -123,8 +123,10 @@ class ActiveStore extends _$ActiveStore {
     // 3. Update users table
     await supabase.from('users').update({'store_id': storeId}).eq('id', user.id);
 
-    // 4. Select the store
-    await selectStore(storeResponse);
+    // 4. Select the store with Owner role
+    final storeMap = Map<String, dynamic>.from(storeResponse);
+    storeMap['user_role'] = 'Owner';
+    await selectStore(storeMap);
     
     // 5. Refresh user stores list
     ref.invalidate(userStoresProvider);
