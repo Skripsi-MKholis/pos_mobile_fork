@@ -13,7 +13,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (Env.supabaseUrl.isEmpty || Env.supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Supabase credentials are not set. Please provide SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.',
+    );
+  }
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
+
   await IsarService.init();
 
   runApp(const ProviderScope(child: MyApp()));
@@ -82,7 +89,6 @@ class MyApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: colorScheme,
-
       ),
     );
   }
