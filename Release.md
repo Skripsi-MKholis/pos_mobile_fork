@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.3.0+5**
+**1.4.0+6**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Auth Refactor & Search Optimization**
+**ZelloPOS Internationalization & Localization Stability**
 
 ---
 
@@ -76,3 +76,13 @@ Ringkasan perubahan sejak commit `b8119c8019a4d7be3421acd0fc3eacc8b7052ed0`:
 * **Pencarian POS & Manajemen dengan Debouncing**: Menambahkan utilitas debouncer (`debouncer.dart`) pada bilah pencarian produk layar Kasir/POS (`pos_screen.dart`) serta halaman produk/stok untuk mengoptimalkan performa input dan mencegah lag saat mengetik.
 * **Tooltips & Aksesibilitas POS**: Memberikan petunjuk visual (*tooltips*) di setiap tombol ikonik layar POS kasir guna mempercepat adaptasi pengguna.
 * **Integrasi Lihat Produk per Kategori**: Memperbarui alur visual pada pengelolaan kategori agar pengguna dapat melihat katalog produk per kategori secara langsung.
+
+---
+
+**Versi 1.4.0+6 (Internationalization & Localization Stability)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Sinkronisasi Preferensi Bahasa Global**: Memindahkan inisialisasi preferensi bahasa ke dalam fungsi `main()` secara synchronous sebelum aplikasi dirintis (`runApp`). Menghilangkan efek kedipan (*flicker*) atau reset bahasa kembali ke default ketika aplikasi dimuat ulang melalui *Hot Restart*.
+* **Lokalisasi Penuh Modul Katalog Produk**: Merampungkan lokalisasi 100% pada layar form tambah/edit produk (`product_form_screen.dart`) dan kelola penyesuaian stok cepat (`stock_management_screen.dart`). Menambahkan *dynamic NumberFormat* untuk format mata uang lokal (Rp/$) berbasis perangkat.
+* **Fitur Pemilihan Bahasa pada Halaman Autentikasi**: Merancang *floating pill language selector* premium di pojok kanan atas halaman Login dan Register, melokalkan seluruh string kolom input, snackbar error validasi, dan tombol autentikasi Google.
