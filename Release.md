@@ -1,6 +1,6 @@
 ### **Versi Sekarang**
 
-**1.4.0+6**
+**1.4.0+7**
 
 ---
 
@@ -86,3 +86,11 @@ Ringkasan perubahan pada rilis ini:
 * **Sinkronisasi Preferensi Bahasa Global**: Memindahkan inisialisasi preferensi bahasa ke dalam fungsi `main()` secara synchronous sebelum aplikasi dirintis (`runApp`). Menghilangkan efek kedipan (*flicker*) atau reset bahasa kembali ke default ketika aplikasi dimuat ulang melalui *Hot Restart*.
 * **Lokalisasi Penuh Modul Katalog Produk**: Merampungkan lokalisasi 100% pada layar form tambah/edit produk (`product_form_screen.dart`) dan kelola penyesuaian stok cepat (`stock_management_screen.dart`). Menambahkan *dynamic NumberFormat* untuk format mata uang lokal (Rp/$) berbasis perangkat.
 * **Fitur Pemilihan Bahasa pada Halaman Autentikasi**: Merancang *floating pill language selector* premium di pojok kanan atas halaman Login dan Register, melokalkan seluruh string kolom input, snackbar error validasi, dan tombol autentikasi Google.
+
+---
+
+**Versi 1.4.0+7 (Firebase Analytics & Security Update)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Integrasi Izin ID Iklan (AD_ID)**: Menambahkan deklarasi izin `com.google.android.gms.permission.AD_ID` pada file `AndroidManifest.xml` untuk memastikan Firebase Analytics dapat mengakses *Advertising ID* pada perangkat Android 12 (API 31) ke atas demi keandalan pelacakan demografi dan kampanye pemasaran.
