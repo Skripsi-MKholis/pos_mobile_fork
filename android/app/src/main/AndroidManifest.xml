@@ -2,6 +2,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     
+    <!-- Permission for Firebase Analytics Advertising ID (Android 12+) -->
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+    
     <!-- Bluetooth Permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
