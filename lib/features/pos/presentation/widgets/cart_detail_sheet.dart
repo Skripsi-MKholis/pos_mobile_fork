@@ -196,6 +196,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                   maxHeight: MediaQuery.of(context).size.height * 0.4,
                 ),
                 child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
                   shrinkWrap: true,
                   padding: EdgeInsets.zero,
                   itemCount: cartItems.length,

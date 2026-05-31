@@ -86,7 +86,9 @@ class _TransactionHistoryScreenState
       backgroundColor: Colors.white,
       child: CustomScrollView(
         controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
@@ -95,6 +97,7 @@ class _TransactionHistoryScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
@@ -487,6 +490,7 @@ class _TransactionHistoryScreenState
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             scrollDirection: Axis.horizontal,
             child: Row(
               children:

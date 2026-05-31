@@ -165,6 +165,9 @@ class _BroadcastNotificationScreenState
       ),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(24.0),
           child: ShadForm(
             key: _formKey,

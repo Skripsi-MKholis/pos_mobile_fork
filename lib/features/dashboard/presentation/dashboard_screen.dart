@@ -56,7 +56,9 @@ class DashboardScreen extends ConsumerWidget {
       color: Warna.primary,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

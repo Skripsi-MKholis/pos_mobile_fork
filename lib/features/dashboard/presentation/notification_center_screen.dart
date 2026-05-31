@@ -111,16 +111,22 @@ class _NotificationCenterScreenState
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF9FAFC),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
         title: Text(
-          'Notifikasi',
-          style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
+          'Pusat Notifikasi',
+          style: theme.textTheme.h4.copyWith(
+            fontWeight: FontWeight.w900,
+            color: Colors.black,
+            letterSpacing: -0.5,
+          ),
         ),
         leading: IconButton(
-          icon: const Icon(TablerIcons.arrow_left),
+          icon: const Icon(TablerIcons.chevron_left, color: Colors.black),
           onPressed: () => context.pop(),
         ),
         actions: [
@@ -212,6 +218,9 @@ class _NotificationCenterScreenState
       body: notificationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -248,38 +257,44 @@ class _NotificationCenterScreenState
             return RefreshIndicator(
               onRefresh: _refresh,
               child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 children: [
-                  SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.20),
                   Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: Warna.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
+                          child: const Icon(
                             TablerIcons.bell_off,
                             size: 64,
-                            color: Colors.grey.shade400,
+                            color: Warna.primary,
                           ),
                         ),
                         const SizedBox(height: 24),
                         Text(
                           'Belum Ada Notifikasi',
                           style: theme.textTheme.large.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.grey.shade900,
+                            letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Pemberitahuan stok menipis dan pembatalan\ntransaksi akan ditampilkan di sini.',
                           textAlign: TextAlign.center,
-                          style: theme.textTheme.muted,
+                          style: theme.textTheme.muted.copyWith(
+                            fontSize: 13,
+                            height: 1.4,
+                          ),
                         ),
                       ],
                     ),
@@ -304,7 +319,9 @@ class _NotificationCenterScreenState
           return RefreshIndicator(
             onRefresh: _refresh,
             child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               padding: const EdgeInsets.only(bottom: 120),
               itemCount: groupKeys.length,
               itemBuilder: (context, index) {
@@ -315,141 +332,154 @@ class _NotificationCenterScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(
-                        left: 16.0,
-                        right: 16.0,
-                        top: 20.0,
-                        bottom: 8.0,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
                       child: Text(
                         groupKey.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey.shade600,
-                          letterSpacing: 0.5,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black45,
+                          letterSpacing: 1.5,
                         ),
                       ),
                     ),
                     ...groupItems.map((notif) {
                       final notifColor = _getColor(notif.type);
-                      return Dismissible(
-                        key: Key('notif_${notif.supabaseId}'),
-                        direction: DismissDirection.endToStart,
-                        background: Container(
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          color: Colors.red,
-                          child: const Icon(
-                            TablerIcons.trash,
-                            color: Colors.white,
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                        child: Dismissible(
+                          key: Key('notif_${notif.supabaseId}'),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              TablerIcons.trash,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
-                        ),
-                        onDismissed: (direction) {
-                          ref
-                              .read(notificationNotifierProvider.notifier)
-                              .deleteNotification(notif.supabaseId);
-                          mySnackBar(
-                            context: context,
-                            text: 'Notifikasi telah dihapus',
-                            status: ToastStatus.success,
-                          );
-                        },
-                        child: InkWell(
-                          onTap: () => _handleNotificationTap(notif),
+                          onDismissed: (direction) {
+                            ref
+                                .read(notificationNotifierProvider.notifier)
+                                .deleteNotification(notif.supabaseId);
+                            mySnackBar(
+                              context: context,
+                              text: 'Notifikasi telah dihapus',
+                              status: ToastStatus.success,
+                            );
+                          },
                           child: Container(
                             decoration: BoxDecoration(
                               color: notif.isRead
-                                  ? Colors.transparent
-                                  : notifColor.withOpacity(0.04),
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Colors.grey.shade100,
-                                  width: 1,
-                                ),
+                                  ? Colors.white
+                                  : notifColor.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: notif.isRead
+                                    ? Colors.black.withValues(alpha: 0.05)
+                                    : notifColor.withValues(alpha: 0.15),
+                                width: 1,
                               ),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0,
-                              vertical: 14.0,
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Ikon Notifikasi Berwarna
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: notifColor.withOpacity(0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    _getIcon(notif.type),
-                                    color: notifColor,
-                                    size: 22,
-                                  ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                                const SizedBox(width: 14),
-                                // Isi Notifikasi
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              child: InkWell(
+                                onTap: () => _handleNotificationTap(notif),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              notif.title,
-                                              style: theme.textTheme.large
-                                                  .copyWith(
-                                                    fontWeight: notif.isRead
-                                                        ? FontWeight.normal
-                                                        : FontWeight.bold,
-                                                    color: Colors.grey.shade900,
-                                                  ),
-                                            ),
-                                          ),
-                                          // Indikator Titik Belum Dibaca
-                                          if (!notif.isRead)
-                                            Container(
-                                              width: 8,
-                                              height: 8,
-                                              decoration: BoxDecoration(
-                                                color: notifColor,
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        notif.message,
-                                        style: theme.textTheme.muted.copyWith(
-                                          color: notif.isRead
-                                              ? Colors.grey.shade600
-                                              : Colors.grey.shade800,
-                                          fontSize: 13,
+                                      // Ikon Notifikasi Berwarna
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: notifColor.withValues(alpha: 0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          _getIcon(notif.type),
+                                          color: notifColor,
+                                          size: 20,
                                         ),
                                       ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        notif.createdAt != null
-                                            ? DateFormat(
-                                                'HH:mm',
-                                              ).format(notif.createdAt!)
-                                            : '',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.grey.shade500,
+                                      const SizedBox(width: 14),
+                                      // Isi Notifikasi
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    notif.title,
+                                                    style: TextStyle(
+                                                      fontWeight: notif.isRead
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w900,
+                                                      fontSize: 14,
+                                                      color: Colors.grey.shade900,
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                // Indikator Titik Belum Dibaca
+                                                if (!notif.isRead)
+                                                  Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration: BoxDecoration(
+                                                      color: notifColor,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              notif.message,
+                                              style: TextStyle(
+                                                color: notif.isRead
+                                                    ? Colors.grey.shade600
+                                                    : Colors.grey.shade800,
+                                                fontSize: 12,
+                                                height: 1.4,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              notif.createdAt != null
+                                                  ? DateFormat('HH:mm').format(notif.createdAt!)
+                                                  : '',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.grey.shade500,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

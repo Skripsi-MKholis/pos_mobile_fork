@@ -41,7 +41,9 @@ class _ManageTablesScreenState extends ConsumerState<ManageTablesScreen> {
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(tableNotifierProvider.future),
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(

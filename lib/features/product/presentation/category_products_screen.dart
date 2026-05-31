@@ -11,6 +11,8 @@ import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CategoryProductsScreen extends ConsumerStatefulWidget {
   final Category category;
@@ -324,25 +326,45 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
               decoration: BoxDecoration(
                 color: theme.colorScheme.muted.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
-                image: product.imageUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(product.imageUrl!),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: product.imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: product.imageUrl!,
                         fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                        maxWidthDiskCache: 120,
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
+                          highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
+                          child: Container(
+                            color: Colors.white,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => const Center(
+                          child: Icon(
+                            TablerIcons.package_off,
+                            color: Colors.grey,
+                            size: 24,
+                          ),
+                        ),
                       )
                     : (product.localImagePath != null
-                        ? DecorationImage(
-                            image: FileImage(File(product.localImagePath!)),
+                        ? Image.file(
+                            File(product.localImagePath!),
                             fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
                           )
-                        : null),
+                        : Icon(
+                            TablerIcons.package,
+                            color: theme.colorScheme.mutedForeground,
+                            size: 24,
+                          )),
               ),
-              child: (product.imageUrl == null && product.localImagePath == null)
-                  ? Icon(
-                      TablerIcons.package,
-                      color: theme.colorScheme.mutedForeground,
-                      size: 24,
-                    )
-                  : null,
             ),
             const SizedBox(width: 14),
 

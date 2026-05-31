@@ -61,6 +61,9 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: const EdgeInsets.all(24),
         child: ShadForm(
           key: _formKey,

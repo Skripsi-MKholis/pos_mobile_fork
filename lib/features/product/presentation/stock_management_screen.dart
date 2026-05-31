@@ -11,6 +11,8 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
@@ -367,27 +369,45 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.muted,
                                 borderRadius: BorderRadius.circular(12),
-                                image: product.imageUrl != null
-                                    ? DecorationImage(
-                                        image: NetworkImage(product.imageUrl!),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: product.imageUrl != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: product.imageUrl!,
                                         fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
+                                        maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                                        maxWidthDiskCache: 120,
+                                        placeholder: (context, url) => Shimmer.fromColors(
+                                          baseColor: theme.colorScheme.muted.withOpacity(0.5),
+                                          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                                          child: Container(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => const Center(
+                                          child: Icon(
+                                            TablerIcons.package_off,
+                                            color: Colors.grey,
+                                            size: 28,
+                                          ),
+                                        ),
                                       )
                                     : (product.localImagePath != null
-                                        ? DecorationImage(
-                                            image: FileImage(
-                                                File(product.localImagePath!)),
+                                        ? Image.file(
+                                            File(product.localImagePath!),
                                             fit: BoxFit.cover,
+                                            width: double.infinity,
+                                            height: double.infinity,
                                           )
-                                        : null),
+                                        : Icon(
+                                            TablerIcons.package,
+                                            color: theme.colorScheme.mutedForeground,
+                                            size: 28,
+                                          )),
                               ),
-                              child: (product.imageUrl == null &&
-                                      product.localImagePath == null)
-                                  ? Icon(
-                                      TablerIcons.package,
-                                      color: theme.colorScheme.mutedForeground,
-                                      size: 28,
-                                    )
-                                  : null,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -586,32 +606,51 @@ class _StockEditSheetState extends State<_StockEditSheet> {
             ),
             child: Row(
               children: [
-                Container(
+                 Container(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.muted,
                     borderRadius: BorderRadius.circular(10),
-                    image: widget.product.imageUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(widget.product.imageUrl!),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: widget.product.imageUrl != null
+                        ? CachedNetworkImage(
+                            imageUrl: widget.product.imageUrl!,
                             fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                            maxWidthDiskCache: 120,
+                            placeholder: (context, url) => Shimmer.fromColors(
+                              baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
+                              highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
+                              child: Container(
+                                color: Colors.white,
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(
+                                TablerIcons.package_off,
+                                color: Colors.grey,
+                                size: 24,
+                              ),
+                            ),
                           )
                         : (widget.product.localImagePath != null
-                            ? DecorationImage(
-                                image: FileImage(File(widget.product.localImagePath!)),
+                            ? Image.file(
+                                File(widget.product.localImagePath!),
                                 fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
                               )
-                            : null),
+                            : Icon(
+                                TablerIcons.package,
+                                color: theme.colorScheme.mutedForeground,
+                                size: 24,
+                              )),
                   ),
-                  child: (widget.product.imageUrl == null &&
-                          widget.product.localImagePath == null)
-                      ? Icon(
-                          TablerIcons.package,
-                          color: theme.colorScheme.mutedForeground,
-                          size: 24,
-                        )
-                      : null,
                 ),
                 const SizedBox(width: 14),
                 Expanded(

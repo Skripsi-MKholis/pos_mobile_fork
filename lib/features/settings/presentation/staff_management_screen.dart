@@ -43,7 +43,9 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(activeStoreProvider.future),
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(

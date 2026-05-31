@@ -28,6 +28,9 @@ class SettingsScreen extends ConsumerWidget {
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

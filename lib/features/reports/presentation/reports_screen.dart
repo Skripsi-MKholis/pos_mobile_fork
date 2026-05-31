@@ -11,6 +11,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class ReportsScreen extends ConsumerWidget {
@@ -33,6 +34,9 @@ class ReportsScreen extends ConsumerWidget {
       onRefresh: () => ref.read(analyticsProvider.notifier).fetchAnalytics(),
       color: Warna.primary,
       child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -717,31 +721,49 @@ class ReportsScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           // Product Thumbnail
-          Container(
+           Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
               color: theme.colorScheme.muted.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
-              image: imageUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(imageUrl),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      maxHeightDiskCache: 100, // Resizes and caches optimized low-res image
+                      maxWidthDiskCache: 100,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: theme.colorScheme.muted.withOpacity(0.5),
+                        highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                        child: Container(
+                          color: Colors.white,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Icon(
+                        TablerIcons.package_off,
+                        color: theme.colorScheme.mutedForeground.withOpacity(0.4),
+                        size: 18,
+                      ),
                     )
                   : (localImagePath != null
-                        ? DecorationImage(
-                            image: FileImage(File(localImagePath)),
-                            fit: BoxFit.cover,
-                          )
-                        : null),
+                      ? Image.file(
+                          File(localImagePath),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        )
+                      : Icon(
+                          TablerIcons.package,
+                          color: theme.colorScheme.mutedForeground.withOpacity(0.4),
+                          size: 18,
+                        )),
             ),
-            child: (imageUrl == null && localImagePath == null)
-                ? Icon(
-                    TablerIcons.package,
-                    color: theme.colorScheme.mutedForeground.withOpacity(0.4),
-                    size: 18,
-                  )
-                : null,
           ),
           const SizedBox(width: 12),
           // Product Name and SKU

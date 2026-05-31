@@ -293,6 +293,9 @@ class _ReceiptCustomizationScreenState
             Expanded(
               flex: 3,
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,6 +498,9 @@ class _ReceiptCustomizationScreenState
                   height: double.infinity,
                   alignment: Alignment.center,
                   child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
