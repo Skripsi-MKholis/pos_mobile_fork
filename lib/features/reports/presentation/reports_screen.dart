@@ -29,64 +29,30 @@ class ReportsScreen extends ConsumerWidget {
       decimalDigits: 0,
     );
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: RefreshIndicator(
-        onRefresh: () => ref.read(analyticsProvider.notifier).fetchAnalytics(),
-        color: Warna.primary,
-        child: CustomScrollView(
-          slivers: [
-            _buildSliverAppBar(theme),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSmartAnalyticsButton(context, theme),
-                    const SizedBox(height: 24),
-                    _buildTimeFilter(context, ref, theme),
-                    const SizedBox(height: 24),
-                    analyticsAsync.when(
-                      data: (state) => _buildAnalyticsContent(
-                        context,
-                        state,
-                        productsAsync,
-                        currencyFormat,
-                        theme,
-                      ),
-                      loading: () => _buildLoadingState(theme),
-                      error: (err, _) => Center(child: Text(l10n.failedToLoad(err.toString()))),
-                    ),
-                  ],
-                ),
+    return RefreshIndicator(
+      onRefresh: () => ref.read(analyticsProvider.notifier).fetchAnalytics(),
+      color: Warna.primary,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSmartAnalyticsButton(context, theme),
+            const SizedBox(height: 24),
+            _buildTimeFilter(context, ref, theme),
+            const SizedBox(height: 24),
+            analyticsAsync.when(
+              data: (state) => _buildAnalyticsContent(
+                context,
+                state,
+                productsAsync,
+                currencyFormat,
+                theme,
               ),
+              loading: () => _buildLoadingState(theme),
+              error: (err, _) => Center(child: Text(l10n.failedToLoad(err.toString()))),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar(ShadThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 0,
-      toolbarHeight: 20,
-      pinned: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      centerTitle: false,
-      surfaceTintColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        centerTitle: false,
-        title: const Text(''),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Divider(
-          height: 1,
-          color: theme.colorScheme.border.withOpacity(0.5),
         ),
       ),
     );

@@ -27,16 +27,10 @@ class SettingsScreen extends ConsumerWidget {
     final isAdmin =
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(context, theme),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (activeStore.value != null)
                     _buildStoreHeader(context, theme, activeStore.value!)
@@ -163,43 +157,8 @@ class SettingsScreen extends ConsumerWidget {
                   const SizedBox(height: 85),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar(BuildContext context, ShadThemeData theme) {
-    final l10n = AppLocalizations.of(context)!;
-    return SliverAppBar(
-      expandedHeight: 100,
-      pinned: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      centerTitle: false,
-      surfaceTintColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        centerTitle: false,
-        title: Text(
-          l10n.menu,
-          style: theme.textTheme.h3.copyWith(
-            color: Colors.black,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -1,
-          ),
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Divider(
-          height: 1,
-          color: theme.colorScheme.border.withOpacity(0.5),
-        ),
-      ),
-    );
-  }
+            );
+          }
 
   Widget _buildStoreHeader(
     BuildContext context,

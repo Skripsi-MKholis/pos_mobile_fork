@@ -79,21 +79,18 @@ class _TransactionHistoryScreenState
       Future.microtask(() => setState(() => _dateFilter = 'Hari Ini'));
     }
 
-    return Scaffold(
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(transactionHistoryProvider.notifier).refresh(),
+      color: Warna.primary,
       backgroundColor: Colors.white,
-      body: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(transactionHistoryProvider.notifier).refresh(),
-        color: Warna.primary,
-        backgroundColor: Colors.white,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            _buildSliverAppBar(theme),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+      child: CustomScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -249,8 +246,7 @@ class _TransactionHistoryScreenState
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildEmptyState(ShadThemeData theme) {
@@ -264,7 +260,10 @@ class _TransactionHistoryScreenState
             color: theme.colorScheme.mutedForeground.withOpacity(0.5),
           ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
           const SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.noTransactions, style: theme.textTheme.muted),
+          Text(
+            AppLocalizations.of(context)!.noTransactions,
+            style: theme.textTheme.muted,
+          ),
         ],
       ),
     );
@@ -304,31 +303,6 @@ class _TransactionHistoryScreenState
           ),
         ),
         childCount: 8,
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar(ShadThemeData theme) {
-    return SliverAppBar(
-      expandedHeight: 0,
-      toolbarHeight: 20,
-      floating: false,
-      pinned: true,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      centerTitle: false,
-      surfaceTintColor: Colors.transparent,
-      flexibleSpace: FlexibleSpaceBar(
-        titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        centerTitle: false,
-        title: const Text(''),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1),
-        child: Divider(
-          height: 1,
-          color: theme.colorScheme.border.withOpacity(0.5),
-        ),
       ),
     );
   }
@@ -473,7 +447,8 @@ class _TransactionHistoryScreenState
                       color: Colors.grey,
                     ),
                   ),
-                  onChanged: (val) => _debouncer.run(() => setState(() => _searchQuery = val)),
+                  onChanged: (val) =>
+                      _debouncer.run(() => setState(() => _searchQuery = val)),
                   decoration: ShadDecoration(
                     border: ShadBorder.all(
                       color: theme.colorScheme.border.withOpacity(0.5),
@@ -514,48 +489,50 @@ class _TransactionHistoryScreenState
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: [
-                {'label': l10n.all, 'value': 'Semua'},
-                {'label': l10n.success, 'value': 'Berhasil'},
-                {'label': l10n.pending, 'value': 'Pending'},
-                {'label': l10n.cancelled, 'value': 'Batal'},
-              ].map((status) {
-                final isSelected = _filterStatus == status['value'];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _filterStatus = status['value']!),
-                    child: AnimatedContainer(
-                      duration: 200.ms,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected ? Warna.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isSelected
-                              ? Warna.primary
-                              : theme.colorScheme.border,
+              children:
+                  [
+                    {'label': l10n.all, 'value': 'Semua'},
+                    {'label': l10n.success, 'value': 'Berhasil'},
+                    {'label': l10n.pending, 'value': 'Pending'},
+                    {'label': l10n.cancelled, 'value': 'Batal'},
+                  ].map((status) {
+                    final isSelected = _filterStatus == status['value'];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _filterStatus = status['value']!),
+                        child: AnimatedContainer(
+                          duration: 200.ms,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Warna.primary : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Warna.primary
+                                  : theme.colorScheme.border,
+                            ),
+                          ),
+                          child: Text(
+                            status['label']!,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.black
+                                  : theme.colorScheme.mutedForeground,
+                              fontWeight: isSelected
+                                  ? FontWeight.w900
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        status['label']!,
-                        style: TextStyle(
-                          color: isSelected
-                              ? Colors.black
-                              : theme.colorScheme.mutedForeground,
-                          fontWeight: isSelected
-                              ? FontWeight.w900
-                              : FontWeight.normal,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
             ),
           ),
         ],
@@ -652,14 +629,14 @@ class _TransactionHistoryScreenState
     final cardL10n = AppLocalizations.of(context)!;
     final status = tx['status'] ?? 'Berhasil';
     final paymentMethodRaw = tx['payment_method'] ?? 'Tunai';
-    final paymentMethod = paymentMethodRaw == 'Tunai' ? cardL10n.cash : paymentMethodRaw;
+    final paymentMethod = paymentMethodRaw == 'Tunai'
+        ? cardL10n.cash
+        : paymentMethodRaw;
     final items = tx['transaction_items'] as List? ?? [];
 
     final displayStatus = status == 'Berhasil'
         ? cardL10n.success
-        : (status == 'Pending'
-            ? cardL10n.pending
-            : cardL10n.cancelled);
+        : (status == 'Pending' ? cardL10n.pending : cardL10n.cancelled);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

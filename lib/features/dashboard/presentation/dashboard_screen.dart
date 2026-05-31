@@ -37,64 +37,61 @@ class DashboardScreen extends ConsumerWidget {
     }
 
     final currencyFormat = NumberFormat.currency(
-      locale: Localizations.localeOf(context).toString() == 'en' ? 'en_US' : 'id_ID',
+      locale: Localizations.localeOf(context).toString() == 'en'
+          ? 'en_US'
+          : 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
     );
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref
-                .read(analyticsProvider.notifier)
-                .fetchAnalytics(
-                  isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today,
-                );
-            ref.read(productNotifierProvider.notifier).syncProducts();
-          },
-          color: Warna.primary,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(l10n, theme),
-                const SizedBox(height: 24),
-                if (isAdmin) ...[
-                  _buildTimeFilter(ref, l10n, theme),
-                  const SizedBox(height: 16),
-                ],
-                _buildStatsGrid(
-                  context,
-                  l10n,
-                  analyticsAsync,
-                  productsAsync,
-                  currencyFormat,
-                  theme,
-                  isAdmin,
-                ),
-                if (isAdmin) ...[
-                  const SizedBox(height: 24),
-                  _buildSalesPerformanceCard(analyticsAsync, l10n, theme),
-                ],
-                const SizedBox(height: 24),
-                Text(
-                  l10n.quickAccess,
-                  style: theme.textTheme.muted.copyWith(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2.0,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildQuickAccessGrid(context, l10n, theme, ref, isAdmin),
-                const SizedBox(height: 85),
-              ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref
+            .read(analyticsProvider.notifier)
+            .fetchAnalytics(
+              isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today,
+            );
+        ref.read(productNotifierProvider.notifier).syncProducts();
+      },
+      color: Warna.primary,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(l10n, theme),
+            const SizedBox(height: 24),
+            if (isAdmin) ...[
+              _buildTimeFilter(ref, l10n, theme),
+              const SizedBox(height: 16),
+            ],
+            _buildStatsGrid(
+              context,
+              l10n,
+              analyticsAsync,
+              productsAsync,
+              currencyFormat,
+              theme,
+              isAdmin,
             ),
-          ),
+            if (isAdmin) ...[
+              const SizedBox(height: 24),
+              _buildSalesPerformanceCard(analyticsAsync, l10n, theme),
+            ],
+            const SizedBox(height: 24),
+            Text(
+              l10n.quickAccess,
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildQuickAccessGrid(context, l10n, theme, ref, isAdmin),
+            const SizedBox(height: 85),
+          ],
         ),
       ),
     );
@@ -118,6 +115,7 @@ class DashboardScreen extends ConsumerWidget {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
@@ -282,6 +280,7 @@ class DashboardScreen extends ConsumerWidget {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
@@ -344,7 +343,11 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimeFilter(WidgetRef ref, AppLocalizations l10n, ShadThemeData theme) {
+  Widget _buildTimeFilter(
+    WidgetRef ref,
+    AppLocalizations l10n,
+    ShadThemeData theme,
+  ) {
     final analytics = ref.watch(analyticsProvider).value;
     final currentRange = analytics?.timeRange ?? AnalyticsTimeRange.week;
 
@@ -547,7 +550,28 @@ class DashboardScreen extends ConsumerWidget {
             child: isLoading
                 ? _buildChartSkeleton(theme)
                 : (state != null
-                      ? _buildDashboardChart(state, theme)
+                      ? (state.dailySales.isNotEmpty
+                            ? _buildDashboardChart(state, theme)
+                            : Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      TablerIcons.chart_line,
+                                      size: 32,
+                                      color: theme.colorScheme.mutedForeground
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Belum ada data penjualan 7 hari terakhir',
+                                      style: theme.textTheme.muted.copyWith(
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ))
                       : const SizedBox()),
           ),
         ],
