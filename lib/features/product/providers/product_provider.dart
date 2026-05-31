@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/models/stock_history.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
@@ -224,6 +225,48 @@ class ProductNotifier extends _$ProductNotifier {
     final isNew = product.supabaseId.isEmpty;
     final localId = isNew ? _uuid.v4() : product.supabaseId;
 
+    // Detect stock changes
+    int oldStock = 0;
+    if (!isNew) {
+      final existingProduct = await _isar.products
+          .filter()
+          .supabaseIdEqualTo(localId)
+          .findFirst();
+      oldStock = existingProduct?.stockQuantity ?? 0;
+    }
+    final diff = product.stockQuantity - oldStock;
+
+    StockHistoryLocal? history;
+    if (isNew && product.stockQuantity > 0) {
+      history = StockHistoryLocal(
+        supabaseId: _uuid.v4(),
+        storeId: storeId.toString(),
+        productId: localId,
+        productName: product.name,
+        changeType: 'manual_addition',
+        quantityChange: product.stockQuantity,
+        oldStock: 0,
+        newStock: product.stockQuantity,
+        cashierId: _supabase.auth.currentUser?.id,
+        createdAt: DateTime.now(),
+        isSynced: false,
+      );
+    } else if (!isNew && diff != 0) {
+      history = StockHistoryLocal(
+        supabaseId: _uuid.v4(),
+        storeId: storeId.toString(),
+        productId: localId,
+        productName: product.name,
+        changeType: diff > 0 ? 'manual_addition' : 'manual_reduction',
+        quantityChange: diff,
+        oldStock: oldStock,
+        newStock: product.stockQuantity,
+        cashierId: _supabase.auth.currentUser?.id,
+        createdAt: DateTime.now(),
+        isSynced: false,
+      );
+    }
+
     String? imageUrl = product.imageUrl;
     String? localImagePath = product.localImagePath;
 
@@ -250,6 +293,9 @@ class ProductNotifier extends _$ProductNotifier {
     // 2. Save Locally First
     await _isar.writeTxn(() async {
       await _isar.products.putBySupabaseId(localProduct);
+      if (history != null) {
+        await _isar.collection<StockHistoryLocal>().put(history);
+      }
     });
     ref.invalidateSelf();
 
@@ -309,20 +355,64 @@ class ProductNotifier extends _$ProductNotifier {
           .findFirst();
           
       if (localProduct != null) {
-        await _isar.writeTxn(() async {
-          localProduct.stockQuantity = newStock;
-          localProduct.isSynced = isOnline;
-          await _isar.products.putBySupabaseId(localProduct);
-        });
-        ref.invalidateSelf();
-      }
+        final oldStock = localProduct.stockQuantity;
+        final diff = newStock - oldStock;
+        
+        if (diff != 0) {
+          final activeStore = ref.read(activeStoreProvider).value;
+          final storeId = activeStore?['id'];
+          final cashierId = _supabase.auth.currentUser?.id;
 
-      // Sync to remote if online
-      if (isOnline) {
-        await _supabase
-            .from('products')
-            .update({'stock_quantity': newStock})
-            .eq('id', supabaseId);
+          if (storeId != null) {
+            final history = StockHistoryLocal(
+              supabaseId: _uuid.v4(),
+              storeId: storeId.toString(),
+              productId: supabaseId,
+              productName: localProduct.name,
+              changeType: diff > 0 ? 'manual_addition' : 'manual_reduction',
+              quantityChange: diff,
+              oldStock: oldStock,
+              newStock: newStock,
+              cashierId: cashierId,
+              createdAt: DateTime.now(),
+              isSynced: false,
+            );
+
+            // 1. Save Locally First (marked as unsynced)
+            await _isar.writeTxn(() async {
+              localProduct.stockQuantity = newStock;
+              localProduct.isSynced = false;
+              await _isar.products.putBySupabaseId(localProduct);
+              await _isar.collection<StockHistoryLocal>().put(history);
+            });
+            ref.invalidateSelf();
+
+            // 2. Try Sync immediately if online
+            if (isOnline) {
+              try {
+                await _supabase
+                    .from('products')
+                    .update({'stock_quantity': newStock})
+                    .eq('id', supabaseId);
+
+                // Mark product as synced upon success
+                await _isar.writeTxn(() async {
+                  localProduct.isSynced = true;
+                  localProduct.syncError = null;
+                  await _isar.products.putBySupabaseId(localProduct);
+                });
+                ref.invalidateSelf();
+              } catch (e) {
+                print('DEBUG: Immediate stock sync failed, queued for background retry: $e');
+                await _isar.writeTxn(() async {
+                  localProduct.syncError = e.toString();
+                  await _isar.products.putBySupabaseId(localProduct);
+                });
+                ref.invalidateSelf();
+              }
+            }
+          }
+        }
       }
     } catch (e) {
       rethrow;

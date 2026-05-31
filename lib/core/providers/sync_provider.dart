@@ -8,7 +8,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:isar/isar.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
+import 'package:pos_mobile/core/models/stock_history.dart';
 import 'dart:convert';
 
 part 'sync_provider.g.dart';
@@ -39,11 +41,14 @@ class SyncNotifier extends _$SyncNotifier {
     await _syncCategories();
     await _syncProducts();
     await _syncTransactions();
+    await _syncStockHistory();
     print('DEBUG: Sinkronisasi otomatis selesai.');
     
     // Invalidate providers agar UI terupdate
     ref.invalidate(productNotifierProvider);
     ref.invalidate(categoryNotifierProvider);
+    // Invalidate stock history provider
+    ref.invalidate(stockHistoryProvider);
   }
 
   Future<void> syncUnsynced() async {
@@ -215,6 +220,48 @@ class SyncNotifier extends _$SyncNotifier {
         await _isar.writeTxn(() async {
           tx.syncError = e.toString();
           await _isar.collection<TransactionLocal>().put(tx);
+        });
+      }
+    }
+  }
+
+  Future<void> _syncStockHistory() async {
+    final unsynced = await _isar.collection<StockHistoryLocal>().filter().isSyncedEqualTo(false).findAll();
+    
+    for (var sh in unsynced) {
+      try {
+        final data = {
+          'id': sh.supabaseId,
+          'store_id': sh.storeId,
+          'product_id': sh.productId,
+          'product_name': sh.productName,
+          'change_type': sh.changeType,
+          'quantity_change': sh.quantityChange,
+          'old_stock': sh.oldStock,
+          'new_stock': sh.newStock,
+          'reference_id': sh.referenceId,
+          'cashier_id': sh.cashierId,
+          'created_at': sh.createdAt.toIso8601String(),
+        };
+        
+        final existing = await _supabase.from('stock_history').select().eq('id', sh.supabaseId).maybeSingle();
+        
+        if (existing == null) {
+          await _supabase.from('stock_history').insert(data);
+        } else {
+          await _supabase.from('stock_history').update(data).eq('id', sh.supabaseId);
+        }
+        
+        await _isar.writeTxn(() async {
+          sh.isSynced = true;
+          sh.syncError = null;
+          await _isar.collection<StockHistoryLocal>().put(sh);
+        });
+      } catch (e) {
+        print('DEBUG: Error syncing stock history ${sh.supabaseId}: $e');
+        await _isar.writeTxn(() async {
+          sh.syncError = e.toString();
+          await _isar.collection<StockHistoryLocal>().put(sh);
         });
       }
     }

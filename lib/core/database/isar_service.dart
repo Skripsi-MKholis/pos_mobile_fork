@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/models/store.dart';
 import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
+import 'package:pos_mobile/core/models/stock_history.dart';
 
 class IsarService {
   static late Isar _isar;
@@ -21,6 +22,7 @@ class IsarService {
         NotificationLocalModelSchema,
         TransactionLocalSchema,
         TransactionItemLocalSchema,
+        StockHistoryLocalSchema,
       ],
       directory: dir.path,
     );

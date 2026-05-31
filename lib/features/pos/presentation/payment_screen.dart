@@ -16,6 +16,7 @@ import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/models/stock_history.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/core/providers/sync_provider.dart';
 import 'package:uuid/uuid.dart';
@@ -463,12 +464,31 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           await isar.collection<TransactionItemLocal>().put(item);
         }
 
-        // 2. Kurangi stok produk secara lokal
+        // 2. Kurangi stok produk secara lokal dan catat riwayat stok
+        final cashierId = supabase.auth.currentUser?.id;
         for (var item in cartState.items) {
           final localProd = await isar.collection<Product>().filter().supabaseIdEqualTo(item.product.supabaseId).findFirst();
           if (localProd != null) {
-            localProd.stockQuantity = localProd.stockQuantity - item.quantity;
+            final oldStock = localProd.stockQuantity;
+            final newStock = oldStock - item.quantity;
+            localProd.stockQuantity = newStock;
             await isar.collection<Product>().put(localProd);
+
+            final history = StockHistoryLocal(
+              supabaseId: const Uuid().v4(),
+              storeId: storeId.toString(),
+              productId: item.product.supabaseId,
+              productName: item.product.name,
+              changeType: 'sale',
+              quantityChange: -item.quantity,
+              oldStock: oldStock,
+              newStock: newStock,
+              referenceId: transactionId,
+              cashierId: cashierId,
+              createdAt: DateTime.now(),
+              isSynced: false,
+            );
+            await isar.collection<StockHistoryLocal>().put(history);
           }
         }
       });

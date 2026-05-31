@@ -13,6 +13,7 @@ import 'package:pos_mobile/features/product/presentation/product_list_screen.dar
 import 'package:pos_mobile/features/product/presentation/category_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_form_screen.dart';
 import 'package:pos_mobile/features/product/presentation/stock_management_screen.dart';
+import 'package:pos_mobile/features/product/presentation/stock_history_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/pos_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/payment_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
@@ -275,6 +276,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/stock',
         builder: (context, state) => const StockManagementScreen(),
+        routes: [
+          GoRoute(
+            path: 'history',
+            builder: (context, state) => const StockHistoryScreen(),
+          ),
+        ],
       ),
       GoRoute(path: '/kds', builder: (context, state) => const KDSScreen()),
       GoRoute(

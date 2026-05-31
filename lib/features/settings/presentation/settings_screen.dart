@@ -50,9 +50,25 @@ class SettingsScreen extends ConsumerWidget {
                       _buildMenuItem(
                         context,
                         theme,
+                        TablerIcons.packages,
+                        l10n.manageStock,
+                        () => context.push('/stock'),
+                      ),
+                      _buildMenuItem(
+                        context,
+                        theme,
                         TablerIcons.category,
                         l10n.productCategory,
                         () => context.push('/categories'),
+                      ),
+                      _buildMenuItem(
+                        context,
+                        theme,
+                        TablerIcons.history,
+                        Localizations.localeOf(context).languageCode == 'id'
+                            ? 'Riwayat Stok'
+                            : 'Stock History',
+                        () => context.push('/stock/history'),
                       ),
                     ]),
                     const SizedBox(height: 32),

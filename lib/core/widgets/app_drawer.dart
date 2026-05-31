@@ -119,6 +119,13 @@ class _DrawerMenuContent extends ConsumerWidget {
             route: '/stock',
           ),
           _DrawerItem(
+            icon: TablerIcons.history,
+            title: Localizations.localeOf(context).languageCode == 'id'
+                ? 'Riwayat Stok'
+                : 'Stock History',
+            route: '/stock/history',
+          ),
+          _DrawerItem(
             icon: TablerIcons.category,
             title: l10n.categories,
             route: '/categories',

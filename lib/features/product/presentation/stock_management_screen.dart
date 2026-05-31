@@ -140,6 +140,23 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
             }
           },
         ),
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(TablerIcons.history, size: 20),
+            ),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.push('/stock/history');
+            },
+          ),
+          const SizedBox(width: 16),
+        ],
         toolbarHeight: 80,
       ),
       body: SafeArea(
