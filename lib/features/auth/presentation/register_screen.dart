@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
@@ -8,6 +7,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
+import 'package:pos_mobile/configuration/configuration.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -22,6 +22,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   Future<void> _handleRegister() async {
     final l10n = AppLocalizations.of(context)!;
@@ -156,13 +158,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.08)
+              ? theme.colorScheme.primary.withValues(alpha: 0.08)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
-                ? theme.colorScheme.primary.withOpacity(0.3)
-                : theme.colorScheme.border.withOpacity(0.5),
+                ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                : theme.colorScheme.border.withValues(alpha: 0.5),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -193,8 +195,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     final l10n = AppLocalizations.of(context)!;
     final currentLocale = ref.watch(localeNotifierProvider);
 
@@ -205,239 +205,415 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const SizedBox(height: 20),
+                    
+                    // Sign Up Title
                     Text(
-                      l10n.createAccount,
+                      currentLocale.languageCode == 'id' ? 'Buat Akun' : 'Sign up Account',
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.h2.copyWith(
+                      style: const TextStyle(
+                        fontFamily: 'Outfit',
                         fontWeight: FontWeight.bold,
-                        fontSize: 32,
+                        fontSize: 24,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
                       ),
-                    ).animate().fadeIn().slideY(begin: 0.2),
+                    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
                     
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     
+                    // Subtitle
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        l10n.registerSubtitle,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          color: Colors.grey.shade500,
+                          height: 1.4,
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Name Field Label
                     Text(
-                      l10n.registerSubtitle,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.muted.copyWith(fontSize: 16),
+                      l10n.fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
                     ).animate().fadeIn(delay: 200.ms),
                     
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 4),
                     
-                    // Register Card
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(32),
+                    // Name Field
+                    TextFormField(
+                      controller: _nameController,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.register,
-                            style: theme.textTheme.h3.copyWith(
+                      decoration: InputDecoration(
+                        hintText: currentLocale.languageCode == 'id'
+                            ? 'Masukkan nama lengkap Anda'
+                            : 'Enter your full name',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Email Field Label
+                    Text(
+                      l10n.email,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ).animate().fadeIn(delay: 250.ms),
+                    
+                    const SizedBox(height: 4),
+                    
+                    // Email Field
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: currentLocale.languageCode == 'id'
+                            ? 'Masukkan email Anda'
+                            : 'Enter your email',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.05),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Password Field Label
+                    Text(
+                      l10n.password,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ).animate().fadeIn(delay: 300.ms),
+                    
+                    const SizedBox(height: 4),
+                    
+                    // Password Field
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: currentLocale.languageCode == 'id'
+                            ? 'Masukkan kata sandi Anda'
+                            : 'Enter your password',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? TablerIcons.eye_off : TablerIcons.eye,
+                              color: Colors.grey.shade500,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.05),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // Confirm Password Field Label
+                    Text(
+                      l10n.confirmPassword,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ).animate().fadeIn(delay: 350.ms),
+                    
+                    const SizedBox(height: 4),
+                    
+                    // Confirm Password Field
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: currentLocale.languageCode == 'id'
+                            ? 'Konfirmasi kata sandi Anda'
+                            : 'Confirm your password',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                        ),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: IconButton(
+                            icon: Icon(
+                              _obscureConfirmPassword ? TablerIcons.eye_off : TablerIcons.eye,
+                              color: Colors.grey.shade500,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.05),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Primary Sign Up Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleRegister,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Warna.primary,
+                          foregroundColor: Colors.black,
+                          disabledBackgroundColor: Warna.primary.withValues(alpha: 0.5),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : Text(
+                                currentLocale.languageCode == 'id' ? 'Daftar' : 'Sign up',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                    ).animate().fadeIn(delay: 450.ms),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // OR Divider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: Colors.grey.shade200,
+                            thickness: 1,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            currentLocale.languageCode == 'id' ? 'ATAU' : 'OR',
+                            style: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 11,
                               fontWeight: FontWeight.bold,
-                              fontSize: 24,
+                              letterSpacing: 1.0,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            l10n.registerInstructions,
-                            style: theme.textTheme.muted.copyWith(fontSize: 14),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: Colors.grey.shade200,
+                            thickness: 1,
                           ),
-                          
-                          const SizedBox(height: 24),
-                          
-                          // Name Field
-                          Text(
-                            l10n.fullName,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ],
+                    ).animate().fadeIn(delay: 500.ms),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Google Signup Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _handleGoogleSignIn,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF3F4F6),
+                          foregroundColor: Colors.black,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          const SizedBox(height: 8),
-                          ShadInput(
-                            controller: _nameController,
-                            placeholder: const Text('John Doe'),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: const ShadDecoration(
-                              color: Color(0xFFF1F3F5),
-                              border: ShadBorder.none,
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Email Field
-                          Text(
-                            l10n.email,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          ShadInput(
-                            controller: _emailController,
-                            placeholder: const Text('contoh@email.com'),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: const ShadDecoration(
-                              color: Color(0xFFEDF2FF),
-                              border: ShadBorder.none,
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 20),
-                          
-                          // Password Field
-                          Text(
-                            l10n.password,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          ShadInput(
-                            controller: _passwordController,
-                            placeholder: const Text('••••••••'),
-                            obscureText: true,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: const ShadDecoration(
-                              color: Color(0xFFEDF2FF),
-                              border: ShadBorder.none,
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // Confirm Password Field
-                          Text(
-                            l10n.confirmPassword,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          ShadInput(
-                            controller: _confirmPasswordController,
-                            placeholder: const Text('••••••••'),
-                            obscureText: true,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: const ShadDecoration(
-                              color: Color(0xFFF1F3F5),
-                              border: ShadBorder.none,
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 32),
-                          
-                          // Register Button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleRegister,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: primaryColor,
-                                foregroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(TablerIcons.brand_google, size: 18, color: Colors.black87),
+                            const SizedBox(width: 10),
+                            Text(
+                              currentLocale.languageCode == 'id'
+                                  ? 'Lanjutkan dengan Google'
+                                  : 'Continue with Google',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                                    )
-                                  : Text(
-                                      l10n.registerNow,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                                    ),
                             ),
-                          ),
-                          
-                          const SizedBox(height: 24),
-                          
-                          // Divider
-                          Row(
+                          ],
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 550.ms),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Footer Link
+                    Center(
+                      child: TextButton(
+                        onPressed: () => context.pop(),
+                        child: Text.rich(
+                          TextSpan(
+                            text: currentLocale.languageCode == 'id'
+                                ? 'Sudah punya akun? '
+                                : "Already have an account? ",
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                             children: [
-                              const Expanded(child: Divider()),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  l10n.orRegisterWith,
-                                  style: theme.textTheme.small.copyWith(
-                                    color: Colors.grey[500],
-                                    letterSpacing: 0.5,
-                                  ),
+                              TextSpan(
+                                text: currentLocale.languageCode == 'id' ? 'Masuk' : 'Sign in',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Expanded(child: Divider()),
                             ],
                           ),
-                          
-                          const SizedBox(height: 24),
-                          
-                          // Google Login
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton(
-                              onPressed: _isLoading ? null : _handleGoogleSignIn,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: BorderSide(color: Colors.grey.shade200),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(TablerIcons.brand_google, size: 20, color: Colors.black),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Google',
-                                    style: theme.textTheme.h4.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(height: 32),
-                          
-                          // Login Footer
-                          Center(
-                            child: TextButton(
-                              onPressed: () => context.pop(),
-                              child: Text.rich(
-                                TextSpan(
-                                  text: l10n.alreadyHaveAccount,
-                                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                                  children: [
-                                    TextSpan(
-                                      text: l10n.loginHere,
-                                      style: TextStyle(
-                                        color: primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
+                    ).animate().fadeIn(delay: 650.ms),
+                    
+                    const SizedBox(height: 12),
                   ],
                 ),
               ),
             ),
           ),
+          
+          // Floating subtle language selector in top right corner
           Positioned(
             top: 16,
             right: 16,
@@ -446,26 +622,26 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => _showLanguageSelector(context),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(30),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(30),
                       border: Border.all(color: Colors.grey.shade200),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(TablerIcons.language, size: 16, color: Colors.black54),
-                        const SizedBox(width: 6),
+                        const Icon(TablerIcons.language, size: 16, color: Colors.black87),
+                        const SizedBox(width: 8),
                         Text(
                           currentLocale.languageCode == 'id' ? 'ID' : 'EN',
                           style: const TextStyle(
@@ -484,29 +660,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SocialIcon extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _SocialIcon({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, size: 24, color: Colors.black87),
       ),
     );
   }

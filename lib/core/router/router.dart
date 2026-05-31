@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/setup_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/create_store_screen.dart';
@@ -55,7 +56,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
       final isAuthPage =
           state.matchedLocation == '/login' ||
-          state.matchedLocation == '/register';
+          state.matchedLocation == '/register' ||
+          state.matchedLocation == '/forgot-password';
 
       final isFirstRunAsync = ref.read(onboardingNotifierProvider);
 
@@ -136,6 +138,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: '/setup-password',

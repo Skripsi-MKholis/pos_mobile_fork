@@ -35,6 +35,13 @@ class Auth extends _$Auth {
     await AnalyticsService.instance.logSignUp(method: 'email');
   }
 
+  Future<void> resetPassword(String email) async {
+    await Supabase.instance.client.auth.resetPasswordForEmail(
+      email,
+      redirectTo: 'io.supabase.flutterpos://reset-callback/',
+    );
+  }
+
   Future<void> signInWithGoogle() async {
     final googleSignIn = GoogleSignIn(
       serverClientId:
