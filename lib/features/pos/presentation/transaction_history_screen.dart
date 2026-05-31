@@ -137,14 +137,12 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                // Optimization: Hoist lowercased search query outside the loop to avoid redundant string allocations
+                final searchLower = _searchQuery.toLowerCase();
                 final filtered = transactions.where((tx) {
                   final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
-                      tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
+                      tx['id'].toString().toLowerCase().contains(searchLower) ||
+                      tx['payment_method'].toString().toLowerCase().contains(searchLower);
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
 
