@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
@@ -26,23 +28,23 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String? _selectedCategory;
-  final Map<String, TextEditingController> _controllers = {};
 
   @override
   void dispose() {
     _debouncer.dispose();
-    for (var controller in _controllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
-  TextEditingController _getController(Product product) {
-    if (!_controllers.containsKey(product.supabaseId)) {
-      _controllers[product.supabaseId] =
-          TextEditingController(text: product.stockQuantity.toString());
-    }
-    return _controllers[product.supabaseId]!;
+  void _openStockEditModal(BuildContext context, Product product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _StockEditSheet(
+        product: product,
+        onSave: (newStock) => _updateStock(product, newStock),
+      ),
+    );
   }
 
   Future<void> _updateStock(Product product, int newStock) async {
@@ -322,7 +324,6 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                     itemCount: filteredProducts.length,
                     itemBuilder: (context, index) {
                       final product = filteredProducts[index];
-                      final controller = _getController(product);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
@@ -393,83 +394,56 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                       fontSize: 13,
                                     ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: product.stockQuantity == 0
+                                              ? Colors.red.withValues(alpha: 0.1)
+                                              : (product.stockQuantity <= 10
+                                                  ? Colors.amber.withValues(alpha: 0.1)
+                                                  : Colors.green.withValues(alpha: 0.1)),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          l10n.stockCount(product.stockQuantity),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: product.stockQuantity == 0
+                                                ? Colors.red.shade700
+                                                : (product.stockQuantity <= 10
+                                                    ? Colors.amber.shade700
+                                                    : Colors.green.shade700),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 16),
-                            // Stock Controls
-                            Container(
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.muted.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.border,
-                                ),
-                              ),
+                            ShadButton(
+                              size: ShadButtonSize.sm,
+                              backgroundColor: Warna.primary,
+                              hoverBackgroundColor:
+                                  Warna.primary.withValues(alpha: 0.8),
+                              foregroundColor: Colors.black,
+                              onPressed: () => _openStockEditModal(context, product),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.horizontal(
-                                          left: Radius.circular(12)),
-                                      onTap: () {
-                                        int current =
-                                            int.tryParse(controller.text) ?? 0;
-                                        controller.text = (current - 1).toString();
-                                        _updateStock(product, current - 1);
-                                      },
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(12),
-                                        child: Icon(TablerIcons.minus, size: 18),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 48,
-                                    child: Focus(
-                                      onFocusChange: (hasFocus) {
-                                        if (!hasFocus) {
-                                          int newStock = int.tryParse(controller.text) ?? 0;
-                                          if (newStock != product.stockQuantity) {
-                                             _updateStock(product, newStock);
-                                          }
-                                        }
-                                      },
-                                      child: ShadInput(
-                                        controller: controller,
-                                        keyboardType: TextInputType.number,
-                                        textAlign: TextAlign.center,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 8, horizontal: 0),
-                                        decoration: ShadDecoration(
-                                          border: ShadBorder.none,
-                                          focusedBorder: ShadBorder.none,
-                                        ),
-                                        onSubmitted: (value) {
-                                          int newStock = int.tryParse(value) ?? 0;
-                                          controller.text = newStock.toString();
-                                          _updateStock(product, newStock);
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      borderRadius: const BorderRadius.horizontal(
-                                          right: Radius.circular(12)),
-                                      onTap: () {
-                                        int current =
-                                            int.tryParse(controller.text) ?? 0;
-                                        controller.text = (current + 1).toString();
-                                        _updateStock(product, current + 1);
-                                      },
-                                      child: const Padding(
-                                        padding: EdgeInsets.all(12),
-                                        child: Icon(TablerIcons.plus, size: 18),
-                                      ),
+                                  const Icon(TablerIcons.edit, size: 14),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    l10n.edit,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],
@@ -488,6 +462,336 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StockEditSheet extends StatefulWidget {
+  final Product product;
+  final Function(int) onSave;
+
+  const _StockEditSheet({
+    required this.product,
+    required this.onSave,
+  });
+
+  @override
+  State<_StockEditSheet> createState() => _StockEditSheetState();
+}
+
+class _StockEditSheetState extends State<_StockEditSheet> {
+  late TextEditingController _controller;
+  late int _currentStock;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStock = widget.product.stockQuantity;
+    _controller = TextEditingController(text: _currentStock.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _updateLocalStock(int newValue) {
+    if (newValue < 0) newValue = 0; // Stock cannot be negative
+    setState(() {
+      _currentStock = newValue;
+      _controller.text = _currentStock.toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    final currencyFormat = NumberFormat.currency(
+      locale: locale,
+      symbol: locale.startsWith('id') ? 'Rp ' : '\$ ',
+      decimalDigits: 0,
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.background,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.only(
+        top: 8,
+        left: 24,
+        right: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Header title
+          Text(
+            'Ubah Stok Produk',
+            style: theme.textTheme.large.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Product details Card
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.muted.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: theme.colorScheme.border.withValues(alpha: 0.5),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.muted,
+                    borderRadius: BorderRadius.circular(10),
+                    image: widget.product.imageUrl != null
+                        ? DecorationImage(
+                            image: NetworkImage(widget.product.imageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : (widget.product.localImagePath != null
+                            ? DecorationImage(
+                                image: FileImage(File(widget.product.localImagePath!)),
+                                fit: BoxFit.cover,
+                              )
+                            : null),
+                  ),
+                  child: (widget.product.imageUrl == null &&
+                          widget.product.localImagePath == null)
+                      ? Icon(
+                          TablerIcons.package,
+                          color: theme.colorScheme.mutedForeground,
+                          size: 24,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.product.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        currencyFormat.format(widget.product.price),
+                        style: TextStyle(
+                          color: theme.colorScheme.mutedForeground,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Current stock badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.background,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: theme.colorScheme.border),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Stok Saat Ini',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: theme.colorScheme.mutedForeground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.product.stockQuantity.toString(),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Stock Counter Controls
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Minus Button
+              Material(
+                color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _updateLocalStock(_currentStock - 1);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Icon(TablerIcons.minus, size: 22),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
+
+              // Stock input
+              SizedBox(
+                width: 90,
+                child: ShadInput(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: ShadDecoration(
+                    border: ShadBorder.all(
+                      color: theme.colorScheme.border,
+                      radius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (val) {
+                    final parsed = int.tryParse(val) ?? 0;
+                    setState(() {
+                      _currentStock = parsed;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 20),
+
+              // Plus Button
+              Material(
+                color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(16),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _updateLocalStock(_currentStock + 1);
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Icon(TablerIcons.plus, size: 22),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Quick stock adjuster chips
+          Wrap(
+            spacing: 8,
+            children: [
+              _adjustChip('-10', -10, theme),
+              _adjustChip('-5', -5, theme),
+              _adjustChip('+5', 5, theme),
+              _adjustChip('+10', 10, theme),
+            ],
+          ),
+          const SizedBox(height: 32),
+
+          // Action buttons: Cancel & Save
+          Row(
+            children: [
+              Expanded(
+                child: ShadButton.outline(
+                  size: ShadButtonSize.lg,
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(l10n.cancel),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ShadButton(
+                  size: ShadButtonSize.lg,
+                  backgroundColor: Warna.primary,
+                  hoverBackgroundColor: Warna.primary.withValues(alpha: 0.8),
+                  foregroundColor: Colors.black,
+                  onPressed: () {
+                    Navigator.pop(context);
+                    widget.onSave(_currentStock);
+                  },
+                  child: Text(
+                    l10n.save,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _adjustChip(String label, int value, ShadThemeData theme) {
+    return ActionChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.foreground,
+        ),
+      ),
+      backgroundColor: theme.colorScheme.muted.withValues(alpha: 0.2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: theme.colorScheme.border.withValues(alpha: 0.5)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      onPressed: () {
+        HapticFeedback.lightImpact();
+        _updateLocalStock(_currentStock + value);
+      },
     );
   }
 }
