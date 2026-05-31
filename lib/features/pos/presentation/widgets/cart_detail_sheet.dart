@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/providers/voucher_provider.dart';
@@ -368,10 +369,10 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF98D100).withValues(alpha: 0.1),
+                      color: Warna.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF98D100).withValues(alpha: 0.2),
+                        color: Warna.primary.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
@@ -379,7 +380,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: const BoxDecoration(
-                            color: Color(0xFF98D100),
+                            color: Warna.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(

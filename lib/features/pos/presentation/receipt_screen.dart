@@ -170,6 +170,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
         ),
         body: Center(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [

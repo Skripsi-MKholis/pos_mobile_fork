@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -201,7 +202,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               padding: const EdgeInsets.only(right: 16),
               child: ShadButton(
                 size: ShadButtonSize.sm,
-                backgroundColor: const Color(0xFF98D100), // Lime Green
+                backgroundColor: Warna.primary, // Lime Green
                 foregroundColor: Colors.black,
                 onPressed: () => context.push('/products/add'),
                 leading: const Icon(TablerIcons.plus, size: 18),
@@ -268,7 +269,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           ChoiceChip(
                             label: Text(l10n.all),
                             selected: _selectedCategory == null,
-                            selectedColor: const Color(0xFF98D100),
+                            selectedColor: Warna.primary,
                             backgroundColor: theme.colorScheme.muted
                                 .withOpacity(0.3),
                             labelStyle: TextStyle(
@@ -297,7 +298,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                               child: ChoiceChip(
                                 label: Text(c.name),
                                 selected: isSelected,
-                                selectedColor: const Color(0xFF98D100),
+                                selectedColor: Warna.primary,
                                 backgroundColor: theme.colorScheme.muted
                                     .withOpacity(0.3),
                                 labelStyle: TextStyle(
@@ -982,7 +983,7 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: ShadButton(
-                      backgroundColor: const Color(0xFF98D100),
+                      backgroundColor: Warna.primary,
                       foregroundColor: Colors.black,
                       onPressed: _isSharing ? null : _shareBarcodeCard,
                       leading: _isSharing

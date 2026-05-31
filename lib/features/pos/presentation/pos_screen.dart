@@ -264,7 +264,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? const Color(0xFF98D100)
+                                      ? Warna.primary
                                       : (isOccupied
                                             ? Colors.red.withValues(alpha: 0.1)
                                             : ShadTheme.of(
@@ -273,7 +273,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isSelected
-                                        ? const Color(0xFF98D100)
+                                        ? Warna.primary
                                         : (isOccupied
                                               ? Colors.red.withValues(
                                                   alpha: 0.2,
@@ -675,12 +675,12 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF98D100)
+                ? Warna.primary
                 : theme.colorScheme.muted,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF98D100)
+                  ? Warna.primary
                   : theme.colorScheme.border,
             ),
           ),
@@ -760,7 +760,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   title: Text(opt['label']!),
                   contentPadding: EdgeInsets.zero,
                   trailing: _sortOption == opt['value']
-                      ? const Icon(TablerIcons.check, color: Color(0xFF98D100))
+                      ? const Icon(TablerIcons.check, color: Warna.primary)
                       : null,
                   onTap: () {
                     setState(() => _sortOption = opt['value']!);
@@ -856,7 +856,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF98D100),
+                            color: Warna.primary,
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
@@ -1366,12 +1366,10 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                             width: size.width * 0.65,
                             height: 2.5,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF98D100),
+                              color: Warna.primary,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(
-                                    0xFF98D100,
-                                  ).withOpacity(0.8),
+                                  color: Warna.primary.withOpacity(0.8),
                                   blurRadius: 8,
                                   spreadRadius: 2,
                                 ),
@@ -1450,7 +1448,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                   ),
                   decoration: BoxDecoration(
                     color: _isSuccessNotification
-                        ? const Color(0xFF98D100).withOpacity(0.9)
+                        ? Warna.primary.withOpacity(0.9)
                         : Colors.red.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
@@ -1635,7 +1633,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                                           Container(
                                             padding: const EdgeInsets.all(2),
                                             decoration: const BoxDecoration(
-                                              color: Color(0xFF98D100),
+                                              color: Warna.primary,
                                               shape: BoxShape.circle,
                                             ),
                                             child: const Icon(
@@ -1681,7 +1679,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                         const SizedBox(width: 16),
                         ShadButton(
                           onPressed: () => Navigator.pop(context),
-                          backgroundColor: const Color(0xFF98D100),
+                          backgroundColor: Warna.primary,
                           child: Text(
                             AppLocalizations.of(context)!.done,
                             style: const TextStyle(
@@ -1718,8 +1716,8 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
           height: 24,
           decoration: const BoxDecoration(
             border: Border(
-              top: BorderSide(color: Color(0xFF98D100), width: 4),
-              left: BorderSide(color: Color(0xFF98D100), width: 4),
+              top: BorderSide(color: Warna.primary, width: 4),
+              left: BorderSide(color: Warna.primary, width: 4),
             ),
           ),
         ),

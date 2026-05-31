@@ -109,10 +109,26 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
     final List<Map<String, dynamic>> navItems = isAdmin
         ? [
             {'icon': TablerIcons.chart_pie, 'label': l10n.homeTab, 'branch': 0},
-            {'icon': TablerIcons.shopping_cart, 'label': l10n.cashierTab, 'branch': 1},
-            {'icon': TablerIcons.history, 'label': l10n.historyTab, 'branch': 2},
-            {'icon': TablerIcons.report_money, 'label': l10n.reportsTab, 'branch': 3},
-            {'icon': TablerIcons.layout_grid, 'label': l10n.menuTab, 'branch': 4},
+            {
+              'icon': TablerIcons.shopping_cart,
+              'label': l10n.cashierTab,
+              'branch': 1,
+            },
+            {
+              'icon': TablerIcons.history,
+              'label': l10n.historyTab,
+              'branch': 2,
+            },
+            {
+              'icon': TablerIcons.report_money,
+              'label': l10n.reportsTab,
+              'branch': 3,
+            },
+            {
+              'icon': TablerIcons.layout_grid,
+              'label': l10n.menuTab,
+              'branch': 4,
+            },
           ]
         : [
             {
@@ -120,9 +136,21 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
               'label': l10n.homeTab,
               'branch': 0,
             },
-            {'icon': TablerIcons.shopping_cart, 'label': l10n.cashierTab, 'branch': 1},
-            {'icon': TablerIcons.history, 'label': l10n.historyTab, 'branch': 2},
-            {'icon': TablerIcons.layout_grid, 'label': l10n.menuTab, 'branch': 4},
+            {
+              'icon': TablerIcons.shopping_cart,
+              'label': l10n.cashierTab,
+              'branch': 1,
+            },
+            {
+              'icon': TablerIcons.history,
+              'label': l10n.historyTab,
+              'branch': 2,
+            },
+            {
+              'icon': TablerIcons.layout_grid,
+              'label': l10n.menuTab,
+              'branch': 4,
+            },
           ];
 
     // Judul AppBar berdasarkan branch yang aktif (bukan berdasarkan index bottom bar)
@@ -213,121 +241,15 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                       elevation: 0,
                       scrolledUnderElevation: 0,
                       centerTitle: true,
-                  leadingWidth: 56,
-                  title: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                      leadingWidth: 56,
+                      title: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
                         ),
-                      ],
-                      border: Border.all(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      pageTitle,
-                      style: theme.textTheme.h4.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  leading: Center(
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          width: 1,
-                        ),
-                      ),
-                      child: Builder(
-                        builder: (context) => IconButton(
-                          icon: const Icon(TablerIcons.menu_2, size: 20, color: Colors.black),
-                          onPressed: () => Scaffold.of(context).openDrawer(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  actions: [
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final status = ref.watch(connectivityNotifierProvider);
-                        return status.when(
-                          data: (s) {
-                            if (s == ConnectivityStatus.online) {
-                              return const SizedBox.shrink();
-                            }
-                            return InkWell(
-                              onTap: () {
-                                context.push('/settings/sync-monitoring');
-                              },
-                              borderRadius: BorderRadius.circular(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.orange.withValues(alpha: 0.2),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.orange,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text(
-                                      'Offline',
-                                      style: TextStyle(
-                                        color: Colors.orange,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 4),
-                    Center(
-                      child: Container(
-                        width: 44,
-                        height: 44,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.08),
@@ -340,36 +262,163 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                             width: 1,
                           ),
                         ),
-                        child: IconButton(
-                          icon: Consumer(
-                            builder: (context, ref, child) {
-                              final unreadCount = ref.watch(
-                                unreadNotificationCountProvider,
-                              );
-                              return Badge(
-                                label: Text(unreadCount.toString()),
-                                isLabelVisible: unreadCount > 0,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                child: const Icon(TablerIcons.bell, size: 20, color: Colors.black),
-                              );
-                            },
+                        child: Text(
+                          pageTitle,
+                          style: theme.textTheme.h4.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black,
                           ),
-                          onPressed: () {
-                            context.push('/notifications');
-                          },
                         ),
                       ),
+                      leading: Center(
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              width: 1,
+                            ),
+                          ),
+                          child: Builder(
+                            builder: (context) => IconButton(
+                              icon: const Icon(
+                                TablerIcons.menu_2,
+                                size: 20,
+                                color: Colors.black,
+                              ),
+                              onPressed: () =>
+                                  Scaffold.of(context).openDrawer(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      actions: [
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final status = ref.watch(
+                              connectivityNotifierProvider,
+                            );
+                            return status.when(
+                              data: (s) {
+                                if (s == ConnectivityStatus.online) {
+                                  return const SizedBox.shrink();
+                                }
+                                return InkWell(
+                                  onTap: () {
+                                    context.push('/settings/sync-monitoring');
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.orange.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.orange,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Text(
+                                          'Offline',
+                                          style: TextStyle(
+                                            color: Colors.orange,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                              loading: () => const SizedBox.shrink(),
+                              error: (_, __) => const SizedBox.shrink(),
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 4),
+                        Center(
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                width: 1,
+                              ),
+                            ),
+                            child: IconButton(
+                              icon: Consumer(
+                                builder: (context, ref, child) {
+                                  final unreadCount = ref.watch(
+                                    unreadNotificationCountProvider,
+                                  );
+                                  return Badge(
+                                    label: Text(unreadCount.toString()),
+                                    isLabelVisible: unreadCount > 0,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                    child: const Icon(
+                                      TablerIcons.bell,
+                                      size: 20,
+                                      color: Colors.black,
+                                    ),
+                                  );
+                                },
+                              ),
+                              onPressed: () {
+                                context.push('/notifications');
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    ),
         body: widget.navigationShell,
         bottomNavigationBar: Container(
           height: 100, // Extra height to allow floating
@@ -401,14 +450,14 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                       rippleColor: Colors.white10,
                       hoverColor: Colors.white10,
                       gap: 4,
-                      activeColor: Colors.white,
+                      activeColor: Warna.black,
                       iconSize: 20,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 10,
                       ),
                       duration: const Duration(milliseconds: 300),
-                      tabBackgroundColor: Warna.primary.withValues(alpha: 0.8),
+                      tabBackgroundColor: Warna.primary,
                       color: Colors.white54,
                       tabs: navItems
                           .map(
@@ -418,7 +467,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                               textStyle: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
-                                color: Colors.white,
+                                color: Warna.black,
                               ),
                             ),
                           )
