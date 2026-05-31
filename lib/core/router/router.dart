@@ -11,6 +11,7 @@ import 'package:pos_mobile/features/auth/presentation/create_store_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_list_screen.dart';
 import 'package:pos_mobile/features/product/presentation/category_list_screen.dart';
+import 'package:pos_mobile/features/product/presentation/category_products_screen.dart';
 import 'package:pos_mobile/features/product/presentation/product_form_screen.dart';
 import 'package:pos_mobile/features/product/presentation/stock_management_screen.dart';
 import 'package:pos_mobile/features/product/presentation/stock_history_screen.dart';
@@ -35,6 +36,7 @@ import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
 import 'package:pos_mobile/core/models/product.dart';
+import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/onboarding/presentation/onboarding_screen.dart';
 import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
 import 'package:pos_mobile/features/dashboard/presentation/notification_center_screen.dart';
@@ -228,6 +230,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/categories',
         builder: (context, state) => const CategoryListScreen(),
+        routes: [
+          GoRoute(
+            path: 'products',
+            builder: (context, state) {
+              final extra = state.extra as Map<String, dynamic>;
+              final category = extra['category'] as Category;
+              return CategoryProductsScreen(category: category);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/store-info',

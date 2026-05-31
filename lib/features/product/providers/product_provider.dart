@@ -461,4 +461,27 @@ class ProductNotifier extends _$ProductNotifier {
       rethrow;
     }
   }
+
+  Future<void> updateProductCategory(String productSupabaseId, String? categoryId) async {
+    final products = state.value ?? [];
+    final product = products.firstWhere((p) => p.supabaseId == productSupabaseId);
+    final updatedProduct = Product(
+      id: product.id,
+      supabaseId: product.supabaseId,
+      storeId: product.storeId,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      modalPrice: product.modalPrice,
+      stockQuantity: product.stockQuantity,
+      sku: product.sku,
+      barcode: product.barcode,
+      imageUrl: product.imageUrl,
+      localImagePath: product.localImagePath,
+      categoryId: categoryId,
+      updatedAt: DateTime.now(),
+      isSynced: false,
+    );
+    await saveProduct(updatedProduct);
+  }
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 
@@ -32,6 +34,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(categoryNotifierProvider);
+    final productsAsync = ref.watch(productNotifierProvider);
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
@@ -48,12 +51,37 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
       child: Scaffold(
         backgroundColor: theme.colorScheme.background,
         appBar: AppBar(
-          title: Text(l10n.manageCategories),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.manageCategories,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 20,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              Text(
+                Localizations.localeOf(context).languageCode == 'id'
+                    ? 'Atur kelompok produk untuk mempermudah penjualan'
+                    : 'Organize products to simplify transactions',
+                style: theme.textTheme.muted.copyWith(fontSize: 12),
+              ),
+            ],
+          ),
           backgroundColor: theme.colorScheme.background,
           elevation: 0,
-          centerTitle: false,
+          scrolledUnderElevation: 0,
           leading: IconButton(
-            icon: const Icon(TablerIcons.chevron_left),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(TablerIcons.chevron_left, size: 20),
+            ),
             onPressed: () {
               if (context.canPop()) {
                 context.pop();
@@ -62,6 +90,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               }
             },
           ),
+          toolbarHeight: 80,
         ),
         body: SafeArea(
           child: Column(
@@ -72,30 +101,40 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               // HEADER & SEARCH
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: ShadInput(
-                        placeholder: Text(l10n.searchCategory),
-                        leading: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(TablerIcons.search, size: 20),
-                        ),
-                        onChanged: (value) => _debouncer.run(
-                          () => setState(() => _searchQuery = value),
-                        ),
-                        decoration: ShadDecoration(
-                          border: ShadBorder.none,
-                          color: theme.colorScheme.muted.withOpacity(0.3),
-                        ),
+                    ShadInput(
+                      placeholder: Text(l10n.searchCategory),
+                      leading: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(TablerIcons.search, size: 20),
+                      ),
+                      onChanged: (value) => _debouncer.run(
+                        () => setState(() => _searchQuery = value),
+                      ),
+                      decoration: ShadDecoration(
+                        border: ShadBorder.none,
+                        color: theme.colorScheme.muted.withValues(alpha: 0.3),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    ShadButton(
-                      backgroundColor: const Color(0xFF98D100), // Lime Green
-                      onPressed: () => _showCategoryForm(context),
-                      leading: const Icon(TablerIcons.plus, size: 18),
-                      child: Text(l10n.add),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ShadButton(
+                        backgroundColor: Warna.primary,
+                        onPressed: () => _showCategoryForm(context),
+                        leading: const Icon(TablerIcons.plus, size: 18, color: Warna.black),
+                        child: Text(
+                          Localizations.localeOf(context).languageCode == 'id'
+                              ? 'Tambah Kategori Baru'
+                              : 'Add New Category',
+                          style: const TextStyle(
+                            color: Warna.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -110,6 +149,24 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                         _searchQuery.toLowerCase(),
                       );
                     }).toList();
+
+                    final products = productsAsync.value ?? [];
+
+                    final isId = Localizations.localeOf(context).languageCode == 'id';
+                    final uncategorizedTitle = isId ? 'Tanpa Kategori' : 'Uncategorized';
+                    final showUncategorized = _searchQuery.isEmpty ||
+                        uncategorizedTitle.toLowerCase().contains(_searchQuery.toLowerCase());
+
+                    if (showUncategorized) {
+                      final uncategorizedCategory = Category()
+                        ..id = -1
+                        ..supabaseId = 'uncategorized'
+                        ..storeId = ''
+                        ..name = uncategorizedTitle
+                        ..isSynced = true
+                        ..isDeleted = false;
+                      filtered.insert(0, uncategorizedCategory);
+                    }
 
                     if (filtered.isEmpty) {
                       return RefreshIndicator(
@@ -127,8 +184,8 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: theme.colorScheme.muted.withOpacity(
-                                      0.5,
+                                    color: theme.colorScheme.muted.withValues(
+                                      alpha: 0.5,
                                     ),
                                     shape: BoxShape.circle,
                                   ),
@@ -172,7 +229,17 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) {
                           final category = filtered[index];
-                          return _buildCategoryCard(context, category, theme);
+                          final productCount = products
+                              .where((p) => category.supabaseId == 'uncategorized'
+                                  ? p.categoryId == null
+                                  : p.categoryId == category.supabaseId)
+                              .length;
+                          return _buildCategoryCard(
+                            context,
+                            category,
+                            theme,
+                            productCount,
+                          );
                         },
                       ),
                     );
@@ -189,94 +256,94 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
     );
   }
 
-  Color _getCategoryColor(String name) {
-    final int hash = name.hashCode;
-    final double hue = (hash.abs() % 360).toDouble();
-    return HSLColor.fromAHSL(1.0, hue, 0.45, 0.93).toColor();
-  }
-
-  Color _getCategoryTextColor(String name) {
-    final int hash = name.hashCode;
-    final double hue = (hash.abs() % 360).toDouble();
-    return HSLColor.fromAHSL(1.0, hue, 0.65, 0.35).toColor();
-  }
-
   Widget _buildCategoryCard(
     BuildContext context,
     Category category,
     ShadThemeData theme,
+    int productCount,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final firstLetter = category.name.isNotEmpty
-        ? category.name[0].toUpperCase()
-        : '?';
-    final avatarBgColor = _getCategoryColor(category.name);
-    final avatarTextColor = _getCategoryTextColor(category.name);
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.card,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.border.withOpacity(0.4)),
+        border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.01),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.015),
+            blurRadius: 8,
             offset: const Offset(0, 4),
-          ),
+          )
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
         child: Row(
           children: [
-            // Left: Dynamic Pastel Avatar
+            // Left: Premium modern container icon (NOT Circle Avatar)
             Container(
-              width: 48,
-              height: 48,
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: avatarBgColor,
-                shape: BoxShape.circle,
+                color: category.supabaseId == 'uncategorized'
+                    ? Colors.grey.shade100
+                    : Warna.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
               ),
-              alignment: Alignment.center,
-              child: Text(
-                firstLetter,
-                style: TextStyle(
-                  color: avatarTextColor,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
+              child: Icon(
+                category.supabaseId == 'uncategorized'
+                    ? TablerIcons.folder_off
+                    : TablerIcons.category,
+                size: 20,
+                color: category.supabaseId == 'uncategorized'
+                    ? Colors.grey.shade600
+                    : Colors.black87,
               ),
             ),
             const SizedBox(width: 16),
 
-            // Middle: Category Name & Sync Status
+            // Middle: Category Name, Product Count & Sync Status
             Expanded(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      category.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        letterSpacing: -0.2,
-                      ),
-                    ),
-                  ),
-                  if (!category.isSynced)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 6),
-                      child: Tooltip(
-                        message: l10n.waitingForSync,
-                        child: const Icon(
-                          TablerIcons.cloud_off,
-                          size: 14,
-                          color: Colors.orange,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          category.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                            letterSpacing: -0.2,
+                          ),
                         ),
                       ),
+                      if (category.supabaseId != 'uncategorized' && !category.isSynced)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: Tooltip(
+                            message: l10n.waitingForSync,
+                            child: const Icon(
+                              TablerIcons.cloud_off,
+                              size: 14,
+                              color: Colors.orange,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'id'
+                        ? '$productCount Produk'
+                        : '$productCount Products',
+                    style: theme.textTheme.muted.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
                     ),
+                  ),
                 ],
               ),
             ),
@@ -292,64 +359,66 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                     borderRadius: BorderRadius.circular(8),
                     onTap: () {
                       context.push(
-                        '/products',
-                        extra: {'categoryId': category.supabaseId},
+                        '/categories/products',
+                        extra: {'category': category},
                       );
                     },
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        TablerIcons.packages,
-                        size: 16,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Tooltip(
-                  message: l10n.editCategory,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => _showCategoryForm(context, category: category),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.muted.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        TablerIcons.edit,
-                        size: 16,
-                        color: theme.colorScheme.foreground,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Tooltip(
-                  message: l10n.deleteCategory,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
-                    onTap: () => _confirmDelete(context, category),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
+                        color: Warna.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
-                        TablerIcons.trash,
+                        TablerIcons.packages,
                         size: 16,
-                        color: Colors.red,
+                        color: Colors.black87,
                       ),
                     ),
                   ),
                 ),
+                if (category.supabaseId != 'uncategorized') ...[
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: l10n.editCategory,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => _showCategoryForm(context, category: category),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          TablerIcons.edit,
+                          size: 16,
+                          color: theme.colorScheme.foreground,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: l10n.deleteCategory,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => _confirmDelete(context, category),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          TablerIcons.trash,
+                          size: 16,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
@@ -389,8 +458,14 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           ShadButton(
-            backgroundColor: const Color(0xFF98D100),
-            child: Text(isEditing ? l10n.save : l10n.add),
+            backgroundColor: Warna.primary,
+            child: Text(
+              isEditing ? l10n.save : l10n.add,
+              style: const TextStyle(
+                color: Warna.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             onPressed: () async {
               if (nameController.text.isEmpty) {
                 mySnackBar(
