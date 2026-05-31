@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
@@ -8,6 +7,7 @@ import 'package:pos_mobile/Configuration/components.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 class StoreSelectionScreen extends ConsumerStatefulWidget {
@@ -30,7 +30,6 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final primaryColor = theme.colorScheme.primary;
     final storesAsync = ref.watch(userStoresProvider);
     final connectivity = ref.watch(connectivityNotifierProvider).value;
     final isOffline = connectivity == ConnectivityStatus.offline;
@@ -41,6 +40,15 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        title: const Text(
+          'Pilih Toko',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            letterSpacing: -0.5,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(TablerIcons.logout, color: Colors.redAccent),
@@ -55,121 +63,120 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            children: [
-              // Header Icon
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(TablerIcons.building_store, size: 48, color: primaryColor),
-                ),
-              ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack),
-
-              const SizedBox(height: 24),
-
-              Text(
-                'Pilih Toko',
-                style: theme.textTheme.h1.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 36,
-                ),
-              ).animate().fadeIn(delay: 200.ms),
-
-              const SizedBox(height: 8),
-
-              Text(
-                'Silakan pilih toko untuk mulai mengelola operasional.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.muted.copyWith(fontSize: 16),
-              ).animate().fadeIn(delay: 300.ms),
-
-              const SizedBox(height: 48),
-
-              // Section Label
-              Row(
-                children: [
-                  Icon(TablerIcons.building_store, size: 20, color: primaryColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    'OUTLET ANDA',
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ).animate().fadeIn(delay: 400.ms),
-
-              const SizedBox(height: 16),
-
-              // Store List
-              storesAsync.when(
+        child: Column(
+          children: [
+            // Scrollable List Area
+            Expanded(
+              child: storesAsync.when(
                 data: (stores) {
                   if (stores.isEmpty) {
                     if (isOffline) {
-                      return _buildOfflineEmptyState(context, theme);
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(24.0),
+                        child: _buildOfflineEmptyState(context, theme),
+                      );
                     }
-                    return _buildEmptyState(context, theme);
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
+                      child: _buildEmptyState(context, theme),
+                    );
                   }
+                  
                   return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()), // Beautiful bouncing physics!
                     itemCount: stores.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    separatorBuilder: (context, index) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final store = stores[index];
-                      return _buildStoreCard(context, ref, theme, store, primaryColor);
+                      // Show section label above the first card!
+                      if (index == 0) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center, // Centered title!
+                              children: [
+                                const Icon(TablerIcons.building_store, size: 18, color: Colors.black54),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'OUTLET ANDA',
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.0,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ).animate().fadeIn(delay: 200.ms),
+                            const SizedBox(height: 16),
+                            _buildStoreCard(context, ref, theme, store, Warna.primary),
+                          ],
+                        );
+                      }
+                      return _buildStoreCard(context, ref, theme, store, Warna.primary);
                     },
                   );
                 },
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => Center(
+                  child: CircularProgressIndicator(
+                    color: Warna.primary,
+                  ),
+                ),
                 error: (err, stack) => Center(child: Text('Error: $err')),
-              ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.1),
+              ),
+            ),
 
-              const SizedBox(height: 48),
-
-              // Bottom Buttons
-              Column(
+            // Sticky Bottom Buttons Container
+            Container(
+              padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 20.0, top: 12.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Join with Invite Code Button
                   SizedBox(
                     width: double.infinity,
-                    child: TextButton(
+                    child: ElevatedButton(
                       onPressed: isOffline
                           ? null
-                          : () => _showJoinStoreDialog(context, primaryColor, theme),
-                      style: TextButton.styleFrom(
+                          : () => _showJoinStoreDialog(context, Warna.primary, theme),
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: isOffline
                             ? Colors.grey.shade100
-                            : primaryColor.withValues(alpha: 0.1),
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                            : Warna.primary, // Solid brand green primary!
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(30),
                         ),
+                        elevation: 0,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             TablerIcons.ticket,
-                            size: 20,
-                            color: isOffline ? Colors.grey : primaryColor,
+                            size: 18,
+                            color: isOffline ? Colors.grey : Colors.black,
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Text(
                             'Punya Kode Undangan?',
                             style: TextStyle(
-                              color: isOffline ? Colors.grey : primaryColor,
+                              color: isOffline ? Colors.grey : Colors.black,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
                             ),
                           ),
                         ],
@@ -177,15 +184,32 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
-                  Text(
-                    'Ingin mengelola toko baru?',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontStyle: FontStyle.italic,
-                      fontSize: 13,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 1,
+                        width: 40,
+                        color: Colors.grey.shade200,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'atau kelola toko baru',
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        height: 1,
+                        width: 40,
+                        color: Colors.grey.shade200,
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 12),
@@ -198,29 +222,29 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                           ? null
                           : () => context.push('/create-store'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         side: BorderSide(
-                          color: isOffline ? Colors.grey.shade300 : primaryColor,
+                          color: isOffline ? Colors.grey.shade300 : Warna.primary,
                           width: 1.5,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(32),
+                          borderRadius: BorderRadius.circular(30),
                         ),
                       ),
                       child: Text(
                         '+ Daftarkan Toko / Outlet Baru',
                         style: TextStyle(
-                          color: isOffline ? Colors.grey : primaryColor,
+                          color: isOffline ? Colors.grey : Colors.black87,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 15,
                         ),
                       ),
                     ),
                   ),
                 ],
-              ).animate().fadeIn(delay: 700.ms),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -239,7 +263,7 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
@@ -258,32 +282,32 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
               context.go('/dashboard');
             }
           },
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), // Tighter padding!
             child: Row(
               children: [
                 // Store Logo/Icon
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 44, // More compact size!
+                  height: 44,
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(22), // Completely circular/capsule avatar!
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(22),
                     child: (store['logo_url'] != null && store['logo_url'].toString().isNotEmpty)
                         ? Image.network(
                             store['logo_url'],
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
-                                const Icon(TablerIcons.building_store, size: 28),
+                                const Icon(TablerIcons.building_store, size: 20),
                           )
-                        : const Icon(TablerIcons.building_store, size: 28),
+                        : const Icon(TablerIcons.building_store, size: 20),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12), // Tighter gap
                 // Store Info
                 Expanded(
                   child: Column(
@@ -293,26 +317,44 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                         store['name'] ?? 'Toko Tanpa Nama',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                          fontSize: 14, // Tighter font size
                           color: Colors.black87,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text.rich(
-                        TextSpan(
-                          text: role.toUpperCase(),
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: ' • Toko',
-                              style: TextStyle(color: Colors.grey[400], fontWeight: FontWeight.normal),
+                      const SizedBox(height: 4), // Tighter vertical gap
+                      Row(
+                        children: [
+                           Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Tighter badge!
+                            decoration: BoxDecoration(
+                              color: isOwner
+                                  ? Warna.primary // brand primary green!
+                                  : Colors.grey.shade100, // clean gray background
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ],
-                        ),
+                            child: Text(
+                              role.toUpperCase(),
+                              style: TextStyle(
+                                color: isOwner
+                                    ? Colors.black // maximum readability on primary green
+                                    : Colors.grey.shade700, // clean gray text
+                                fontWeight: FontWeight.bold,
+                                fontSize: 9, // Smaller font
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Outlet',
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 11, // Smaller outlet label
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -385,10 +427,10 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: 0.1),
+                  color: Warna.primary.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(TablerIcons.ticket, color: primaryColor, size: 32),
+                child: const Icon(TablerIcons.ticket, color: Colors.black, size: 28),
               ),
               const SizedBox(height: 16),
               const Text('Gabung ke Toko'),
@@ -399,6 +441,31 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
           'Masukkan 8 karakter kode undangan yang diberikan oleh pemilik toko Anda.',
           textAlign: TextAlign.center,
         ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final code = codeController.text.trim();
+                if (code.isEmpty) return;
+                _joinStore(code);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Warna.primary,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Gabung Sekarang',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+          ),
+        ],
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -420,13 +487,13 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
                 controller: codeController,
                 placeholder: const Text('CONTOH: X7H2K9A1'),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: ShadDecoration(
                   color: Colors.grey[50],
                   border: ShadBorder.all(
                     color: Colors.grey[300]!,
                     width: 1,
-                    radius: const BorderRadius.all(Radius.circular(20)),
+                    radius: const BorderRadius.all(Radius.circular(30)),
                   ),
                 ),
                 textCapitalization: TextCapitalization.characters,
@@ -434,31 +501,6 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
             ],
           ),
         ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                final code = codeController.text.trim();
-                if (code.isEmpty) return;
-                _joinStore(code);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Gabung Sekarang',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
