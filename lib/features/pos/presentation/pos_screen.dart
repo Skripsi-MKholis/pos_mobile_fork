@@ -952,7 +952,33 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: l10n.clearCart,
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () async {
+                    final confirmed = await showShadDialog<bool>(
+                      context: context,
+                      builder: (context) => ShadDialog(
+                        title: Text(l10n.clearCartConfirmTitle),
+                        description: Text(l10n.clearCartConfirmDesc),
+                        actions: [
+                          ShadButton.outline(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(l10n.cancel),
+                          ),
+                          ShadButton(
+                            backgroundColor: Colors.red,
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(
+                              l10n.clearCart,
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed == true) {
+                      cartNotifier.clearCart();
+                    }
+                  },
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
