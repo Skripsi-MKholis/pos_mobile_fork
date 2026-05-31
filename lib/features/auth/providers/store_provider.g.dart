@@ -6,7 +6,7 @@ part of 'store_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userStoresHash() => r'e6bf5e3ae1c8fb22690311dd5c80aa4e36912461';
+String _$userStoresHash() => r'64d15acc6ba0dde2d3c05ff1da0f8ed3a53f99ae';
 
 /// See also [userStores].
 @ProviderFor(userStores)
@@ -22,7 +22,7 @@ final userStoresProvider =
 
 typedef UserStoresRef
     = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
-String _$activeStoreHash() => r'1e4ffeacbd8f9e133a80552fcc797e2e5c6b8bd4';
+String _$activeStoreHash() => r'8f9df5c1060eceabbd39a044ee646a63a1fc8638';
 
 /// See also [ActiveStore].
 @ProviderFor(ActiveStore)

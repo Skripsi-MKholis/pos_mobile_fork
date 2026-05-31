@@ -6,7 +6,7 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentUserHash() => r'085fe71f2d9e26843bcc7811da0911a0adc1a52b';
+String _$currentUserHash() => r'b5abd41ae35b7249bfdb624e7e1242a0667ed26d';
 
 /// See also [currentUser].
 @ProviderFor(currentUser)
@@ -20,7 +20,22 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
 );
 
 typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$authHash() => r'3e431ba00a531e37e19fc2eb9fc45404e07035ce';
+String _$userProfileHash() => r'cdc6b7de5619f1445e24f2f347aefd0a7c3378ba';
+
+/// See also [userProfile].
+@ProviderFor(userProfile)
+final userProfileProvider =
+    AutoDisposeFutureProvider<Map<String, dynamic>?>.internal(
+  userProfile,
+  name: r'userProfileProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$userProfileHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef UserProfileRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
+String _$authHash() => r'c61e79137f8f9abcb35232f64be863a854b8d2f0';
 
 /// See also [Auth].
 @ProviderFor(Auth)

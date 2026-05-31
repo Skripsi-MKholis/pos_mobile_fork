@@ -6,7 +6,7 @@ part of 'stock_history_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stockHistoryHash() => r'34d80035b376f980ab50bc59b822d357a8686e5f';
+String _$stockHistoryHash() => r'f55c5b54f63b1bb1fb3e8c0f9b0804deaa7642c0';
 
 /// See also [StockHistory].
 @ProviderFor(StockHistory)

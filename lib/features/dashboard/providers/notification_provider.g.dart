@@ -23,7 +23,7 @@ final unreadNotificationCountProvider = AutoDisposeProvider<int>.internal(
 
 typedef UnreadNotificationCountRef = AutoDisposeProviderRef<int>;
 String _$notificationNotifierHash() =>
-    r'3e77f34c66a7e9b4fc583a5d84506557efd0b89b';
+    r'2eb7c0c86289a896052b5ac74e7ec87d6ecca81d';
 
 /// See also [NotificationNotifier].
 @ProviderFor(NotificationNotifier)
