@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.4.0+7**
+**1.5.0+8**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Internationalization & Localization Stability**
+**ZelloPOS Premium UX & Advanced Inventory Overhaul**
 
 ---
 
@@ -94,3 +94,21 @@ Ringkasan perubahan pada rilis ini:
 Ringkasan perubahan pada rilis ini:
 
 * **Integrasi Izin ID Iklan (AD_ID)**: Menambahkan deklarasi izin `com.google.android.gms.permission.AD_ID` pada file `AndroidManifest.xml` untuk memastikan Firebase Analytics dapat mengakses *Advertising ID* pada perangkat Android 12 (API 31) ke atas demi keandalan pelacakan demografi dan kampanye pemasaran.
+
+---
+
+**Versi 1.5.0+8 (Premium UX & Advanced Inventory Overhaul)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Redesain Antarmuka "Pilih Toko" (Store Selection)**: Menyederhanakan navigasi AppBar, menambahkan animasi membal (*bouncing scroll*), label peran (*role badges*) yang jelas, serta mengamankan tombol aksi utama (Gabung/Buat Toko) di bagian bawah (*sticky bottom footer*) demi pengalaman pengguna yang premium dan interaktif.
+* **Redesain Detail Informasi Toko**: Memodernisasi halaman Informasi Toko dengan struktur *bento cards*, kontrol navigasi melayang (*floating*), pemilih logo squircular interaktif terintegrasi dengan modal bottom sheet, dan kolom input data bisnis yang selaras.
+* **Peningkatan Halaman Profil Pengguna**: Menerapkan tata letak estetika *bento-grid*, mengintegrasikan fitur "Ubah Foto Profil" menggunakan kamera/galeri native dengan penyimpanan Supabase Storage, sinkronisasi avatar real-time, serta kartu detail akun yang lebih rapi tanpa terpotong (*text truncation*).
+* **Perombakan Manajemen & Riwayat Stok**:
+  * Mengganti tombol penambah/pengurang stok kasir sebaris dengan tombol "Ubah Stok" yang membuka modal bottom sheet interaktif untuk integritas data yang lebih baik.
+  * Menambahkan halaman **Riwayat Stok** yang melacak seluruh riwayat penyesuaian stok.
+  * Menampilkan kategori produk pada bottom sheet pemilihan produk (`_AddProductsBottomSheet`), lengkap dengan label "Tanpa Kategori" untuk produk yang belum dikelompokkan.
+* **Standarisasi Branding Hijau POS**: Mengganti semua kode warna lime hijau usang (`0xFF98D100`) dengan warna utama resmi `Warna.primary` (`#9AE600`) di layar Kasir/POS, detail keranjang belanja, dan daftar produk demi harmoni visual premium. Memastikan teks/ikon kontras tinggi menggunakan `Warna.black` untuk keterbacaan optimal.
+* **Sistem AppBar Melayang (Floating AppBar)**: Mengimplementasikan desain global transparent/floating rounded AppBar di seluruh modul aplikasi. Mengatur properti `extendBodyBehindAppBar` pada Scaffold secara dinamis agar konten mengalir mulus di bawah header saat di-scroll tanpa saling tumpang tindih.
+* **Stabilisasi Sinkronisasi & Perbaikan UI**: Memperbaiki alur sinkronisasi data transaksi offline secara real-time dan memoles elemen UI di beberapa halaman inti untuk memastikan kestabilan aplikasi.
+
