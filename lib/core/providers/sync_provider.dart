@@ -11,6 +11,7 @@ import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
 import 'package:pos_mobile/core/models/stock_history.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 import 'dart:convert';
 
 part 'sync_provider.g.dart';
@@ -38,10 +39,15 @@ class SyncNotifier extends _$SyncNotifier {
 
   Future<void> _syncUnsyncedData() async {
     print('DEBUG: Memulai sinkronisasi otomatis karena status Online...');
-    await _syncCategories();
-    await _syncProducts();
-    await _syncTransactions();
-    await _syncStockHistory();
+    try {
+      await _supabase.ensureValidSession();
+    } catch (e) {
+      print('DEBUG: [SyncNotifier] Failed to validate session before sync: $e');
+    }
+    await syncCategories();
+    await syncProducts();
+    await syncTransactions();
+    await syncStockHistory();
     print('DEBUG: Sinkronisasi otomatis selesai.');
     
     // Invalidate providers agar UI terupdate
@@ -59,13 +65,13 @@ class SyncNotifier extends _$SyncNotifier {
     }
   }
 
-  Future<void> _syncCategories() async {
+  Future<void> syncCategories() async {
     final unsynced = await _isar.collection<Category>().filter().isSyncedEqualTo(false).findAll();
     
     for (var cat in unsynced) {
       try {
         if (cat.isDeleted) {
-          await _supabase.from('categories').delete().eq('id', cat.supabaseId);
+          await _supabase.retryWithFreshSession(() => _supabase.from('categories').delete().eq('id', cat.supabaseId));
           await _isar.writeTxn(() => _isar.collection<Category>().delete(cat.id));
         } else {
           final data = {
@@ -74,12 +80,12 @@ class SyncNotifier extends _$SyncNotifier {
           };
           
           // Check if it already exists in Supabase
-          final existing = await _supabase.from('categories').select().eq('id', cat.supabaseId).maybeSingle();
+          final existing = await _supabase.retryWithFreshSession(() => _supabase.from('categories').select().eq('id', cat.supabaseId).maybeSingle());
           
           if (existing == null) {
-            await _supabase.from('categories').insert({'id': cat.supabaseId, ...data});
+            await _supabase.retryWithFreshSession(() => _supabase.from('categories').insert({'id': cat.supabaseId, ...data}));
           } else {
-            await _supabase.from('categories').update(data).eq('id', cat.supabaseId);
+            await _supabase.retryWithFreshSession(() => _supabase.from('categories').update(data).eq('id', cat.supabaseId));
           }
           
           await _isar.writeTxn(() async {
@@ -97,7 +103,7 @@ class SyncNotifier extends _$SyncNotifier {
     }
   }
 
-  Future<void> _syncProducts() async {
+  Future<void> syncProducts() async {
     final unsynced = await _isar.products.filter().isSyncedEqualTo(false).findAll();
     
     for (var prod in unsynced) {
@@ -108,7 +114,7 @@ class SyncNotifier extends _$SyncNotifier {
           await productNotifier.deleteImageFromStorage(prod.imageUrl);
           await productNotifier.deleteLocalImage(prod.localImagePath);
 
-          await _supabase.from('products').delete().eq('id', prod.supabaseId);
+          await _supabase.retryWithFreshSession(() => _supabase.from('products').delete().eq('id', prod.supabaseId));
           await _isar.writeTxn(() => _isar.products.delete(prod.id));
         } else {
           String? imageUrl = prod.imageUrl;
@@ -137,12 +143,12 @@ class SyncNotifier extends _$SyncNotifier {
             'image_url': imageUrl,
           };
 
-          final existing = await _supabase.from('products').select().eq('id', prod.supabaseId).maybeSingle();
+          final existing = await _supabase.retryWithFreshSession(() => _supabase.from('products').select().eq('id', prod.supabaseId).maybeSingle());
           
           if (existing == null) {
-            await _supabase.from('products').insert({'id': prod.supabaseId, ...data});
+            await _supabase.retryWithFreshSession(() => _supabase.from('products').insert({'id': prod.supabaseId, ...data}));
           } else {
-            await _supabase.from('products').update(data).eq('id', prod.supabaseId);
+            await _supabase.retryWithFreshSession(() => _supabase.from('products').update(data).eq('id', prod.supabaseId));
           }
 
           await _isar.writeTxn(() async {
@@ -162,7 +168,7 @@ class SyncNotifier extends _$SyncNotifier {
     }
   }
 
-  Future<void> _syncTransactions() async {
+  Future<void> syncTransactions() async {
     final unsynced = await _isar.collection<TransactionLocal>().filter().isSyncedEqualTo(false).findAll();
 
     for (var tx in unsynced) {
@@ -182,11 +188,11 @@ class SyncNotifier extends _$SyncNotifier {
         }).toList();
 
         // Check if transaction already exists in Supabase
-        final existing = await _supabase.from('transactions').select().eq('id', tx.supabaseId).maybeSingle();
+        final existing = await _supabase.retryWithFreshSession(() => _supabase.from('transactions').select().eq('id', tx.supabaseId).maybeSingle());
 
         if (existing == null) {
           // Call create_transaction_v4 on Supabase via RPC
-          final response = await _supabase.rpc(
+          final response = await _supabase.retryWithFreshSession(() => _supabase.rpc(
             'create_transaction_v4',
             params: {
               'p_transaction_id': tx.supabaseId,
@@ -202,7 +208,7 @@ class SyncNotifier extends _$SyncNotifier {
               'p_cash_paid': tx.cashPaid,
               'p_change_amount': tx.changeAmount,
             },
-          );
+          ));
 
           if (response == null || (response is Map && response['success'] == false)) {
             throw response?['error'] ?? 'Gagal membuat transaksi di server.';
@@ -225,7 +231,7 @@ class SyncNotifier extends _$SyncNotifier {
     }
   }
 
-  Future<void> _syncStockHistory() async {
+  Future<void> syncStockHistory() async {
     final unsynced = await _isar.collection<StockHistoryLocal>().filter().isSyncedEqualTo(false).findAll();
     
     for (var sh in unsynced) {
@@ -244,12 +250,12 @@ class SyncNotifier extends _$SyncNotifier {
           'created_at': sh.createdAt.toIso8601String(),
         };
         
-        final existing = await _supabase.from('stock_history').select().eq('id', sh.supabaseId).maybeSingle();
+        final existing = await _supabase.retryWithFreshSession(() => _supabase.from('stock_history').select().eq('id', sh.supabaseId).maybeSingle());
         
         if (existing == null) {
-          await _supabase.from('stock_history').insert(data);
+          await _supabase.retryWithFreshSession(() => _supabase.from('stock_history').insert(data));
         } else {
-          await _supabase.from('stock_history').update(data).eq('id', sh.supabaseId);
+          await _supabase.retryWithFreshSession(() => _supabase.from('stock_history').update(data).eq('id', sh.supabaseId));
         }
         
         await _isar.writeTxn(() async {

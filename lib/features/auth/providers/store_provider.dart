@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/store.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 import 'package:isar/isar.dart';
 
 part 'store_provider.g.dart';
@@ -40,6 +41,7 @@ class ActiveStore extends _$ActiveStore {
       if (connectivity == ConnectivityStatus.online) {
         final supabase = Supabase.instance.client;
         try {
+          await supabase.ensureValidSession();
           // Join with store_members to get the user's role in this store
           final response = await supabase
               .from('store_members')
@@ -196,6 +198,7 @@ Future<List<Map<String, dynamic>>> userStores(UserStoresRef ref) async {
   // 2. If online, fetch from Supabase and sync
   if (connectivity == ConnectivityStatus.online) {
     try {
+      await supabase.ensureValidSession();
       final response = await supabase
           .from('store_members')
           .select('role, stores:stores(*)')

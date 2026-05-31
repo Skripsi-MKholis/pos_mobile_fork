@@ -6,6 +6,7 @@ import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 
 part 'notification_provider.g.dart';
 
@@ -37,6 +38,7 @@ class NotificationNotifier extends _$NotificationNotifier {
     // Jika online, sinkronkan data baru dan pasang listener realtime
     if (connectivity == ConnectivityStatus.online) {
       try {
+        await Supabase.instance.client.ensureValidSession();
         final syncedList = await _repository.fetchAndSyncNotifications(storeId, userId);
         
         // Pasang realtime listener

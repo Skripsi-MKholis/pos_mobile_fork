@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/models/stock_history.dart';
 import 'package:isar/isar.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 
 part 'stock_history_provider.g.dart';
 
@@ -46,6 +47,7 @@ class StockHistory extends _$StockHistory {
           ConnectivityStatus.online;
       if (!isOnline) return;
 
+      await _supabase.ensureValidSession();
       final response = await _supabase
           .from('stock_history')
           .select()

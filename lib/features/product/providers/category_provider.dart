@@ -6,6 +6,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:isar/isar.dart';
 import 'package:uuid/uuid.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 
 part 'category_provider.g.dart';
 
@@ -80,10 +81,10 @@ class CategoryNotifier extends _$CategoryNotifier {
           ConnectivityStatus.online;
       if (!isOnline) return;
 
-      final response = await _supabase
+      final response = await _supabase.retryWithFreshSession(() => _supabase
           .from('categories')
           .select()
-          .eq('store_id', storeId);
+          .eq('store_id', storeId));
 
       final categories = (response as List)
           .map(
@@ -122,7 +123,7 @@ class CategoryNotifier extends _$CategoryNotifier {
 
       state = AsyncData(await _fetchLocalCategories(storeId));
     } catch (e) {
-      rethrow;
+      print('DEBUG: Error syncing categories: $e');
     }
   }
 

@@ -12,12 +12,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
+  try {
+    await Supabase.instance.client.ensureValidSession();
+  } catch (e) {
+    debugPrint('Error validating session during main initialization: $e');
+  }
   await IsarService.init();
 
   try {

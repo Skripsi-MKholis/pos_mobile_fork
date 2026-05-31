@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:pos_mobile/core/utils/supabase_helper.dart';
 
 part 'product_provider.g.dart';
 
@@ -123,10 +124,10 @@ class ProductNotifier extends _$ProductNotifier {
           ConnectivityStatus.online;
       if (!isOnline) return;
 
-      final response = await _supabase
+      final response = await _supabase.retryWithFreshSession(() => _supabase
           .from('products')
           .select()
-          .eq('store_id', storeId);
+          .eq('store_id', storeId));
       final products = (response as List)
           .map((data) => _mapSupabaseToProduct(data))
           .toList();
@@ -155,7 +156,7 @@ class ProductNotifier extends _$ProductNotifier {
 
       state = AsyncData(await _fetchLocalProducts(storeId));
     } catch (e) {
-      rethrow;
+      print('DEBUG: Error syncing products: $e');
     }
   }
 
