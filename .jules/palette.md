@@ -1,0 +1,3 @@
+## 2024-11-20 - Adding Tooltips to Icon-Only Buttons
+**Learning:** Found multiple instances where `IconButton` or `ShadIconButton` widgets lacked proper tooltips/ARIA labels for accessibility, particularly in the Point of Sale (POS) screen for actions like "Toggle Flashlight", "Close Scanner", "Remove Voucher", "Increase Quantity", and "Decrease Quantity". These changes were well-received as they make screen reader announcements explicit and provide hover state guidance for desktop/web users.
+**Action:** When working on complex screens (like POS), proactively audit all icon-only interactive elements and ensure they have a `tooltip` attribute mapped to localized strings.

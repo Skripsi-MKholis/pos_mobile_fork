@@ -1406,6 +1406,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                   children: [
                     // Flash Toggle
                     IconButton(
+                      tooltip: AppLocalizations.of(context)!.toggleFlashlight,
                       icon: Icon(
                         _isTorchOn ? Icons.flashlight_off : Icons.flashlight_on,
                         color: Colors.white,
@@ -1427,6 +1428,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                     ),
                     // Close button
                     IconButton(
+                      tooltip: AppLocalizations.of(context)!.closeScanner,
                       icon: const Icon(TablerIcons.x, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),

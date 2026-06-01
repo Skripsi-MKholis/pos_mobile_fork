@@ -173,6 +173,11 @@
     }
   },
   "invalidVoucher": "Invalid voucher code",
+  "decreaseQuantity": "Decrease Quantity",
+  "increaseQuantity": "Increase Quantity",
+  "toggleFlashlight": "Toggle Flashlight",
+  "closeScanner": "Close Scanner",
+  "removeVoucher": "Remove Voucher",
   "anErrorOccurred": "An error occurred",
   "orderDetail": "Order Detail",
   "tableWithColon": "Table: {tableName}",

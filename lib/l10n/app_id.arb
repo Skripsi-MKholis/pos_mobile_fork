@@ -173,6 +173,11 @@
     }
   },
   "invalidVoucher": "Kode voucher tidak valid",
+  "decreaseQuantity": "Kurangi Kuantitas",
+  "increaseQuantity": "Tambah Kuantitas",
+  "toggleFlashlight": "Nyalakan/Matikan Senter",
+  "closeScanner": "Tutup Pemindai",
+  "removeVoucher": "Hapus Voucher",
   "anErrorOccurred": "Terjadi kesalahan",
   "orderDetail": "Detail Pesanan",
   "tableWithColon": "Meja: {tableName}",
