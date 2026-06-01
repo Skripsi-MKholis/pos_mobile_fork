@@ -17,6 +17,12 @@ import 'package:pos_mobile/core/utils/supabase_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (Env.supabaseUrl.isEmpty || Env.supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Required environment variables SUPABASE_URL or SUPABASE_ANON_KEY are not set.',
+    );
+  }
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   try {
@@ -113,7 +119,6 @@ class MyApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: colorScheme,
-
       ),
     );
   }
