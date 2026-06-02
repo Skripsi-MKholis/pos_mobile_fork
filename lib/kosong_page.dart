@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pos_mobile/Configuration/components.dart';
-import 'package:pos_mobile/configuration/configuration.dart';
+import 'package:pos_mobile/Configuration/configuration.dart';
 
 class KosongPage extends StatelessWidget {
   const KosongPage({super.key});
