@@ -124,7 +124,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                       child: ShadButton(
                         backgroundColor: Warna.primary,
                         onPressed: () => _showCategoryForm(context),
-                        leading: const Icon(TablerIcons.plus, size: 18, color: Warna.black),
+                        leading: const Icon(
+                          TablerIcons.plus,
+                          size: 18,
+                          color: Warna.black,
+                        ),
                         child: Text(
                           Localizations.localeOf(context).languageCode == 'id'
                               ? 'Tambah Kategori Baru'
@@ -144,18 +148,24 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               Expanded(
                 child: categoriesAsync.when(
                   data: (categories) {
+                    // ⚡ Bolt: Hoist invariant toLowerCase() outside the loop
+                    // This prevents redundant O(N) string allocations during filtering
+                    final lowerQuery = _searchQuery.toLowerCase();
+
                     final filtered = categories.where((c) {
-                      return c.name.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
+                      return c.name.toLowerCase().contains(lowerQuery);
                     }).toList();
 
                     final products = productsAsync.value ?? [];
 
-                    final isId = Localizations.localeOf(context).languageCode == 'id';
-                    final uncategorizedTitle = isId ? 'Tanpa Kategori' : 'Uncategorized';
-                    final showUncategorized = _searchQuery.isEmpty ||
-                        uncategorizedTitle.toLowerCase().contains(_searchQuery.toLowerCase());
+                    final isId =
+                        Localizations.localeOf(context).languageCode == 'id';
+                    final uncategorizedTitle = isId
+                        ? 'Tanpa Kategori'
+                        : 'Uncategorized';
+                    final showUncategorized =
+                        _searchQuery.isEmpty ||
+                        uncategorizedTitle.toLowerCase().contains(lowerQuery);
 
                     if (showUncategorized) {
                       final uncategorizedCategory = Category()
@@ -230,9 +240,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                         itemBuilder: (context, index) {
                           final category = filtered[index];
                           final productCount = products
-                              .where((p) => category.supabaseId == 'uncategorized'
-                                  ? p.categoryId == null
-                                  : p.categoryId == category.supabaseId)
+                              .where(
+                                (p) => category.supabaseId == 'uncategorized'
+                                    ? p.categoryId == null
+                                    : p.categoryId == category.supabaseId,
+                              )
                               .length;
                           return _buildCategoryCard(
                             context,
@@ -275,7 +287,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
             color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 8,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Padding(
@@ -320,7 +332,8 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                           ),
                         ),
                       ),
-                      if (category.supabaseId != 'uncategorized' && !category.isSynced)
+                      if (category.supabaseId != 'uncategorized' &&
+                          !category.isSynced)
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Tooltip(
@@ -383,7 +396,8 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                     message: l10n.editCategory,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      onTap: () => _showCategoryForm(context, category: category),
+                      onTap: () =>
+                          _showCategoryForm(context, category: category),
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -528,9 +542,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
       context: context,
       builder: (context) => ShadDialog(
         title: Text(l10n.deleteCategory),
-        description: Text(
-          l10n.deleteCategoryConfirm(category.name),
-        ),
+        description: Text(l10n.deleteCategoryConfirm(category.name)),
         actions: [
           ShadButton.outline(
             child: Text(l10n.cancel),

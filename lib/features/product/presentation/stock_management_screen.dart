@@ -94,7 +94,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     final categoriesAsync = ref.watch(categoryNotifierProvider);
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    
+
     final locale = Localizations.localeOf(context);
     final format = NumberFormat.currency(
       locale: locale.toString(),
@@ -190,8 +190,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         padding: EdgeInsets.all(8.0),
                         child: Icon(TablerIcons.search, size: 20),
                       ),
-                      onChanged: (value) =>
-                          _debouncer.run(() => setState(() => _searchQuery = value)),
+                      onChanged: (value) => _debouncer.run(
+                        () => setState(() => _searchQuery = value),
+                      ),
                       decoration: ShadDecoration(
                         border: ShadBorder.none,
                         color: theme.colorScheme.background,
@@ -221,8 +222,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                 ),
                               ],
                               onChanged: (value) => setState(
-                                () => _selectedCategory =
-                                    value == 'all' ? null : value,
+                                () => _selectedCategory = value == 'all'
+                                    ? null
+                                    : value,
                               ),
                               selectedOptionBuilder: (context, value) => Text(
                                 value == 'all'
@@ -294,14 +296,16 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt: Hoist invariant toLowerCase() outside the loop
+                  // This prevents redundant O(N) string allocations during filtering
+                  final lowerQuery = _searchQuery.toLowerCase();
+
                   final filteredProducts = products.where((p) {
-                    final matchesSearch = p.name
-                            .toLowerCase()
-                            .contains(_searchQuery.toLowerCase()) ||
-                        (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase()) ??
-                            false);
-                    final matchesCategory = _selectedCategory == null ||
+                    final matchesSearch =
+                        p.name.toLowerCase().contains(lowerQuery) ||
+                        (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
+                    final matchesCategory =
+                        _selectedCategory == null ||
                         p.categoryId == _selectedCategory;
                     return matchesSearch && matchesCategory;
                   }).toList();
@@ -314,8 +318,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.muted
-                                  .withValues(alpha: 0.5),
+                              color: theme.colorScheme.muted.withValues(
+                                alpha: 0.5,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -350,9 +355,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                         decoration: BoxDecoration(
                           color: theme.colorScheme.background,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: theme.colorScheme.border,
-                          ),
+                          border: Border.all(color: theme.colorScheme.border),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.02),
@@ -378,35 +381,44 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                         fit: BoxFit.cover,
                                         width: double.infinity,
                                         height: double.infinity,
-                                        maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                                        maxHeightDiskCache:
+                                            120, // Resizes and caches optimized low-res image
                                         maxWidthDiskCache: 120,
-                                        placeholder: (context, url) => Shimmer.fromColors(
-                                          baseColor: theme.colorScheme.muted.withOpacity(0.5),
-                                          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
-                                          child: Container(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        errorWidget: (context, url, error) => const Center(
-                                          child: Icon(
-                                            TablerIcons.package_off,
-                                            color: Colors.grey,
-                                            size: 28,
-                                          ),
-                                        ),
+                                        placeholder: (context, url) =>
+                                            Shimmer.fromColors(
+                                              baseColor: theme.colorScheme.muted
+                                                  .withOpacity(0.5),
+                                              highlightColor: theme
+                                                  .colorScheme
+                                                  .muted
+                                                  .withOpacity(0.2),
+                                              child: Container(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                        errorWidget: (context, url, error) =>
+                                            const Center(
+                                              child: Icon(
+                                                TablerIcons.package_off,
+                                                color: Colors.grey,
+                                                size: 28,
+                                              ),
+                                            ),
                                       )
                                     : (product.localImagePath != null
-                                        ? Image.file(
-                                            File(product.localImagePath!),
-                                            fit: BoxFit.cover,
-                                            width: double.infinity,
-                                            height: double.infinity,
-                                          )
-                                        : Icon(
-                                            TablerIcons.package,
-                                            color: theme.colorScheme.mutedForeground,
-                                            size: 28,
-                                          )),
+                                          ? Image.file(
+                                              File(product.localImagePath!),
+                                              fit: BoxFit.cover,
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                            )
+                                          : Icon(
+                                              TablerIcons.package,
+                                              color: theme
+                                                  .colorScheme
+                                                  .mutedForeground,
+                                              size: 28,
+                                            )),
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -436,25 +448,37 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 4),
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: product.stockQuantity == 0
-                                              ? Colors.red.withValues(alpha: 0.1)
+                                              ? Colors.red.withValues(
+                                                  alpha: 0.1,
+                                                )
                                               : (product.stockQuantity <= 10
-                                                  ? Colors.amber.withValues(alpha: 0.1)
-                                                  : Colors.green.withValues(alpha: 0.1)),
-                                          borderRadius: BorderRadius.circular(8),
+                                                    ? Colors.amber.withValues(
+                                                        alpha: 0.1,
+                                                      )
+                                                    : Colors.green.withValues(
+                                                        alpha: 0.1,
+                                                      )),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                         child: Text(
-                                          l10n.stockCount(product.stockQuantity),
+                                          l10n.stockCount(
+                                            product.stockQuantity,
+                                          ),
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
                                             color: product.stockQuantity == 0
                                                 ? Colors.red.shade700
                                                 : (product.stockQuantity <= 10
-                                                    ? Colors.amber.shade700
-                                                    : Colors.green.shade700),
+                                                      ? Colors.amber.shade700
+                                                      : Colors.green.shade700),
                                           ),
                                         ),
                                       ),
@@ -467,10 +491,12 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                             ShadButton(
                               size: ShadButtonSize.sm,
                               backgroundColor: Warna.primary,
-                              hoverBackgroundColor:
-                                  Warna.primary.withValues(alpha: 0.8),
+                              hoverBackgroundColor: Warna.primary.withValues(
+                                alpha: 0.8,
+                              ),
                               foregroundColor: Colors.black,
-                              onPressed: () => _openStockEditModal(context, product),
+                              onPressed: () =>
+                                  _openStockEditModal(context, product),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -507,10 +533,7 @@ class _StockEditSheet extends StatefulWidget {
   final Product product;
   final Function(int) onSave;
 
-  const _StockEditSheet({
-    required this.product,
-    required this.onSave,
-  });
+  const _StockEditSheet({required this.product, required this.onSave});
 
   @override
   State<_StockEditSheet> createState() => _StockEditSheetState();
@@ -606,7 +629,7 @@ class _StockEditSheetState extends State<_StockEditSheet> {
             ),
             child: Row(
               children: [
-                 Container(
+                Container(
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
@@ -621,14 +644,16 @@ class _StockEditSheetState extends State<_StockEditSheet> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: double.infinity,
-                            maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                            maxHeightDiskCache:
+                                120, // Resizes and caches optimized low-res image
                             maxWidthDiskCache: 120,
                             placeholder: (context, url) => Shimmer.fromColors(
-                              baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
-                              highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
-                              child: Container(
-                                color: Colors.white,
+                              baseColor: theme.colorScheme.muted.withValues(
+                                alpha: 0.5,
                               ),
+                              highlightColor: theme.colorScheme.muted
+                                  .withValues(alpha: 0.2),
+                              child: Container(color: Colors.white),
                             ),
                             errorWidget: (context, url, error) => const Center(
                               child: Icon(
@@ -639,17 +664,17 @@ class _StockEditSheetState extends State<_StockEditSheet> {
                             ),
                           )
                         : (widget.product.localImagePath != null
-                            ? Image.file(
-                                File(widget.product.localImagePath!),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              )
-                            : Icon(
-                                TablerIcons.package,
-                                color: theme.colorScheme.mutedForeground,
-                                size: 24,
-                              )),
+                              ? Image.file(
+                                  File(widget.product.localImagePath!),
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : Icon(
+                                  TablerIcons.package,
+                                  color: theme.colorScheme.mutedForeground,
+                                  size: 24,
+                                )),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -680,7 +705,10 @@ class _StockEditSheetState extends State<_StockEditSheet> {
                 const SizedBox(width: 10),
                 // Current stock badge
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.background,
                     borderRadius: BorderRadius.circular(10),
@@ -841,7 +869,9 @@ class _StockEditSheetState extends State<_StockEditSheet> {
       backgroundColor: theme.colorScheme.muted.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.colorScheme.border.withValues(alpha: 0.5)),
+        side: BorderSide(
+          color: theme.colorScheme.border.withValues(alpha: 0.5),
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       onPressed: () {
