@@ -48,8 +48,8 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               ),
             ),
             Text(
-              isId 
-                  ? 'Audit penyesuaian stok dan penjualan' 
+              isId
+                  ? 'Audit penyesuaian stok dan penjualan'
                   : 'Audit stock adjustments and sales',
               style: theme.textTheme.muted.copyWith(fontSize: 12),
             ),
@@ -82,15 +82,24 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
           children: [
             // SEARCH & FILTER SECTION
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Column(
                 children: [
                   ShadInput(
                     controller: _searchController,
-                    placeholder: Text(isId ? 'Cari nama produk...' : 'Search product name...'),
+                    placeholder: Text(
+                      isId ? 'Cari nama produk...' : 'Search product name...',
+                    ),
                     leading: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Icon(TablerIcons.search, size: 18, color: Colors.grey),
+                      child: Icon(
+                        TablerIcons.search,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
                     ),
                     onChanged: (val) {
                       setState(() {
@@ -109,13 +118,18 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
             Expanded(
               child: historyAsync.when(
                 data: (logs) {
+                  // ⚡ Bolt: Hoist invariant toLowerCase() outside the loop
+                  // This prevents redundant O(N) string allocations during filtering
+                  final lowerQuery = _searchQuery.toLowerCase();
+
                   // Filter logs locally based on search query and category type
                   final filteredLogs = logs.where((log) {
                     final matchesSearch = log.productName
                         .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
-                        
-                    final matchesType = _filterType == 'all' ||
+                        .contains(lowerQuery);
+
+                    final matchesType =
+                        _filterType == 'all' ||
                         (_filterType == 'sale' && log.changeType == 'sale') ||
                         (_filterType == 'manual' && log.changeType != 'sale');
 
@@ -134,7 +148,10 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                           .syncStockHistory();
                     },
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 8.0,
+                      ),
                       itemCount: filteredLogs.length,
                       itemBuilder: (context, index) {
                         final log = filteredLogs[index];
@@ -148,7 +165,9 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                 ),
                 error: (err, _) => Center(
                   child: Text(
-                    isId ? 'Gagal memuat riwayat: $err' : 'Failed to load history: $err',
+                    isId
+                        ? 'Gagal memuat riwayat: $err'
+                        : 'Failed to load history: $err',
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
@@ -164,7 +183,10 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
     final List<Map<String, String>> filters = [
       {'key': 'all', 'label': isId ? 'Semua' : 'All'},
       {'key': 'sale', 'label': isId ? 'Penjualan' : 'Sales'},
-      {'key': 'manual', 'label': isId ? 'Penyesuaian Manual' : 'Manual Adjustments'},
+      {
+        'key': 'manual',
+        'label': isId ? 'Penyesuaian Manual' : 'Manual Adjustments',
+      },
     ];
 
     return SingleChildScrollView(
@@ -184,10 +206,13 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? Warna.primary 
+                  color: isSelected
+                      ? Warna.primary
                       : theme.colorScheme.muted.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
@@ -197,7 +222,9 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                 child: Text(
                   f['label']!,
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isSelected ? Warna.black : Colors.black87,
                     fontSize: 13,
                   ),
@@ -210,10 +237,14 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
     );
   }
 
-  Widget _buildHistoryCard(StockHistoryLocal log, bool isId, ShadThemeData theme) {
+  Widget _buildHistoryCard(
+    StockHistoryLocal log,
+    bool isId,
+    ShadThemeData theme,
+  ) {
     final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
     final isPositive = log.quantityChange > 0;
-    
+
     // Determine title / reason display
     String changeTitle = '';
     IconData icon = TablerIcons.adjustments;
@@ -266,7 +297,7 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
             color: Colors.black.withValues(alpha: 0.015),
             blurRadius: 8,
             offset: const Offset(0, 4),
-          )
+          ),
         ],
       ),
       child: Padding(
@@ -291,13 +322,18 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                 const SizedBox(width: 8),
                 // QUANTITY ADJUSTMENT BADGE
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isPositive ? lightEmerald : lightRose,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    isPositive ? '+${log.quantityChange}' : '${log.quantityChange}',
+                    isPositive
+                        ? '+${log.quantityChange}'
+                        : '${log.quantityChange}',
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                       color: isPositive ? emeraldGreen : roseRed,
@@ -315,7 +351,10 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               children: [
                 // LOG CATEGORY BADGE
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeColor,
                     borderRadius: BorderRadius.circular(8),
@@ -336,7 +375,7 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                     ],
                   ),
                 ),
-                
+
                 // STOCK FLOW
                 Text(
                   '${log.oldStock} → ${log.newStock} pcs',
@@ -349,7 +388,7 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                 ),
               ],
             ),
-            
+
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12.0),
               child: Divider(height: 1, color: Colors.black12),
@@ -366,23 +405,33 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                     children: [
                       Text(
                         '${isId ? "Oleh" : "By"}: ${log.cashierId != null ? "Kasir" : (isId ? "Sistem" : "System")}',
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         dateFormat.format(log.createdAt),
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 // Sync indicator icon
                 Tooltip(
-                  message: log.isSynced 
-                      ? (isId ? "Tersinkronisasi dengan Cloud" : "Synced with Cloud") 
+                  message: log.isSynced
+                      ? (isId
+                            ? "Tersinkronisasi dengan Cloud"
+                            : "Synced with Cloud")
                       : (isId ? "Menunggu Sinkronisasi" : "Pending Sync"),
                   child: Icon(
-                    log.isSynced ? TablerIcons.circle_check : TablerIcons.refresh,
+                    log.isSynced
+                        ? TablerIcons.circle_check
+                        : TablerIcons.refresh,
                     size: 18,
                     color: log.isSynced ? emeraldGreen : Colors.amber.shade600,
                   ),
@@ -406,7 +455,11 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               color: theme.colorScheme.muted.withValues(alpha: 0.5),
               shape: BoxShape.circle,
             ),
-            child: const Icon(TablerIcons.history, size: 48, color: Colors.grey),
+            child: const Icon(
+              TablerIcons.history,
+              size: 48,
+              color: Colors.grey,
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -415,8 +468,8 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            isId 
-                ? 'Belum ada perubahan stok yang tercatat.' 
+            isId
+                ? 'Belum ada perubahan stok yang tercatat.'
                 : 'No stock changes have been logged yet.',
             style: const TextStyle(color: Colors.grey, fontSize: 13),
             textAlign: TextAlign.center,
