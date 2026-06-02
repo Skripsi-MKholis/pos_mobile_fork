@@ -18,6 +18,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (Env.supabaseUrl.isEmpty || Env.supabaseAnonKey.isEmpty) {
+    throw Exception(
+      'Supabase credentials must be passed via --dart-define. VULNERABILITY PREVENTION: Hardcoded secrets removed.',
+    );
+  }
+
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   try {
     await Supabase.instance.client.ensureValidSession();
@@ -113,7 +120,6 @@ class MyApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: colorScheme,
-
       ),
     );
   }
