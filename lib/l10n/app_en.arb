@@ -461,6 +461,8 @@
   "scanOrTypeSku": "Scan or type SKU...",
   "generateRandomSku": "Generate Random SKU",
   "scanBarcodeCamera": "Scan Barcode (Camera)",
+  "toggleFlash": "Toggle Flash",
+  "closeScanner": "Close Scanner",
   "barcodePreview": "Barcode Preview",
   "share": "Share",
   "costPrice": "Cost Price",
