@@ -690,8 +690,9 @@ class ReportsScreen extends ConsumerWidget {
     final products = productsAsync.value;
     dynamic product;
     if (products != null) {
+      final lowerProductName = productName.toLowerCase();
       for (final prod in products) {
-        if (prod.name.toLowerCase() == productName.toLowerCase()) {
+        if (prod.name.toLowerCase() == lowerProductName) {
           product = prod;
           break;
         }
