@@ -144,9 +144,11 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
               Expanded(
                 child: categoriesAsync.when(
                   data: (categories) {
+                    final lowerCaseQuery = _searchQuery.toLowerCase();
                     final filtered = categories.where((c) {
+                      // Optimization: _searchQuery.toLowerCase() is hoisted to lowerCaseQuery
                       return c.name.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerCaseQuery,
                       );
                     }).toList();
 
@@ -155,7 +157,7 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                     final isId = Localizations.localeOf(context).languageCode == 'id';
                     final uncategorizedTitle = isId ? 'Tanpa Kategori' : 'Uncategorized';
                     final showUncategorized = _searchQuery.isEmpty ||
-                        uncategorizedTitle.toLowerCase().contains(_searchQuery.toLowerCase());
+                        uncategorizedTitle.toLowerCase().contains(lowerCaseQuery);
 
                     if (showUncategorized) {
                       final uncategorizedCategory = Category()
