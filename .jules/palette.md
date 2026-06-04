@@ -1,0 +1,3 @@
+## 2024-06-04 - Native Tooltips for IconButtons
+**Learning:** In Flutter, the built-in `IconButton` component natively supports a `tooltip` property, which automatically provides both visual tooltips on hover/long-press and semantic labels for screen readers. Using this is cleaner than wrapping `IconButton`s in a separate `Tooltip` widget, though custom wrappers like `ShadIconButton` may still require wrapping.
+**Action:** When auditing icon-only `IconButton`s, directly set their `tooltip` property instead of introducing new widget nesting. Always tie the tooltip string to the localization (`.arb`) files rather than hardcoding, since the app relies on `flutter gen-l10n`.

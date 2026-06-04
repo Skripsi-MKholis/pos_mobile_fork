@@ -1,5 +1,8 @@
 {
   "@@locale": "id",
+  "back": "Kembali",
+  "decreaseQuantity": "Kurangi Kuantitas",
+  "increaseQuantity": "Tambah Kuantitas",
   "menu": "Menu",
   "catalogAndStock": "KATALOG & STOK",
   "productList": "Daftar Produk",
