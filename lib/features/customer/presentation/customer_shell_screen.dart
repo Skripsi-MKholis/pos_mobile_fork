@@ -37,7 +37,7 @@ class CustomerShellScreen extends ConsumerWidget {
         pageTitle = 'Keranjang';
         break;
       case 3:
-        pageTitle = 'Riwayat';
+        pageTitle = 'Pesanan';
         break;
       case 4:
         pageTitle = 'Profil';
@@ -104,13 +104,33 @@ class CustomerShellScreen extends ConsumerWidget {
       }
     }
 
-    final List<Map<String, dynamic>> navItems = [
-      {'icon': TablerIcons.home, 'label': 'Beranda', 'branch': 0},
-      {'icon': TablerIcons.menu_2, 'label': 'Menu', 'branch': 1},
-      {'icon': TablerIcons.shopping_cart, 'label': 'Keranjang', 'branch': 2},
-      {'icon': TablerIcons.history, 'label': 'Riwayat', 'branch': 3},
-      {'icon': TablerIcons.user_circle, 'label': 'Profil', 'branch': 4},
-    ];
+    int getTabIndex(int branchIndex) {
+      switch (branchIndex) {
+        case 0:
+        case 1:
+          return 0;
+        case 2:
+        case 3:
+          return 1;
+        case 4:
+          return 2;
+        default:
+          return 0;
+      }
+    }
+
+    int getBranchIndex(int tabIndex) {
+      switch (tabIndex) {
+        case 0:
+          return 0;
+        case 1:
+          return 3;
+        case 2:
+          return 4;
+        default:
+          return 0;
+      }
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -136,7 +156,7 @@ class CustomerShellScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(
                     alpha: 0.9,
-                  ), // Modern opacity
+                  ),
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
@@ -161,22 +181,38 @@ class CustomerShellScreen extends ConsumerWidget {
                     duration: const Duration(milliseconds: 300),
                     tabBackgroundColor: Warna.primary,
                     color: Colors.white54,
-                    tabs: navItems
-                        .map(
-                          (item) => GButton(
-                            icon: item['icon'],
-                            text: item['label'],
-                            textStyle: const TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: Warna.black,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    selectedIndex: navigationShell.currentIndex,
+                    tabs: const [
+                      GButton(
+                        icon: TablerIcons.home,
+                        text: 'Beranda',
+                        textStyle: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Warna.black,
+                        ),
+                      ),
+                      GButton(
+                        icon: TablerIcons.history,
+                        text: 'Pesanan',
+                        textStyle: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Warna.black,
+                        ),
+                      ),
+                      GButton(
+                        icon: TablerIcons.user_circle,
+                        text: 'Profil',
+                        textStyle: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Warna.black,
+                        ),
+                      ),
+                    ],
+                    selectedIndex: getTabIndex(navigationShell.currentIndex),
                     onTabChange: (index) {
-                      navigationShell.goBranch(index);
+                      navigationShell.goBranch(getBranchIndex(index));
                     },
                   ),
                 ),

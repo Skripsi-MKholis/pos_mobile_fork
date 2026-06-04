@@ -857,81 +857,278 @@ class _CustomerCartView extends ConsumerWidget {
   }
 }
 
-class CustomerHistoryScreen extends StatelessWidget {
+class CustomerHistoryScreen extends StatefulWidget {
   const CustomerHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final history = <_HistoryItem>[
-      const _HistoryItem(
-        'INV-2026-021',
-        '#INV-2026-021',
-        '2 Juni 2026',
-        'Rp 72.000',
-        'Selesai',
-      ),
-      const _HistoryItem(
-        'INV-2026-018',
-        '#INV-2026-018',
-        '29 Mei 2026',
-        'Rp 41.000',
-        'Selesai',
-      ),
-      const _HistoryItem(
-        'INV-2026-014',
-        '#INV-2026-014',
-        '24 Mei 2026',
-        'Rp 54.500',
-        'Dibatalkan',
-      ),
-    ];
+  State<CustomerHistoryScreen> createState() => _CustomerHistoryScreenState();
+}
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-        children: [
-          const _SectionTitle(
-            title: 'Transaksi sebelumnya',
-            subtitle:
-                'Daftar ini akan dihubungkan ke riwayat transaksi pelanggan setelah model dan query siap.',
+class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  final List<Map<String, dynamic>> _activeOrders = [
+    {
+      'transactionId': 'INV-2026-024',
+      'storeName': 'Kopi Kenangan - Plaza Ambarrukmo',
+      'date': 'Hari ini, 15:40',
+      'amount': 'Rp 24.000',
+      'status': 'Diproses',
+      'statusColor': const Color(0xFFD97706),
+      'statusBg': const Color(0xFFFEF3C7),
+      'items': '1 Kopi Susu Aren',
+    },
+    {
+      'transactionId': 'INV-2026-023',
+      'storeName': 'Mie Gacoan - Sudirman',
+      'date': 'Hari ini, 15:10',
+      'amount': 'Rp 36.000',
+      'status': 'Siap Diambil',
+      'statusColor': const Color(0xFF2563EB),
+      'statusBg': const Color(0xFFDBEAFE),
+      'items': '2 Mie Setan Level 2, 1 Es Sundelbolong',
+    },
+  ];
+
+  final List<Map<String, dynamic>> _pastOrders = [
+    {
+      'transactionId': 'INV-2026-021',
+      'storeName': 'Kopi Kenangan - Plaza Ambarrukmo',
+      'date': '2 Juni 2026, 14:32',
+      'amount': 'Rp 72.000',
+      'status': 'Selesai',
+      'statusColor': const Color(0xFF059669),
+      'statusBg': const Color(0xFFECFDF5),
+      'items': '2 Kopi Aren, 1 Roti Cokelat',
+    },
+    {
+      'transactionId': 'INV-2026-018',
+      'storeName': 'Mie Gacoan - Sudirman',
+      'date': '29 Mei 2026, 19:15',
+      'amount': 'Rp 41.000',
+      'status': 'Selesai',
+      'statusColor': const Color(0xFF059669),
+      'statusBg': const Color(0xFFECFDF5),
+      'items': '1 Mie Iblis Level 3, 1 Es Genderuwo',
+    },
+    {
+      'transactionId': 'INV-2026-014',
+      'storeName': 'Warmindo Prima - Gejayan',
+      'date': '24 Mei 2026, 12:05',
+      'amount': 'Rp 54.500',
+      'status': 'Dibatalkan',
+      'statusColor': const Color(0xFFE11D48),
+      'statusBg': const Color(0xFFFFF1F2),
+      'items': '3 Indomie Goreng, 2 Es Teh Manis',
+    },
+  ];
+
+  Widget _buildOrderList(List<Map<String, dynamic>> orders, ShadThemeData theme) {
+    if (orders.isEmpty) {
+      return Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: _EmptyState(
+            icon: TablerIcons.receipt_off,
+            title: 'Belum ada pesanan',
+            description: 'Mulai belanja menu favoritmu sekarang!',
+            actionLabel: 'Pesan Sekarang',
+            onAction: () => context.push('/customer/menu'),
           ),
-          const SizedBox(height: 12),
-          ...history.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Card(
-                elevation: 0,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      physics: const BouncingScrollPhysics(),
+      itemCount: orders.length + 1,
+      itemBuilder: (context, index) {
+        if (index == orders.length) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => context.push('/customer/menu'),
+                icon: const Icon(TablerIcons.repeat, size: 16),
+                label: const Text(
+                  'Pesan Menu Baru',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  title: Text(
-                    item.referenceLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  subtitle: Text('${item.date} - ${item.status}'),
-                  trailing: Text(
-                    item.amount,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  onTap: () =>
-                      context.push('/customer/receipt/${item.transactionId}'),
+                  side: BorderSide(color: Colors.black.withValues(alpha: 0.1)),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final item = orders[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: ShadCard(
+            padding: EdgeInsets.zero,
+            child: InkWell(
+              onTap: () => context.push('/customer/receipt/${item['transactionId']}'),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          item['transactionId'] as String,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black45,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: item['statusBg'] as Color,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            item['status'] as String,
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: item['statusColor'] as Color,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item['storeName'] as String,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item['items'] as String,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          item['date'] as String,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                        Text(
+                          item['amount'] as String,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => context.push('/customer/menu'),
-            icon: const Icon(TablerIcons.repeat),
-            label: const Text('Pesan Ulang'),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'PESANAN SAYA',
+                style: theme.textTheme.muted.copyWith(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ],
           ),
-        ],
-      );
+        ),
+        TabBar(
+          controller: _tabController,
+          labelColor: Colors.black,
+          unselectedLabelColor: Colors.black38,
+          indicatorColor: Warna.primary,
+          indicatorSize: TabBarIndicatorSize.tab,
+          dividerColor: Colors.black.withValues(alpha: 0.05),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 13,
+            fontFamily: 'Plus Jakarta Sans',
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            fontFamily: 'Plus Jakarta Sans',
+          ),
+          tabs: const [
+            Tab(text: 'Dalam Proses'),
+            Tab(text: 'Riwayat'),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOrderList(_activeOrders, theme),
+              _buildOrderList(_pastOrders, theme),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1133,34 +1330,7 @@ class _DetailPage extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title, required this.subtitle});
 
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.3,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: TextStyle(color: Colors.grey.shade700, height: 1.35),
-        ),
-      ],
-    );
-  }
-}
 
 
 
@@ -1413,18 +1583,4 @@ class _CartSummary extends StatelessWidget {
   }
 }
 
-class _HistoryItem {
-  const _HistoryItem(
-    this.transactionId,
-    this.referenceLabel,
-    this.date,
-    this.amount,
-    this.status,
-  );
 
-  final String transactionId;
-  final String referenceLabel;
-  final String date;
-  final String amount;
-  final String status;
-}
