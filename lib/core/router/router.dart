@@ -229,6 +229,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CustomerCheckoutPage(),
       ),
       GoRoute(
+        path: '/customer/search',
+        builder: (context, state) => const CustomerSearchScreen(),
+      ),
+      GoRoute(
+        path: '/customer/select-location',
+        builder: (context, state) => const CustomerSelectLocationScreen(),
+      ),
+      GoRoute(
         path: '/customer/order/:orderId',
         builder: (context, state) {
           final orderId = state.pathParameters['orderId']!;

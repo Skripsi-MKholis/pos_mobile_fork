@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,7 +7,7 @@ import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-
+import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class CustomerHomeScreen extends ConsumerWidget {
@@ -42,65 +43,90 @@ class CustomerHomeScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _ServiceGrid(storeId: storeId),
-        const SizedBox(height: 24),
+        const SizedBox(height: 40),
         const _RecommendedStores(),
       ],
     );
   }
 }
 
-class _LocationSelector extends StatelessWidget {
+final customerLocationProvider = StateProvider<String>((ref) => 'Yogyakarta');
+
+class _LocationSelector extends ConsumerWidget {
   const _LocationSelector();
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Warna.primary.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ShadTheme.of(context);
+    final location = ref.watch(customerLocationProvider);
+
+    return InkWell(
+      onTap: () => context.push('/customer/select-location'),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: theme.colorScheme.border.withValues(alpha: 0.6),
           ),
-          child: const Icon(
-            TablerIcons.map_pin,
-            size: 16,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Cari di sekitar',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black45,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Row(
-              children: [
-                const Text(
-                  'Yogyakarta',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                Icon(
-                  TablerIcons.chevron_down,
-                  size: 14,
-                  color: Colors.grey.shade700,
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-      ],
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Warna.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                TablerIcons.map_pin,
+                size: 18,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cari di sekitar',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: theme.colorScheme.mutedForeground,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    location,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              TablerIcons.chevron_right,
+              size: 18,
+              color: theme.colorScheme.mutedForeground,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -110,44 +136,34 @@ class _MockSearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
     return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Halaman pencarian akan segera hadir!'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
+      onTap: () => context.push('/customer/search'),
+      borderRadius: BorderRadius.circular(24),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: theme.colorScheme.muted.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: theme.colorScheme.border.withValues(alpha: 0.5),
+          ),
         ),
         child: Row(
           children: [
-            const Icon(
+            Icon(
               TablerIcons.search,
-              size: 18,
-              color: Colors.black54,
+              size: 20,
+              color: theme.colorScheme.mutedForeground,
             ),
             const SizedBox(width: 10),
             Text(
               'Cari toko, menu, atau produk...',
               style: TextStyle(
-                color: Colors.grey.shade500,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.mutedForeground,
+                fontSize: 14,
+                fontWeight: FontWeight.normal,
               ),
             ),
           ],
@@ -167,6 +183,33 @@ class _PromoCarousel extends StatefulWidget {
 class _PromoCarouselState extends State<_PromoCarousel> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        final nextPage = (_currentPage + 1) % _promos.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
 
   final List<Map<String, dynamic>> _promos = [
     {
@@ -303,83 +346,44 @@ class _ServiceGrid extends StatelessWidget {
     final theme = ShadTheme.of(context);
     final List<Map<String, dynamic>> services = [
       {
-        'title': 'Pesan Antar',
-        'subtitle': 'Kirim langsung',
-        'icon': TablerIcons.truck,
-        'color': Colors.blue.shade50,
-        'iconColor': Colors.blue.shade700,
-        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Layanan antar segera hadir')),
-            ),
-      },
-      {
-        'title': 'Ambil Sendiri',
-        'subtitle': 'Tanpa antre',
-        'icon': TablerIcons.shopping_bag,
-        'color': const Color(0xFFECFDF5),
-        'iconColor': const Color(0xFF047857),
-        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Layanan pickup segera hadir')),
-            ),
-      },
-      {
         'title': 'Scan QR Meja',
         'subtitle': 'Pesan di tempat',
         'icon': TablerIcons.qrcode,
-        'color': Colors.amber.shade50,
-        'iconColor': Colors.amber.shade700,
+        'color': Warna.primary.withValues(alpha: 0.12),
+        'iconColor': Warna.primary,
         'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
       },
       {
         'title': 'Katalog Menu',
         'subtitle': 'Menu digital',
         'icon': TablerIcons.menu_2,
-        'color': Colors.orange.shade50,
-        'iconColor': Colors.orange.shade700,
+        'color': Warna.primary.withValues(alpha: 0.12),
+        'iconColor': Warna.primary,
         'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
-      },
-      {
-        'title': 'Kupon Promo',
-        'subtitle': 'Hemat belanja',
-        'icon': TablerIcons.ticket,
-        'color': const Color(0xFFFFF1F2),
-        'iconColor': const Color(0xFFBE123C),
-        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kupon promo segera hadir')),
-            ),
-      },
-      {
-        'title': 'Loyalti Poin',
-        'subtitle': 'Kumpul reward',
-        'icon': TablerIcons.award,
-        'color': Colors.indigo.shade50,
-        'iconColor': Colors.indigo.shade700,
-        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Loyalti reward segera hadir')),
-            ),
       },
       {
         'title': 'Struk Digital',
         'subtitle': 'Riwayat transaksi',
         'icon': TablerIcons.receipt,
-        'color': Colors.teal.shade50,
-        'iconColor': Colors.teal.shade700,
+        'color': Warna.primary.withValues(alpha: 0.12),
+        'iconColor': Warna.primary,
         'onTap': () => context.push('/customer/receipt/demo-transaction'),
       },
       {
         'title': 'Bantuan',
         'subtitle': 'Hubungi kami',
         'icon': TablerIcons.help_circle,
-        'color': Colors.grey.shade100,
-        'iconColor': Colors.grey.shade700,
+        'color': Warna.primary.withValues(alpha: 0.12),
+        'iconColor': Warna.primary,
         'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Bantuan layanan segera hadir')),
-            ),
+          const SnackBar(content: Text('Bantuan layanan segera hadir')),
+        ),
       },
     ];
 
     return GridView.builder(
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: services.length,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -495,10 +499,10 @@ class _RecommendedStores extends StatelessWidget {
             ),
             Text(
               'Lihat Semua',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: Colors.amber.shade800,
+                color: Color(0xFF6B9E00),
               ),
             ),
           ],
@@ -643,111 +647,108 @@ class CustomerMenuScreen extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-        children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Cari menu favorit...',
-              prefixIcon: const Icon(TablerIcons.search),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(18),
-                borderSide: BorderSide.none,
-              ),
+      children: [
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Cari menu favorit...',
+            prefixIcon: const Icon(TablerIcons.search),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
             ),
           ),
-          const SizedBox(height: 14),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: const [
-              _FilterChip(label: 'Semua', selected: true),
-              _FilterChip(label: 'Minuman'),
-              _FilterChip(label: 'Makanan'),
-              _FilterChip(label: 'Snack'),
-              _FilterChip(label: 'Promo'),
-            ],
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: const [
+            _FilterChip(label: 'Semua', selected: true),
+            _FilterChip(label: 'Minuman'),
+            _FilterChip(label: 'Makanan'),
+            _FilterChip(label: 'Snack'),
+            _FilterChip(label: 'Promo'),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (storeId != null && storeId!.isNotEmpty)
+          _HintBanner(
+            icon: TablerIcons.qrcode,
+            title: 'Toko aktif terdeteksi',
+            description: 'store_id: $storeId',
           ),
-          const SizedBox(height: 16),
-          if (storeId != null && storeId!.isNotEmpty)
-            _HintBanner(
-              icon: TablerIcons.qrcode,
-              title: 'Toko aktif terdeteksi',
-              description: 'store_id: $storeId',
-            ),
-          if (storeId != null && storeId!.isNotEmpty)
-            const SizedBox(height: 12),
-          ...products.map(
-            (product) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _ProductCard(
-                product: product,
-                onTap: () {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final cartNotifier = ref.read(customerCartProvider.notifier);
-                  showModalBottomSheet<void>(
-                    context: context,
-                    showDragHandle: true,
-                    backgroundColor: Colors.white,
-                    builder: (sheetContext) {
-                      return Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w900,
-                              ),
+        if (storeId != null && storeId!.isNotEmpty) const SizedBox(height: 12),
+        ...products.map(
+          (product) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _ProductCard(
+              product: product,
+              onTap: () {
+                final messenger = ScaffoldMessenger.of(context);
+                final cartNotifier = ref.read(customerCartProvider.notifier);
+                showModalBottomSheet<void>(
+                  context: context,
+                  showDragHandle: true,
+                  backgroundColor: Colors.white,
+                  builder: (sheetContext) {
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.name,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Detail produk, varian, dan tombol tambah ke keranjang akan dihubungkan pada milestone katalog.',
-                              style: TextStyle(color: Colors.grey.shade700),
-                            ),
-                            const SizedBox(height: 18),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  cartNotifier.addItem(
-                                    CustomerCartItem(
-                                      id: product.name,
-                                      name: product.name,
-                                      price: _parsePrice(product.price),
-                                      badge: product.badge,
-                                      iconCodePoint: product.icon.codePoint,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Detail produk, varian, dan tombol tambah ke keranjang akan dihubungkan pada milestone katalog.',
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                          const SizedBox(height: 18),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                cartNotifier.addItem(
+                                  CustomerCartItem(
+                                    id: product.name,
+                                    name: product.name,
+                                    price: _parsePrice(product.price),
+                                    badge: product.badge,
+                                    iconCodePoint: product.icon.codePoint,
+                                  ),
+                                );
+                                Navigator.of(sheetContext).pop();
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      '${product.name} ditambahkan ke keranjang demo.',
                                     ),
-                                  );
-                                  Navigator.of(sheetContext).pop();
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${product.name} ditambahkan ke keranjang demo.',
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(
-                                  TablerIcons.shopping_cart_plus,
-                                ),
-                                label: const Text('Tambah ke Keranjang'),
-                              ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(TablerIcons.shopping_cart_plus),
+                              label: const Text('Tambah ke Keranjang'),
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
             ),
           ),
-        ],
-      );
+        ),
+      ],
+    );
   }
 }
 
@@ -783,77 +784,70 @@ class _CustomerCartView extends ConsumerWidget {
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-              children: [
-                ...items.map(
-                  (item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Card(
-                      elevation: 0,
-                      color: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        leading: CircleAvatar(
-                          backgroundColor: Warna.primary.withValues(
-                            alpha: 0.14,
-                          ),
-                          child: Icon(
-                            item.badge == 'Habis'
-                                ? TablerIcons.mood_sad
-                                : TablerIcons.shopping_cart,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        title: Text(
-                          item.name,
-                          style: const TextStyle(fontWeight: FontWeight.w800),
-                        ),
-                        subtitle: Text(
-                          '${_formatCurrency(item.price)} x ${item.quantity} = ${_formatCurrency(item.lineTotal)}',
-                        ),
-                        trailing: Wrap(
-                          spacing: 6,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            IconButton(
-                              onPressed: () => cartNotifier.decrement(item.id),
-                              icon: const Icon(Icons.remove_circle_outline),
-                            ),
-                            Text(
-                              '${item.quantity}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () => cartNotifier.increment(item.id),
-                              icon: const Icon(Icons.add_circle_outline),
-                            ),
-                          ],
-                        ),
-                      ),
+      children: [
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                leading: CircleAvatar(
+                  backgroundColor: Warna.primary.withValues(alpha: 0.14),
+                  child: Icon(
+                    item.badge == 'Habis'
+                        ? TablerIcons.mood_sad
+                        : TablerIcons.shopping_cart,
+                    color: Colors.black87,
+                  ),
+                ),
+                title: Text(
+                  item.name,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                subtitle: Text(
+                  '${_formatCurrency(item.price)} x ${item.quantity} = ${_formatCurrency(item.lineTotal)}',
+                ),
+                trailing: Wrap(
+                  spacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () => cartNotifier.decrement(item.id),
+                      icon: const Icon(Icons.remove_circle_outline),
                     ),
-                  ),
+                    Text(
+                      '${item.quantity}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    IconButton(
+                      onPressed: () => cartNotifier.increment(item.id),
+                      icon: const Icon(Icons.add_circle_outline),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                _CartSummary(
-                  total: items.fold<double>(
-                    0,
-                    (sum, item) => sum + item.lineTotal,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => context.push('/customer/checkout'),
-                  child: const Text('Checkout'),
-                ),
-              ],
-            );
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _CartSummary(
+          total: items.fold<double>(0, (sum, item) => sum + item.lineTotal),
+        ),
+        const SizedBox(height: 12),
+        FilledButton(
+          onPressed: () => context.push('/customer/checkout'),
+          child: const Text('Checkout'),
+        ),
+      ],
+    );
   }
 }
 
@@ -936,7 +930,10 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
     },
   ];
 
-  Widget _buildOrderList(List<Map<String, dynamic>> orders, ShadThemeData theme) {
+  Widget _buildOrderList(
+    List<Map<String, dynamic>> orders,
+    ShadThemeData theme,
+  ) {
     if (orders.isEmpty) {
       return Center(
         child: SingleChildScrollView(
@@ -987,7 +984,8 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
           child: ShadCard(
             padding: EdgeInsets.zero,
             child: InkWell(
-              onTap: () => context.push('/customer/receipt/${item['transactionId']}'),
+              onTap: () =>
+                  context.push('/customer/receipt/${item['transactionId']}'),
               borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -1006,7 +1004,10 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: item['statusBg'] as Color,
                             borderRadius: BorderRadius.circular(6),
@@ -1145,66 +1146,58 @@ class CustomerProfileScreen extends ConsumerWidget {
       children: [
         _buildCustomerHeader(context, theme),
         const SizedBox(height: 32),
-        _buildMenuSection(
-          theme,
-          'AKTIVITAS & PROMO',
-          [
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.bell,
-              'Notifikasi',
-              'Atur preferensi promo & status pesanan',
-              () => context.push('/customer/notifications'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.sparkles,
-              'Program Loyalitas',
-              'Lihat poin dan reward yang tersedia',
-              () => context.push('/customer/loyalty'),
-            ),
-          ],
-        ),
+        _buildMenuSection(theme, 'AKTIVITAS & PROMO', [
+          _buildMenuItem(
+            context,
+            theme,
+            TablerIcons.bell,
+            'Notifikasi',
+            'Atur preferensi promo & status pesanan',
+            () => context.push('/customer/notifications'),
+          ),
+          _buildMenuItem(
+            context,
+            theme,
+            TablerIcons.sparkles,
+            'Program Loyalitas',
+            'Lihat poin dan reward yang tersedia',
+            () => context.push('/customer/loyalty'),
+          ),
+        ]),
         const SizedBox(height: 24),
-        _buildMenuSection(
-          theme,
-          'PENGATURAN APLIKASI',
-          [
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.language,
-              'Bahasa',
-              'Pilih bahasa tampilan aplikasi',
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Bahasa default diset ke Bahasa Indonesia'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-              trailingText: 'Bahasa Indonesia',
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.help_circle,
-              'Pusat Bantuan',
-              'Hubungi tim dukungan kami',
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Menghubungi Pusat Bantuan POS...'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+        _buildMenuSection(theme, 'PENGATURAN APLIKASI', [
+          _buildMenuItem(
+            context,
+            theme,
+            TablerIcons.language,
+            'Bahasa',
+            'Pilih bahasa tampilan aplikasi',
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Bahasa default diset ke Bahasa Indonesia'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            trailingText: 'Bahasa Indonesia',
+          ),
+          _buildMenuItem(
+            context,
+            theme,
+            TablerIcons.help_circle,
+            'Pusat Bantuan',
+            'Hubungi tim dukungan kami',
+            () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Menghubungi Pusat Bantuan POS...'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ]),
         const SizedBox(height: 32),
         ShadButton.destructive(
           width: double.infinity,
@@ -1279,10 +1272,7 @@ class CustomerProfileScreen extends ConsumerWidget {
               children: [
                 const Text(
                   'Pelanggan Tamu',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -1351,7 +1341,9 @@ class CustomerProfileScreen extends ConsumerWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color?.withValues(alpha: 0.1) ?? theme.colorScheme.muted.withValues(alpha: 0.5),
+          color:
+              color?.withValues(alpha: 0.1) ??
+              theme.colorScheme.muted.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(icon, color: color ?? Colors.black, size: 18),
@@ -1526,10 +1518,6 @@ class _DetailPage extends StatelessWidget {
   }
 }
 
-
-
-
-
 class _HintBanner extends StatelessWidget {
   const _HintBanner({
     required this.icon,
@@ -1695,8 +1683,6 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-
-
 class _DemoProduct {
   const _DemoProduct(this.name, this.price, this.badge, this.icon);
 
@@ -1747,4 +1733,742 @@ class _CartSummary extends StatelessWidget {
   }
 }
 
+class CustomerSearchScreen extends StatefulWidget {
+  const CustomerSearchScreen({super.key});
 
+  @override
+  State<CustomerSearchScreen> createState() => _CustomerSearchScreenState();
+}
+
+class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
+  String _query = '';
+
+  final List<String> _history = [
+    'Kopi Aren Kenangan',
+    'Mie Gacoan',
+    'Warmindo',
+  ];
+
+  final List<String> _popularSearches = [
+    'Kopi Kenangan',
+    'Mie Gacoan',
+    'Roti Bakar',
+    'Es Sundelbolong',
+    'Warmindo',
+    'Promo Hari Ini',
+  ];
+
+  final List<Map<String, dynamic>> _allItems = [
+    {
+      'name': 'Kopi Kenangan - Plaza Ambarrukmo',
+      'type': 'Outlet Mitra',
+      'category': 'Kopi & Roti',
+      'rating': '4.8',
+      'distance': '1.2 km',
+      'icon': TablerIcons.building_store,
+      'color': const Color(0xFFFEF3C7),
+      'iconColor': const Color(0xFFD97706),
+    },
+    {
+      'name': 'Mie Gacoan - Sudirman',
+      'type': 'Outlet Mitra',
+      'category': 'Mie Pedas & Dimsum',
+      'rating': '4.7',
+      'distance': '2.5 km',
+      'icon': TablerIcons.building_store,
+      'color': const Color(0xFFFEE2E2),
+      'iconColor': const Color(0xFFDC2626),
+    },
+    {
+      'name': 'Warmindo Prima - Gejayan',
+      'type': 'Outlet Mitra',
+      'category': 'Warmindo & Minuman',
+      'rating': '4.5',
+      'distance': '3.1 km',
+      'icon': TablerIcons.building_store,
+      'color': const Color(0xFFECFDF5),
+      'iconColor': const Color(0xFF059669),
+    },
+    {
+      'name': 'Kopi Aren Kenangan Mantan',
+      'type': 'Menu Produk',
+      'price': 'Rp 24.000',
+      'store': 'Kopi Kenangan',
+      'icon': TablerIcons.coffee,
+      'color': const Color(0xFFFEF3C7),
+      'iconColor': const Color(0xFFD97706),
+    },
+    {
+      'name': 'Roti Cokelat Keju Premium',
+      'type': 'Menu Produk',
+      'price': 'Rp 18.000',
+      'store': 'Kopi Kenangan',
+      'icon': TablerIcons.slice,
+      'color': const Color(0xFFFEF3C7),
+      'iconColor': const Color(0xFFD97706),
+    },
+    {
+      'name': 'Mie Setan Level 2',
+      'type': 'Menu Produk',
+      'price': 'Rp 14.500',
+      'store': 'Mie Gacoan',
+      'icon': TablerIcons.soup,
+      'color': const Color(0xFFFEE2E2),
+      'iconColor': const Color(0xFFDC2626),
+    },
+    {
+      'name': 'Es Sundelbolong',
+      'type': 'Menu Produk',
+      'price': 'Rp 10.000',
+      'store': 'Mie Gacoan',
+      'icon': TablerIcons.glass_full,
+      'color': const Color(0xFFDBEAFE),
+      'iconColor': const Color(0xFF2563EB),
+    },
+    {
+      'name': 'Indomie Goreng Tante (Tanpa Telur)',
+      'type': 'Menu Produk',
+      'price': 'Rp 12.000',
+      'store': 'Warmindo Prima',
+      'icon': TablerIcons.bowl,
+      'color': const Color(0xFFECFDF5),
+      'iconColor': const Color(0xFF059669),
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _focusNode.dispose();
+    _debouncer.dispose();
+    super.dispose();
+  }
+
+  void _onSearch(String value, {bool debounce = false}) {
+    if (debounce) {
+      _debouncer.run(() {
+        setState(() {
+          _query = value.trim();
+        });
+      });
+    } else {
+      _debouncer.dispose();
+      setState(() {
+        _query = value.trim();
+      });
+    }
+  }
+
+  void _addHistory(String value) {
+    final clean = value.trim();
+    if (clean.isEmpty) return;
+    setState(() {
+      _history.remove(clean);
+      _history.insert(0, clean);
+      if (_history.length > 5) {
+        _history.removeLast();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+
+    final filteredItems = _allItems.where((item) {
+      final name = item['name'].toString().toLowerCase();
+      final category = (item['category'] ?? '').toString().toLowerCase();
+      final store = (item['store'] ?? '').toString().toLowerCase();
+      final type = item['type'].toString().toLowerCase();
+      final q = _query.toLowerCase();
+      return name.contains(q) ||
+          category.contains(q) ||
+          store.contains(q) ||
+          type.contains(q);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(TablerIcons.arrow_left, color: Colors.black87),
+          onPressed: () => context.pop(),
+        ),
+        title: TextField(
+          controller: _searchController,
+          focusNode: _focusNode,
+          onChanged: (val) => _onSearch(val, debounce: true),
+          onSubmitted: (val) {
+            _addHistory(val);
+          },
+          decoration: InputDecoration(
+            hintText: 'Cari toko, menu, atau produk...',
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            border: InputBorder.none,
+            suffixIcon: _query.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(
+                      TablerIcons.x,
+                      size: 16,
+                      color: Colors.black54,
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      _onSearch('');
+                    },
+                  )
+                : null,
+          ),
+          style: const TextStyle(fontSize: 14, color: Colors.black87),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            color: Colors.black.withValues(alpha: 0.05),
+          ),
+        ),
+      ),
+      body: _query.isEmpty
+          ? ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                if (_history.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'RIWAYAT PENCARIAN',
+                        style: theme.textTheme.muted.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          TablerIcons.trash,
+                          size: 14,
+                          color: Colors.black38,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _history.clear();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _history.map((h) {
+                      return InkWell(
+                        onTap: () {
+                          _searchController.text = h;
+                          _onSearch(h);
+                        },
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.black.withValues(alpha: 0.04),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                TablerIcons.history,
+                                size: 12,
+                                color: Colors.black38,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                h,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 28),
+                ],
+                Text(
+                  'PENCARIAN POPULER',
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _popularSearches.map((pop) {
+                    return ActionChip(
+                      label: Text(pop),
+                      backgroundColor: Colors.white,
+                      labelStyle: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 6,
+                      ),
+                      side: BorderSide(
+                        color: Colors.black.withValues(alpha: 0.05),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      onPressed: () {
+                        _searchController.text = pop;
+                        _onSearch(pop);
+                        _addHistory(pop);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            )
+          : filteredItems.isEmpty
+          ? Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      TablerIcons.search_off,
+                      size: 60,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Hasil tidak ditemukan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Coba cari dengan kata kunci lain',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+                final isStore = item['type'] == 'Outlet Mitra';
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.black.withValues(alpha: 0.04),
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: item['color'] as Color,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        item['icon'] as IconData,
+                        color: item['iconColor'] as Color,
+                        size: 20,
+                      ),
+                    ),
+                    title: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isStore
+                                ? Colors.indigo.shade50
+                                : Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            item['type'] as String,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              color: isStore
+                                  ? Colors.indigo.shade700
+                                  : Colors.amber.shade700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            item['name'] as String,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        isStore
+                            ? '${item['category']} • ⭐ ${item['rating']} (${item['distance']})'
+                            : 'Menu di ${item['store']} • ${item['price']}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                    trailing: Icon(
+                      isStore ? TablerIcons.chevron_right : TablerIcons.plus,
+                      size: 18,
+                      color: Warna.primary,
+                    ),
+                    onTap: () {
+                      _addHistory(item['name'] as String);
+                      context.push('/customer/menu?store_id=demo');
+                    },
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+const List<Map<String, String>> demoLocations = [
+  {'city': 'Yogyakarta', 'region': 'Daerah Istimewa Yogyakarta'},
+  {'city': 'Jakarta Selatan', 'region': 'DKI Jakarta'},
+  {'city': 'Jakarta Pusat', 'region': 'DKI Jakarta'},
+  {'city': 'Jakarta Barat', 'region': 'DKI Jakarta'},
+  {'city': 'Bandung', 'region': 'Jawa Barat'},
+  {'city': 'Surabaya', 'region': 'Jawa Timur'},
+  {'city': 'Semarang', 'region': 'Jawa Tengah'},
+  {'city': 'Solo', 'region': 'Jawa Tengah'},
+  {'city': 'Malang', 'region': 'Jawa Timur'},
+  {'city': 'Medan', 'region': 'Sumatera Utara'},
+  {'city': 'Makassar', 'region': 'Sulawesi Selatan'},
+  {'city': 'Denpasar', 'region': 'Bali'},
+  {'city': 'Palembang', 'region': 'Sumatera Selatan'},
+];
+
+class CustomerSelectLocationScreen extends ConsumerStatefulWidget {
+  const CustomerSelectLocationScreen({super.key});
+
+  @override
+  ConsumerState<CustomerSelectLocationScreen> createState() =>
+      _CustomerSelectLocationScreenState();
+}
+
+class _CustomerSelectLocationScreenState
+    extends ConsumerState<CustomerSelectLocationScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debouncer.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final currentLocation = ref.watch(customerLocationProvider);
+
+    final filteredLocations = demoLocations.where((loc) {
+      final query = _searchQuery.toLowerCase();
+      return loc['city']!.toLowerCase().contains(query) ||
+          loc['region']!.toLowerCase().contains(query);
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
+          'Pilih Lokasi',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            color: theme.colorScheme.border.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Search Field Container
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ShadInput(
+              controller: _searchController,
+              placeholder: const Text('Cari kota atau wilayah...'),
+              leading: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(TablerIcons.search, size: 20),
+              ),
+              decoration: ShadDecoration(
+                color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                border: ShadBorder.all(
+                  color: theme.colorScheme.border.withValues(alpha: 0.5),
+                  radius: BorderRadius.circular(24),
+                ),
+              ),
+              onChanged: (val) {
+                _debouncer.run(() {
+                  setState(() {
+                    _searchQuery = val;
+                  });
+                });
+              },
+              trailing: _searchQuery.isNotEmpty
+                  ? GestureDetector(
+                      onTap: () {
+                        _debouncer.dispose();
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                        });
+                      },
+                      child: const Icon(TablerIcons.x, size: 18),
+                    )
+                  : null,
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              children: [
+                // GPS Selector
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: InkWell(
+                    onTap: () {
+                      ref.read(customerLocationProvider.notifier).state =
+                          'Yogyakarta';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Lokasi disesuaikan dengan GPS Anda'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      context.pop();
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Warna.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Warna.primary.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Warna.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              TablerIcons.navigation,
+                              size: 18,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Gunakan Lokasi Saat Ini',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Temukan gerai terdekat dengan GPS Anda',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            TablerIcons.chevron_right,
+                            size: 18,
+                            color: Colors.black45,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Heading
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    _searchQuery.isEmpty ? 'KOTA POPULER' : 'HASIL PENCARIAN',
+                    style: theme.textTheme.muted.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (filteredLocations.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          TablerIcons.map_pin_off,
+                          size: 48,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Lokasi tidak ditemukan',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ...filteredLocations.map((loc) {
+                    final isSelected = currentLocation == loc['city'];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 4,
+                      ),
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Warna.primary.withValues(alpha: 0.15)
+                              : Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          TablerIcons.map_pin,
+                          size: 18,
+                          color: isSelected ? Warna.primary : Colors.grey,
+                        ),
+                      ),
+                      title: Text(
+                        loc['city']!,
+                        style: TextStyle(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? Colors.black : Colors.black87,
+                        ),
+                      ),
+                      subtitle: Text(
+                        loc['region']!,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(
+                              TablerIcons.check,
+                              color: Warna.primary,
+                              size: 20,
+                            )
+                          : null,
+                      onTap: () {
+                        ref.read(customerLocationProvider.notifier).state =
+                            loc['city']!;
+                        context.pop();
+                      },
+                    );
+                  }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

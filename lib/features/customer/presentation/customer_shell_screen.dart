@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/customer/providers/customer_session_provider
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
+import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 
 class CustomerShellScreen extends ConsumerWidget {
   const CustomerShellScreen({required this.navigationShell, super.key});
@@ -44,13 +45,14 @@ class CustomerShellScreen extends ConsumerWidget {
         break;
     }
 
-    // Dynamic AppBar actions based on active tab index
     List<Widget> actions = [];
+
+    // Add page-specific actions first
     if (navigationShell.currentIndex == 0) {
       if (activeStoreId != null && activeStoreId.isNotEmpty) {
         actions.add(
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 8),
             child: Center(
               child: Chip(
                 label: Text(
@@ -71,7 +73,7 @@ class CustomerShellScreen extends ConsumerWidget {
     } else if (navigationShell.currentIndex == 1) {
       actions.add(
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: 8),
           child: Center(
             child: Badge(
               isLabelVisible: totalItems > 0,
@@ -88,7 +90,7 @@ class CustomerShellScreen extends ConsumerWidget {
       if (cartItems.isNotEmpty) {
         actions.add(
           Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 8),
             child: TextButton(
               onPressed: () => ref.read(customerCartProvider.notifier).clear(),
               child: const Text(
@@ -103,6 +105,55 @@ class CustomerShellScreen extends ConsumerWidget {
         );
       }
     }
+
+    // Always append the circular notification bell button at the far right
+    actions.add(
+      Padding(
+        padding: const EdgeInsets.only(right: 16),
+        child: Center(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: Colors.black.withValues(alpha: 0.05),
+                width: 1,
+              ),
+            ),
+            child: IconButton(
+              icon: Consumer(
+                builder: (context, ref, child) {
+                  final unreadCount = ref.watch(
+                    unreadNotificationCountProvider,
+                  );
+                  return Badge(
+                    label: Text(unreadCount.toString()),
+                    isLabelVisible: unreadCount > 0,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    child: const Icon(
+                      TablerIcons.bell,
+                      size: 20,
+                      color: Colors.black,
+                    ),
+                  );
+                },
+              ),
+              onPressed: () => context.push('/customer/notifications'),
+            ),
+          ),
+        ),
+      ),
+    );
 
     int getTabIndex(int branchIndex) {
       switch (branchIndex) {
