@@ -79,7 +79,7 @@ class CustomerShellScreen extends ConsumerWidget {
               isLabelVisible: totalItems > 0,
               label: Text(totalItems.toString()),
               child: IconButton(
-                onPressed: () => navigationShell.goBranch(2),
+                onPressed: () => context.push('/customer/cart'),
                 icon: const Icon(TablerIcons.shopping_cart, color: Colors.black),
               ),
             ),
@@ -161,9 +161,8 @@ class CustomerShellScreen extends ConsumerWidget {
         case 1:
           return 0;
         case 2:
-        case 3:
           return 1;
-        case 4:
+        case 3:
           return 2;
         default:
           return 0;
@@ -175,9 +174,9 @@ class CustomerShellScreen extends ConsumerWidget {
         case 0:
           return 0;
         case 1:
-          return 3;
+          return 2;
         case 2:
-          return 4;
+          return 3;
         default:
           return 0;
       }

@@ -45,6 +45,7 @@ import 'package:pos_mobile/features/dashboard/presentation/broadcast_notificatio
 import 'package:pos_mobile/features/kds/presentation/kds_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_shell_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_screens.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_store_detail_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_menu_page.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_checkout_page.dart';
 
@@ -197,14 +198,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/customer/cart',
-                builder: (context, state) => const CustomerCartScreen(),
-              ),
-            ],
-          ),
+
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -226,7 +220,18 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       GoRoute(
         path: '/customer/checkout',
-        builder: (context, state) => const CustomerCheckoutPage(),
+        builder: (context, state) {
+          final table = state.uri.queryParameters['table'];
+          final notes = state.uri.queryParameters['notes'];
+          return CustomerCheckoutPage(
+            prefilledTableNumber: table,
+            prefilledNotes: notes,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/customer/cart',
+        builder: (context, state) => const CustomerCartScreen(),
       ),
       GoRoute(
         path: '/customer/search',
@@ -235,6 +240,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customer/select-location',
         builder: (context, state) => const CustomerSelectLocationScreen(),
+      ),
+      GoRoute(
+        path: '/customer/store-detail',
+        builder: (context, state) {
+          final storeName = state.uri.queryParameters['store_name'] ?? 'Toko';
+          final category = state.uri.queryParameters['category'];
+          final distance = state.uri.queryParameters['distance'];
+          final bannerColorHex = state.uri.queryParameters['banner_color'];
+          return CustomerStoreDetailScreen(
+            storeName: storeName,
+            category: category,
+            distance: distance,
+            bannerColorHex: bannerColorHex,
+          );
+        },
       ),
       GoRoute(
         path: '/customer/order/:orderId',

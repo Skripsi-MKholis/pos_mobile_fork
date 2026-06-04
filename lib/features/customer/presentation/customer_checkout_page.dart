@@ -10,7 +10,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 class CustomerCheckoutPage extends ConsumerStatefulWidget {
-  const CustomerCheckoutPage({super.key});
+  const CustomerCheckoutPage({
+    super.key,
+    this.prefilledTableNumber,
+    this.prefilledNotes,
+  });
+
+  final String? prefilledTableNumber;
+  final String? prefilledNotes;
 
   @override
   ConsumerState<CustomerCheckoutPage> createState() =>
@@ -18,11 +25,18 @@ class CustomerCheckoutPage extends ConsumerStatefulWidget {
 }
 
 class _CustomerCheckoutPageState extends ConsumerState<CustomerCheckoutPage> {
-  final _tableController = TextEditingController();
+  late final TextEditingController _tableController;
   final _nameController = TextEditingController();
-  final _notesController = TextEditingController();
+  late final TextEditingController _notesController;
   String _paymentMethod = 'pay_at_counter';
   bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _tableController = TextEditingController(text: widget.prefilledTableNumber ?? '');
+    _notesController = TextEditingController(text: widget.prefilledNotes ?? '');
+  }
 
   @override
   void dispose() {
