@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
@@ -20,40 +18,15 @@ class CustomerMenuPage extends ConsumerWidget {
     final activeStoreId = (storeId != null && storeId!.isNotEmpty)
         ? storeId
         : ref.watch(customerStoreIdProvider);
-    final cartItems = ref.watch(customerCartProvider);
     final catalogAsync = ref.watch(customerCatalogProvider(activeStoreId));
 
     if (activeStoreId != null && activeStoreId.isNotEmpty) {
       ref.read(customerStoreIdProvider.notifier).state = activeStoreId;
     }
 
-    final totalItems = cartItems.fold<int>(
-      0,
-      (sum, item) => sum + item.quantity,
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu Digital'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Badge(
-              isLabelVisible: totalItems > 0,
-              label: Text(totalItems.toString()),
-              child: IconButton(
-                onPressed: () => context.push('/customer/cart'),
-                icon: const Icon(TablerIcons.shopping_cart),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-        children: [
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      children: [
           _HintBanner(
             icon: TablerIcons.qrcode,
             title: activeStoreId == null || activeStoreId.isEmpty
@@ -209,8 +182,7 @@ class CustomerMenuPage extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

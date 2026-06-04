@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
@@ -20,35 +19,8 @@ class CustomerHomeScreen extends ConsumerWidget {
       ref.read(customerStoreIdProvider.notifier).state = storeId;
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F6F1),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Pelanggan',
-          style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.4),
-        ),
-        actions: [
-          if (storeId != null && storeId!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Chip(
-                label: Text(
-                  storeId!,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                backgroundColor: Warna.primary.withValues(alpha: 0.18),
-                side: BorderSide(color: Warna.primary.withValues(alpha: 0.3)),
-              ),
-            ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
           Container(
             padding: const EdgeInsets.all(20),
@@ -156,8 +128,7 @@ class CustomerHomeScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           const _StatusChipRow(),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -168,9 +139,6 @@ class CustomerMenuScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final totalItems = ref
-        .watch(customerCartProvider)
-        .fold<int>(0, (sum, item) => sum + item.quantity);
     final products = <_DemoProduct>[
       const _DemoProduct(
         'Kopi Susu Aren',
@@ -198,27 +166,8 @@ class CustomerMenuScreen extends ConsumerWidget {
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menu Digital'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Badge(
-              isLabelVisible: totalItems > 0,
-              label: Text(totalItems.toString()),
-              child: IconButton(
-                onPressed: () => context.push('/customer/cart'),
-                icon: const Icon(TablerIcons.shopping_cart),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
           TextField(
             decoration: InputDecoration(
@@ -323,8 +272,7 @@ class CustomerMenuScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -345,32 +293,21 @@ class _CustomerCartView extends ConsumerWidget {
     final items = ref.watch(customerCartProvider);
     final cartNotifier = ref.read(customerCartProvider.notifier);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Keranjang'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          if (items.isNotEmpty)
-            TextButton(
-              onPressed: cartNotifier.clear,
-              child: const Text('Kosongkan'),
-            ),
-        ],
-      ),
-      body: items.isEmpty
-          ? Center(
-              child: _EmptyState(
-                icon: TablerIcons.shopping_cart_off,
-                title: 'Keranjang masih kosong',
-                description:
-                    'Item yang dipilih dari menu akan tampil di sini setelah state keranjang pelanggan dihubungkan.',
-                actionLabel: 'Lihat Menu',
-                onAction: () => context.push('/customer/menu'),
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    if (items.isEmpty) {
+      return Center(
+        child: _EmptyState(
+          icon: TablerIcons.shopping_cart_off,
+          title: 'Keranjang masih kosong',
+          description:
+              'Item yang dipilih dari menu akan tampil di sini setelah state keranjang pelanggan dihubungkan.',
+          actionLabel: 'Lihat Menu',
+          onAction: () => context.push('/customer/menu'),
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
               children: [
                 ...items.map(
                   (item) => Padding(
@@ -441,8 +378,7 @@ class _CustomerCartView extends ConsumerWidget {
                   child: const Text('Checkout'),
                 ),
               ],
-            ),
-    );
+            );
   }
 }
 
@@ -475,14 +411,8 @@ class CustomerHistoryScreen extends StatelessWidget {
       ),
     ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Riwayat'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
           const _SectionTitle(
             title: 'Transaksi sebelumnya',
@@ -526,8 +456,7 @@ class CustomerHistoryScreen extends StatelessWidget {
             label: const Text('Pesan Ulang'),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -536,14 +465,8 @@ class CustomerProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
         children: [
           Container(
             padding: const EdgeInsets.all(20),
@@ -601,8 +524,7 @@ class CustomerProfileScreen extends StatelessWidget {
             onTap: () => context.go('/login'),
           ),
         ],
-      ),
-    );
+      );
   }
 }
 

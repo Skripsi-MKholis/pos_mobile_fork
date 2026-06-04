@@ -9,6 +9,7 @@ import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -56,6 +57,44 @@ class _DrawerMenuContent extends ConsumerWidget {
     final features = settings?['features'] as Map<String, dynamic>?;
 
     const hasTables = false; // Sembunyikan untuk sementara waktu
+
+    final String location = GoRouterState.of(context).matchedLocation;
+    final bool isCustomerMode = location.startsWith('/customer');
+
+    if (isCustomerMode) {
+      return ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        children: [
+          const _SectionHeader(title: 'NAVIGASI PELANGGAN'),
+          _DrawerItem(
+            icon: TablerIcons.home,
+            title: 'Beranda',
+            route: '/customer/home',
+          ),
+          _DrawerItem(
+            icon: TablerIcons.menu_2,
+            title: 'Menu Digital',
+            route: '/customer/menu',
+          ),
+          _DrawerItem(
+            icon: TablerIcons.shopping_cart,
+            title: 'Keranjang',
+            route: '/customer/cart',
+          ),
+          _DrawerItem(
+            icon: TablerIcons.history,
+            title: 'Riwayat Belanja',
+            route: '/customer/history',
+          ),
+          _DrawerItem(
+            icon: TablerIcons.user_circle,
+            title: 'Profil',
+            route: '/customer/profile',
+          ),
+        ],
+      );
+    }
 
     return ListView(
       physics: const BouncingScrollPhysics(),
@@ -176,6 +215,49 @@ class _StoreHeaderSection extends ConsumerWidget {
     final storesAsync = ref.watch(userStoresProvider);
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
+
+    final String location = GoRouterState.of(context).matchedLocation;
+    final bool isCustomerMode = location.startsWith('/customer');
+
+    if (isCustomerMode) {
+      final activeStoreId = ref.watch(customerStoreIdProvider);
+      return Container(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              height: 44,
+              width: 44,
+              decoration: BoxDecoration(
+                color: Warna.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(TablerIcons.building_store, color: Colors.black),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Katalog Pelanggan',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
+                  ),
+                  if (activeStoreId != null && activeStoreId.isNotEmpty)
+                    Text(
+                      'Store ID: $activeStoreId',
+                      style: theme.textTheme.muted.copyWith(fontSize: 10),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return activeStoreAsync.when(
       data: (store) => Container(
@@ -445,7 +527,7 @@ class _DrawerItem extends ConsumerWidget {
                     '/transactions',
                     '/reports',
                     '/settings',
-                  ].contains(route)) {
+                  ].contains(route) || route.startsWith('/customer')) {
                     context.go(route);
                   } else {
                     context.push(route);
@@ -463,6 +545,66 @@ class _UserFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+
+    final String location = GoRouterState.of(context).matchedLocation;
+    final bool isCustomerMode = location.startsWith('/customer');
+
+    if (isCustomerMode) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Warna.primary,
+                      child: const Icon(TablerIcons.user, color: Colors.black, size: 16),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pelanggan',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                            ),
+                          ),
+                          Text(
+                            'Layar Mandiri',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(
+                TablerIcons.logout,
+                size: 18,
+                color: Colors.redAccent,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                context.go('/login');
+              },
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

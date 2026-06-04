@@ -7,6 +7,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
+import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
@@ -215,209 +216,118 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         extendBody: true,
         extendBodyBehindAppBar: false,
         drawer: const AppDrawer(),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(80),
-          child: Container(
-            color: Colors.white,
-            child: SafeArea(
-              bottom: false,
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: theme.colorScheme.border.withValues(alpha: 0.5),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: SizedBox(
-                    height: 56,
-                    child: AppBar(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                      elevation: 0,
-                      scrolledUnderElevation: 0,
-                      centerTitle: true,
-                      leadingWidth: 56,
-                      title: Container(
+        appBar: PillAppBar(
+          title: pageTitle,
+          showDrawerButton: true,
+          actions: [
+            Consumer(
+              builder: (context, ref, child) {
+                final status = ref.watch(
+                  connectivityNotifierProvider,
+                );
+                return status.when(
+                  data: (s) {
+                    if (s == ConnectivityStatus.online) {
+                      return const SizedBox.shrink();
+                    }
+                    return InkWell(
+                      onTap: () {
+                        context.push('/settings/sync-monitoring');
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                          color: Colors.orange.withValues(
+                            alpha: 0.1,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.orange.withValues(
+                              alpha: 0.2,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.orange,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Offline',
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
-                          border: Border.all(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          pageTitle,
-                          style: theme.textTheme.h4.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.black,
-                          ),
                         ),
                       ),
-                      leading: Center(
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              width: 1,
-                            ),
-                          ),
-                          child: Builder(
-                            builder: (context) => IconButton(
-                              icon: const Icon(
-                                TablerIcons.menu_2,
-                                size: 20,
-                                color: Colors.black,
-                              ),
-                              onPressed: () =>
-                                  Scaffold.of(context).openDrawer(),
-                            ),
-                          ),
-                        ),
-                      ),
-                      actions: [
-                        Consumer(
-                          builder: (context, ref, child) {
-                            final status = ref.watch(
-                              connectivityNotifierProvider,
-                            );
-                            return status.when(
-                              data: (s) {
-                                if (s == ConnectivityStatus.online) {
-                                  return const SizedBox.shrink();
-                                }
-                                return InkWell(
-                                  onTap: () {
-                                    context.push('/settings/sync-monitoring');
-                                  },
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.orange.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            color: Colors.orange,
-                                            shape: BoxShape.circle,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          'Offline',
-                                          style: TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                              loading: () => const SizedBox.shrink(),
-                              error: (_, __) => const SizedBox.shrink(),
-                            );
-                          },
-                        ),
-                        const SizedBox(width: 4),
-                        Center(
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.08),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                              border: Border.all(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                width: 1,
-                              ),
-                            ),
-                            child: IconButton(
-                              icon: Consumer(
-                                builder: (context, ref, child) {
-                                  final unreadCount = ref.watch(
-                                    unreadNotificationCountProvider,
-                                  );
-                                  return Badge(
-                                    label: Text(unreadCount.toString()),
-                                    isLabelVisible: unreadCount > 0,
-                                    backgroundColor: Colors.red,
-                                    textColor: Colors.white,
-                                    child: const Icon(
-                                      TablerIcons.bell,
-                                      size: 20,
-                                      color: Colors.black,
-                                    ),
-                                  );
-                                },
-                              ),
-                              onPressed: () {
-                                context.push('/notifications');
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
+                    );
+                  },
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                );
+              },
+            ),
+            const SizedBox(width: 4),
+            Center(
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                  border: Border.all(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    width: 1,
                   ),
+                ),
+                child: IconButton(
+                  icon: Consumer(
+                    builder: (context, ref, child) {
+                      final unreadCount = ref.watch(
+                        unreadNotificationCountProvider,
+                      );
+                      return Badge(
+                        label: Text(unreadCount.toString()),
+                        isLabelVisible: unreadCount > 0,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        child: const Icon(
+                          TablerIcons.bell,
+                          size: 20,
+                          color: Colors.black,
+                        ),
+                      );
+                    },
+                  ),
+                  onPressed: () {
+                    context.push('/notifications');
+                  },
                 ),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: widget.navigationShell,
         bottomNavigationBar: Container(
