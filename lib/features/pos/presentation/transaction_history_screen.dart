@@ -140,20 +140,22 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                final lowerCaseQuery = _searchQuery.toLowerCase();
+                final now = DateTime.now();
                 final filtered = transactions.where((tx) {
+                  // Optimization: _searchQuery.toLowerCase() and DateTime.now() are hoisted
                   final matchesSearch =
                       tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerCaseQuery,
                       ) ||
                       tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        lowerCaseQuery,
                       );
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
 
                   final txDate = DateTime.parse(tx['created_at']).toLocal();
                   bool matchesDate = true;
-                  final now = DateTime.now();
 
                   if (_dateFilter == 'Hari Ini') {
                     matchesDate =
@@ -316,9 +318,10 @@ class _TransactionHistoryScreenState
   ) {
     return historyAsync.when(
       data: (state) {
+        final now = DateTime.now();
         final filtered = state.transactions.where((tx) {
+          // Optimization: DateTime.now() is hoisted
           final txDate = DateTime.parse(tx['created_at']).toLocal();
-          final now = DateTime.now();
           if (_dateFilter == 'Hari Ini') {
             return txDate.year == now.year &&
                 txDate.month == now.month &&

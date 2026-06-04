@@ -294,12 +294,14 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  final lowerCaseQuery = _searchQuery.toLowerCase();
                   final filteredProducts = products.where((p) {
+                    // Optimization: _searchQuery.toLowerCase() is hoisted to lowerCaseQuery
                     final matchesSearch = p.name
                             .toLowerCase()
-                            .contains(_searchQuery.toLowerCase()) ||
+                            .contains(lowerCaseQuery) ||
                         (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase()) ??
+                                lowerCaseQuery) ??
                             false);
                     final matchesCategory = _selectedCategory == null ||
                         p.categoryId == _selectedCategory;
