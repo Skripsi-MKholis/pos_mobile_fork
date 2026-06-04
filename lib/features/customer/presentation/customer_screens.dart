@@ -23,29 +23,44 @@ class CustomerHomeScreen extends ConsumerWidget {
 
     final theme = ShadTheme.of(context);
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-      physics: const BouncingScrollPhysics(),
-      children: [
-        const _LocationSelector(),
-        const SizedBox(height: 16),
-        const _MockSearchBar(),
-        const SizedBox(height: 20),
-        const _PromoCarousel(),
-        const SizedBox(height: 24),
-        Text(
-          'LAYANAN UTAMA',
-          style: theme.textTheme.muted.copyWith(
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2.0,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+        physics: const BouncingScrollPhysics(),
+        children: [
+          const _LocationSelector(),
+          const SizedBox(height: 16),
+          const _MockSearchBar(),
+          const SizedBox(height: 20),
+          const _PromoCarousel(),
+          const SizedBox(height: 24),
+          Text(
+            'LAYANAN UTAMA',
+            style: theme.textTheme.muted.copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.0,
+            ),
           ),
+          const SizedBox(height: 12),
+          _ServiceGrid(storeId: storeId),
+          const SizedBox(height: 40),
+          const _RecommendedStores(),
+        ],
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80.0),
+        child: FloatingActionButton(
+          heroTag: 'customer_scan_fab',
+          onPressed: () => context.push('/customer/scan'),
+          backgroundColor: Warna.primary,
+          elevation: 6,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: const Icon(TablerIcons.scan, color: Warna.black, size: 24),
         ),
-        const SizedBox(height: 12),
-        _ServiceGrid(storeId: storeId),
-        const SizedBox(height: 40),
-        const _RecommendedStores(),
-      ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
@@ -351,7 +366,7 @@ class _ServiceGrid extends StatelessWidget {
         'icon': TablerIcons.qrcode,
         'color': Warna.primary.withValues(alpha: 0.12),
         'iconColor': Warna.primary,
-        'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
+        'onTap': () => context.push('/customer/scan'),
       },
       {
         'title': 'Katalog Menu',
@@ -359,7 +374,29 @@ class _ServiceGrid extends StatelessWidget {
         'icon': TablerIcons.menu_2,
         'color': Warna.primary.withValues(alpha: 0.12),
         'iconColor': Warna.primary,
-        'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
+        'onTap': () {
+          final sId = storeId;
+          if (sId != null && sId.isNotEmpty) {
+            context.push(
+              Uri(
+                path: '/customer/store-detail',
+                queryParameters: {
+                  'store_name': sId,
+                  'category': 'Makanan & Minuman',
+                  'distance': '10 m',
+                  'banner_color': 'FF9AE600',
+                },
+              ).toString(),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Silakan pilih gerai toko terlebih dahulu di halaman utama!'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
       },
       {
         'title': 'Struk Digital',
@@ -845,7 +882,13 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                   width: double.infinity,
                   child: ShadButton(
                     backgroundColor: Warna.primary,
-                    onPressed: () => context.push('/customer/menu'),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/customer/home');
+                      }
+                    },
                     child: const Text(
                       'Mulai Belanja',
                       style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold),
@@ -1473,7 +1516,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
             title: 'Belum ada pesanan',
             description: 'Mulai belanja menu favoritmu sekarang!',
             actionLabel: 'Pesan Sekarang',
-            onAction: () => context.push('/customer/menu'),
+            onAction: () => context.go('/customer/home'),
           ),
         ),
       );
@@ -1490,7 +1533,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => context.push('/customer/menu'),
+                onPressed: () => context.go('/customer/home'),
                 icon: const Icon(TablerIcons.repeat, size: 16),
                 label: const Text(
                   'Pesan Menu Baru',

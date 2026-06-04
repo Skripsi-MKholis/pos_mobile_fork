@@ -5,7 +5,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
-import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
@@ -18,13 +17,6 @@ class CustomerShellScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final activeStoreId = ref.watch(customerStoreIdProvider);
-    final cartItems = ref.watch(customerCartProvider);
-
-    final totalItems = cartItems.fold<int>(
-      0,
-      (sum, item) => sum + item.quantity,
-    );
-
     // Dynamic titles based on active tab index
     String pageTitle = 'Pelanggan';
     switch (navigationShell.currentIndex) {
@@ -32,16 +24,10 @@ class CustomerShellScreen extends ConsumerWidget {
         pageTitle = 'Pelanggan';
         break;
       case 1:
-        pageTitle = 'Menu Digital';
+        pageTitle = 'Pesanan Saya';
         break;
       case 2:
-        pageTitle = 'Keranjang';
-        break;
-      case 3:
-        pageTitle = 'Pesanan';
-        break;
-      case 4:
-        pageTitle = 'Profil';
+        pageTitle = 'Profil Saya';
         break;
     }
 
@@ -65,40 +51,6 @@ class CustomerShellScreen extends ConsumerWidget {
                 ),
                 backgroundColor: Warna.primary.withValues(alpha: 0.18),
                 side: BorderSide(color: Warna.primary.withValues(alpha: 0.3)),
-              ),
-            ),
-          ),
-        );
-      }
-    } else if (navigationShell.currentIndex == 1) {
-      actions.add(
-        Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: Center(
-            child: Badge(
-              isLabelVisible: totalItems > 0,
-              label: Text(totalItems.toString()),
-              child: IconButton(
-                onPressed: () => context.push('/customer/cart'),
-                icon: const Icon(TablerIcons.shopping_cart, color: Colors.black),
-              ),
-            ),
-          ),
-        ),
-      );
-    } else if (navigationShell.currentIndex == 2) {
-      if (cartItems.isNotEmpty) {
-        actions.add(
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: TextButton(
-              onPressed: () => ref.read(customerCartProvider.notifier).clear(),
-              child: const Text(
-                'Kosongkan',
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
               ),
             ),
           ),
@@ -156,30 +108,11 @@ class CustomerShellScreen extends ConsumerWidget {
     );
 
     int getTabIndex(int branchIndex) {
-      switch (branchIndex) {
-        case 0:
-        case 1:
-          return 0;
-        case 2:
-          return 1;
-        case 3:
-          return 2;
-        default:
-          return 0;
-      }
+      return branchIndex;
     }
 
     int getBranchIndex(int tabIndex) {
-      switch (tabIndex) {
-        case 0:
-          return 0;
-        case 1:
-          return 2;
-        case 2:
-          return 3;
-        default:
-          return 0;
-      }
+      return tabIndex;
     }
 
     return Scaffold(

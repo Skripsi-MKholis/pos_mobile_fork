@@ -73,16 +73,6 @@ class _DrawerMenuContent extends ConsumerWidget {
             route: '/customer/home',
           ),
           _DrawerItem(
-            icon: TablerIcons.menu_2,
-            title: 'Menu Digital',
-            route: '/customer/menu',
-          ),
-          _DrawerItem(
-            icon: TablerIcons.shopping_cart,
-            title: 'Keranjang',
-            route: '/customer/cart',
-          ),
-          _DrawerItem(
             icon: TablerIcons.history,
             title: 'Riwayat Belanja',
             route: '/customer/history',

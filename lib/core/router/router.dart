@@ -46,8 +46,8 @@ import 'package:pos_mobile/features/kds/presentation/kds_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_shell_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_screens.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_store_detail_screen.dart';
-import 'package:pos_mobile/features/customer/presentation/customer_menu_page.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_checkout_page.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_scan_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
@@ -190,18 +190,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/customer/menu',
-                builder: (context, state) {
-                  final storeId = state.uri.queryParameters['store_id'];
-                  return CustomerMenuPage(storeId: storeId);
-                },
-              ),
-            ],
-          ),
-
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: '/customer/history',
                 builder: (context, state) => const CustomerHistoryScreen(),
               ),
@@ -232,6 +220,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customer/cart',
         builder: (context, state) => const CustomerCartScreen(),
+      ),
+      GoRoute(
+        path: '/customer/scan',
+        builder: (context, state) => const CustomerScanScreen(),
       ),
       GoRoute(
         path: '/customer/search',
