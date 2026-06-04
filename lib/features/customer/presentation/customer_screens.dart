@@ -1132,71 +1132,267 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
   }
 }
 
-class CustomerProfileScreen extends StatelessWidget {
+class CustomerProfileScreen extends ConsumerWidget {
   const CustomerProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ShadTheme.of(context);
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        _buildCustomerHeader(context, theme),
+        const SizedBox(height: 32),
+        _buildMenuSection(
+          theme,
+          'AKTIVITAS & PROMO',
+          [
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.bell,
+              'Notifikasi',
+              'Atur preferensi promo & status pesanan',
+              () => context.push('/customer/notifications'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.sparkles,
+              'Program Loyalitas',
+              'Lihat poin dan reward yang tersedia',
+              () => context.push('/customer/loyalty'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        _buildMenuSection(
+          theme,
+          'PENGATURAN APLIKASI',
+          [
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.language,
+              'Bahasa',
+              'Pilih bahasa tampilan aplikasi',
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Bahasa default diset ke Bahasa Indonesia'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              trailingText: 'Bahasa Indonesia',
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.help_circle,
+              'Pusat Bantuan',
+              'Hubungi tim dukungan kami',
+              () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Menghubungi Pusat Bantuan POS...'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        ShadButton.destructive(
+          width: double.infinity,
+          onPressed: () {
+            showShadDialog(
+              context: context,
+              builder: (context) => ShadDialog(
+                title: const Text('Keluar Sesi Pelanggan'),
+                description: const Text(
+                  'Apakah Anda yakin ingin keluar dan kembali ke halaman login staf?',
+                ),
+                actions: [
+                  ShadButton.outline(
+                    child: const Text('Batal'),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  ShadButton.destructive(
+                    child: const Text('Keluar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      context.go('/login');
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+          child: const Text('Keluar Sesi Pelanggan'),
+        ),
+        const SizedBox(height: 24),
+        Center(
+          child: Text(
+            'Antigravity POS • Versi Pelanggan 1.0.0',
+            style: theme.textTheme.muted.copyWith(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerHeader(BuildContext context, ShadThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Warna.primary.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Warna.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            height: 52,
+            width: 52,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
+              color: Warna.primary,
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: const Row(
+            child: const Icon(
+              TablerIcons.user_circle,
+              color: Colors.black,
+              size: 30,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Color(0xFFEFF7EC),
-                  child: Icon(
-                    TablerIcons.user_circle,
-                    size: 34,
-                    color: Colors.black87,
+                const Text(
+                  'Pelanggan Tamu',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
                   ),
                 ),
-                SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pelanggan Tamu',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text('Akun belum terhubung'),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  'ID: CS-MEMBER-882 • Belum Terhubung',
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          _SettingTile(
-            icon: TablerIcons.bell,
-            title: 'Notifikasi',
-            subtitle: 'Atur preferensi promo dan status pesanan',
-            onTap: () => context.push('/customer/notifications'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuSection(
+    ShadThemeData theme,
+    String title,
+    List<Widget> children,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            title,
+            style: theme.textTheme.muted.copyWith(
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              letterSpacing: 1.5,
+              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.7),
+            ),
           ),
-          _SettingTile(
-            icon: TablerIcons.sparkles,
-            title: 'Program loyalitas',
-            subtitle: 'Lihat poin dan reward yang tersedia',
-            onTap: () => context.push('/customer/loyalty'),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.border.withValues(alpha: 0.5),
+            ),
           ),
-          _SettingTile(
-            icon: TablerIcons.logout,
-            title: 'Keluar',
-            subtitle: 'Kembali ke layar login staf',
-            onTap: () => context.go('/login'),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(
+    BuildContext context,
+    ShadThemeData theme,
+    IconData icon,
+    String title,
+    String subtitle,
+    VoidCallback onTap, {
+    Color? color,
+    String? trailingText,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color?.withValues(alpha: 0.1) ?? theme.colorScheme.muted.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, color: color ?? Colors.black, size: 18),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: color ?? Colors.black,
+        ),
+      ),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(
+          fontSize: 11,
+          color: theme.colorScheme.mutedForeground,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText != null) ...[
+            Text(
+              trailingText,
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Icon(
+            TablerIcons.chevron_right,
+            size: 16,
+            color: color?.withValues(alpha: 0.5) ?? Colors.black26,
           ),
         ],
-      );
+      ),
+      onTap: onTap,
+    );
   }
 }
 
@@ -1499,39 +1695,7 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _SettingTile extends StatelessWidget {
-  const _SettingTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: Warna.primary.withValues(alpha: 0.14),
-          child: Icon(icon, color: Colors.black87),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(TablerIcons.chevron_right),
-      ),
-    );
-  }
-}
 
 class _DemoProduct {
   const _DemoProduct(this.name, this.price, this.badge, this.icon);
