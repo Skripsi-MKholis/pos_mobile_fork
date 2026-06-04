@@ -1,0 +1,4 @@
+## 2024-06-04 - Fix Hardcoded Supabase Secrets in Env class
+**Vulnerability:** Supabase URL and Anon Key were hardcoded as plain string constants in `lib/core/env/env.dart`. This is a critical risk as it exposes sensitive backend credentials if the source code or binary is decompiled.
+**Learning:** Hardcoded credentials often exist due to ease of development and quick prototyping. The Dart compiler embeds `const String` literals directly into the compiled app.
+**Prevention:** Use `String.fromEnvironment('VAR_NAME')` in `env.dart` to inject secrets securely at build/run time via `--dart-define`. Always implement fail-fast validation in `main.dart` to immediately throw an Exception if these critical environment variables are empty, ensuring the app fails securely rather than running with missing credentials.
