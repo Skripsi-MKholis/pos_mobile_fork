@@ -17,6 +17,7 @@ import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 import 'package:pos_mobile/core/services/fcm_service.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/core/services/update_service.dart';
 
 class ScaffoldWithNavBar extends ConsumerStatefulWidget {
   const ScaffoldWithNavBar({required this.navigationShell, super.key});
@@ -37,6 +38,9 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
     super.initState();
     Future.microtask(() {
       FCMService.instance.initialize();
+      if (mounted) {
+        UpdateService().checkForUpdate(context);
+      }
     });
   }
 

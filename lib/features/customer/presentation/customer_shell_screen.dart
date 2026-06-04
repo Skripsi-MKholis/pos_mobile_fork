@@ -8,14 +8,31 @@ import 'package:pos_mobile/features/customer/providers/customer_session_provider
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
+import 'package:pos_mobile/core/services/update_service.dart';
 
-class CustomerShellScreen extends ConsumerWidget {
+class CustomerShellScreen extends ConsumerStatefulWidget {
   const CustomerShellScreen({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomerShellScreen> createState() => _CustomerShellScreenState();
+}
+
+class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (mounted) {
+        UpdateService().checkForUpdate(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final navigationShell = widget.navigationShell;
     final activeStoreId = ref.watch(customerStoreIdProvider);
     // Dynamic titles based on active tab index
     String pageTitle = 'Pelanggan';
