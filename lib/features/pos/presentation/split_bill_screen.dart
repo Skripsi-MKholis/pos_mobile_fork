@@ -8,7 +8,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:tabler_icons/tabler_icons.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';

@@ -311,21 +311,21 @@ Status pesanan disinkronisasi menggunakan **Supabase Realtime**:
 ### 📋 MILESTONE 1: Infrastruktur Database & Auth Pelanggan
 **Estimasi: 3-4 hari**
 
-- [ ] Buat migrasi SQL untuk tabel `customers`, `customer_orders`, `loyalty_transactions`, dan `loyalty_settings`.
-- [ ] Aktifkan RLS dan buat seluruh policy keamanan untuk role pelanggan.
-- [ ] Aktifkan Supabase Realtime untuk tabel `customer_orders` (channel per `store_id`).
-- [ ] Tambahkan opsi login "Sebagai Pelanggan" di halaman Auth aplikasi, dengan pemisahan navigasi ke `CustomerShell` vs `StaffShell` berdasarkan role.
-- [ ] Buat model Dart: `CustomerModel`, `CustomerOrderModel`, `LoyaltyTransactionModel`.
+- [x] Buat migrasi SQL untuk tabel `customers`, `customer_orders`, `loyalty_transactions`, dan `loyalty_settings`.
+- [x] Aktifkan RLS dan buat seluruh policy keamanan untuk role pelanggan.
+- [x] Aktifkan Supabase Realtime untuk tabel `customer_orders` (channel per `store_id`).
+- [x] Tambahkan opsi login "Sebagai Pelanggan" di halaman Auth aplikasi, dengan entry point langsung ke mode pelanggan melalui `/customer/home`.
+- [x] Buat model Dart: `CustomerModel`, `CustomerOrderModel`, `LoyaltyTransactionModel`.
 
 ---
 
 ### 📋 MILESTONE 2: Navigasi & Shell Pelanggan
 **Estimasi: 2-3 hari**
 
-- [ ] Buat `CustomerShellScreen` dengan **Bottom Navigation Bar** 5 tab: Beranda, Menu, Keranjang, Riwayat, Profil.
-- [ ] Daftarkan seluruh rute `/customer/*` di GoRouter dengan guard: hanya bisa diakses jika login sebagai Pelanggan atau mode Tamu.
-- [ ] Buat `CustomerHomeScreen` (Halaman Utama) dengan header toko, navigasi cepat, dan banner promo.
-- [ ] Implementasikan navigasi **mode Tamu via QR Code** (scan QR → buka `/customer/home?store_id=xxx` tanpa login).
+- [x] Buat `CustomerShellScreen` dengan **Bottom Navigation Bar** 5 tab: Beranda, Menu, Keranjang, Riwayat, Profil.
+- [x] Daftarkan seluruh rute `/customer/*` di GoRouter dengan guard: hanya bisa diakses jika login sebagai Pelanggan atau mode Tamu.
+- [x] Buat `CustomerHomeScreen` (Halaman Utama) dengan header toko, navigasi cepat, dan banner promo.
+- [x] Implementasikan navigasi **mode Tamu via QR Code** (scan QR → buka `/customer/home?store_id=xxx` tanpa login).
 
 ---
 
@@ -337,7 +337,7 @@ Status pesanan disinkronisasi menggunakan **Supabase Realtime**:
   - Grid produk dengan foto, nama, harga, dan badge status.
   - Pencarian produk dengan debouncing.
   - Bottom sheet detail produk + tombol "Tambah ke Keranjang".
-- [ ] Buat `CustomerCartProvider` (Riverpod) untuk state management keranjang pelanggan yang terpisah dari `cartProvider` kasir.
+- [x] Buat `CustomerCartProvider` (Riverpod) untuk state management keranjang pelanggan yang terpisah dari `cartProvider` kasir.
 - [ ] Buat `CustomerCartScreen`:
   - Daftar item + kontrol kuantitas.
   - Input kode voucher.

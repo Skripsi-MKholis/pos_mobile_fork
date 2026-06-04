@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
-import 'package:tabler_icons/tabler_icons.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
@@ -504,6 +504,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ).animate().fadeIn(delay: 500.ms),
                     
                     const SizedBox(height: 20),
+
+                    // Customer entry point
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          context.go('/customer/home');
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        icon: const Icon(TablerIcons.qrcode, size: 18),
+                        label: const Text(
+                          'Masuk sebagai Pelanggan',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn(delay: 550.ms),
                     
                     // Footer Link
                     Center(

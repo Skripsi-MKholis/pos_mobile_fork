@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tabler_icons/tabler_icons.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';

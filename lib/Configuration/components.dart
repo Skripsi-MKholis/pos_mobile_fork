@@ -5,7 +5,7 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pos_mobile/kosong_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tabler_icons/tabler_icons.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 export 'package:bounce_tapper/bounce_tapper.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';

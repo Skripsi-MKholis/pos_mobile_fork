@@ -43,6 +43,10 @@ import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dar
 import 'package:pos_mobile/features/dashboard/presentation/notification_center_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/broadcast_notification_screen.dart';
 import 'package:pos_mobile/features/kds/presentation/kds_screen.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_shell_screen.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_screens.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_menu_page.dart';
+import 'package:pos_mobile/features/customer/presentation/customer_checkout_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
@@ -54,6 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Gunakan ref.read di sini agar redirect bersifat reaktif terhadap data terbaru
       // tanpa memicu rebuild instance GoRouter
       final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+      final isCustomerRoute = state.matchedLocation.startsWith('/customer');
       final isAuthPage =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
@@ -65,7 +70,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final isFirstRun = isFirstRunAsync.value ?? true;
 
-      if (isFirstRun) {
+      if (isFirstRun && !isCustomerRoute) {
         if (state.matchedLocation != '/onboarding') {
           return '/onboarding';
         }
@@ -74,6 +79,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (state.matchedLocation == '/onboarding') {
           return '/login';
         }
+      }
+
+      if (isCustomerRoute) {
+        return null;
       }
 
       if (!isLoggedIn) {
@@ -154,6 +163,92 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/create-store',
         builder: (context, state) => const CreateStoreScreen(),
+      ),
+
+      GoRoute(
+        path: '/customer',
+        redirect: (context, state) => '/customer/home',
+      ),
+
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return CustomerShellScreen(navigationShell: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customer/home',
+                builder: (context, state) {
+                  final storeId = state.uri.queryParameters['store_id'];
+                  return CustomerHomeScreen(storeId: storeId);
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customer/menu',
+                builder: (context, state) {
+                  final storeId = state.uri.queryParameters['store_id'];
+                  return CustomerMenuPage(storeId: storeId);
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customer/cart',
+                builder: (context, state) => const CustomerCartScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customer/history',
+                builder: (context, state) => const CustomerHistoryScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customer/profile',
+                builder: (context, state) => const CustomerProfileScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      GoRoute(
+        path: '/customer/checkout',
+        builder: (context, state) => const CustomerCheckoutPage(),
+      ),
+      GoRoute(
+        path: '/customer/order/:orderId',
+        builder: (context, state) {
+          final orderId = state.pathParameters['orderId']!;
+          return CustomerOrderTrackingScreen(orderId: orderId);
+        },
+      ),
+      GoRoute(
+        path: '/customer/receipt/:transactionId',
+        builder: (context, state) {
+          final transactionId = state.pathParameters['transactionId']!;
+          return CustomerReceiptScreen(transactionId: transactionId);
+        },
+      ),
+      GoRoute(
+        path: '/customer/loyalty',
+        builder: (context, state) => const CustomerLoyaltyScreen(),
+      ),
+      GoRoute(
+        path: '/customer/notifications',
+        builder: (context, state) => const CustomerNotificationsScreen(),
       ),
 
       StatefulShellRoute.indexedStack(
