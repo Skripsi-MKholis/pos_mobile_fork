@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
@@ -114,7 +113,7 @@ class CustomerShellScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F6F1),
+      backgroundColor: Colors.white,
       extendBody: true,
       drawer: const AppDrawer(),
       appBar: PillAppBar(

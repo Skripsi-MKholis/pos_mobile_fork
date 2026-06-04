@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
+
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 class CustomerHomeScreen extends ConsumerWidget {
   const CustomerHomeScreen({super.key, this.storeId});
@@ -19,116 +20,590 @@ class CustomerHomeScreen extends ConsumerWidget {
       ref.read(customerStoreIdProvider.notifier).state = storeId;
     }
 
+    final theme = ShadTheme.of(context);
+
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.white, Warna.primary.withValues(alpha: 0.08)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+      physics: const BouncingScrollPhysics(),
+      children: [
+        const _LocationSelector(),
+        const SizedBox(height: 16),
+        const _MockSearchBar(),
+        const SizedBox(height: 20),
+        const _PromoCarousel(),
+        const SizedBox(height: 24),
+        Text(
+          'LAYANAN UTAMA',
+          style: theme.textTheme.muted.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2.0,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _ServiceGrid(storeId: storeId),
+        const SizedBox(height: 24),
+        const _RecommendedStores(),
+      ],
+    );
+  }
+}
+
+class _LocationSelector extends StatelessWidget {
+  const _LocationSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Warna.primary.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            TablerIcons.map_pin,
+            size: 16,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Cari di sekitar',
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.black45,
+                fontWeight: FontWeight.w600,
               ),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
+            ),
+            Row(
+              children: [
+                const Text(
+                  'Yogyakarta',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(width: 2),
+                Icon(
+                  TablerIcons.chevron_down,
+                  size: 14,
+                  color: Colors.grey.shade700,
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Selamat datang di mode pelanggan',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.6,
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _MockSearchBar extends StatelessWidget {
+  const _MockSearchBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Halaman pencarian akan segera hadir!'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              TablerIcons.search,
+              size: 18,
+              color: Colors.black54,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Cari toko, menu, atau produk...',
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PromoCarousel extends StatefulWidget {
+  const _PromoCarousel();
+
+  @override
+  State<_PromoCarousel> createState() => _PromoCarouselState();
+}
+
+class _PromoCarouselState extends State<_PromoCarousel> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<Map<String, dynamic>> _promos = [
+    {
+      'title': 'Promo Gajian\nDiskon s.d 50%',
+      'subtitle': 'Khusus pemesanan via Menu Digital',
+      'color1': const Color(0xFFFACC15),
+      'color2': const Color(0xFFEAB308),
+      'imageIcon': TablerIcons.ticket,
+    },
+    {
+      'title': 'Gratis Ongkir\nTanpa Min. Belanja',
+      'subtitle': 'Nikmati kopi favoritmu di rumah',
+      'color1': const Color(0xFF38BDF8),
+      'color2': const Color(0xFF0284C7),
+      'imageIcon': TablerIcons.truck,
+    },
+    {
+      'title': 'Sarapan Hemat\nMulai Rp 12.000',
+      'subtitle': 'Senin s.d Jumat jam 07:00 - 10:00',
+      'color1': const Color(0xFFF87171),
+      'color2': const Color(0xFFDC2626),
+      'imageIcon': TablerIcons.coffee,
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 140,
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                _currentPage = index;
+              });
+            },
+            itemCount: _promos.length,
+            itemBuilder: (context, index) {
+              final promo = _promos[index];
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    colors: [promo['color1'], promo['color2']],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  storeId == null || storeId!.isEmpty
-                      ? 'Silakan pilih toko, scan QR meja, atau lanjut sebagai tamu untuk melihat katalog.'
-                      : 'Toko sudah terdeteksi. Lanjutkan ke menu digital atau pantau pesanan yang masuk.',
-                  style: TextStyle(color: Colors.grey.shade700, height: 1.45),
-                ),
-                const SizedBox(height: 18),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    _QuickAction(
-                      icon: TablerIcons.menu_2,
-                      label: 'Menu Digital',
-                      onTap: () => context.push(
-                        '/customer/menu?store_id=${storeId ?? ''}',
-                      ),
-                    ),
-                    _QuickAction(
-                      icon: TablerIcons.shopping_cart,
-                      label: 'Keranjang',
-                      onTap: () => context.push('/customer/cart'),
-                    ),
-                    _QuickAction(
-                      icon: TablerIcons.history,
-                      label: 'Riwayat',
-                      onTap: () => context.push('/customer/history'),
-                    ),
-                    _QuickAction(
-                      icon: TablerIcons.user_circle,
-                      label: 'Profil',
-                      onTap: () => context.push('/customer/profile'),
+                  boxShadow: [
+                    BoxShadow(
+                      color: promo['color2'].withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-              ],
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: -10,
+                        bottom: -10,
+                        child: Icon(
+                          promo['imageIcon'],
+                          size: 120,
+                          color: Colors.white.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              promo['title'],
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              promo['subtitle'],
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(
+            _promos.length,
+            (index) => Container(
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: _currentPage == index ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: _currentPage == index ? Colors.black87 : Colors.black12,
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
-          const SizedBox(height: 18),
-          const _SectionTitle(
-            title: 'Akses cepat',
-            subtitle: 'Rute awal yang sudah disiapkan untuk alur pelanggan.',
-          ),
-          const SizedBox(height: 12),
-          _NavigationCard(
-            icon: TablerIcons.bolt,
-            title: 'Mulai pesanan baru',
-            description: 'Buka katalog menu dan tambahkan item ke keranjang.',
-            onTap: () => context.push(
-              '/customer/menu?store_id=${storeId ?? ''}',
+        ),
+      ],
+    );
+  }
+}
+
+class _ServiceGrid extends StatelessWidget {
+  const _ServiceGrid({this.storeId});
+
+  final String? storeId;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final List<Map<String, dynamic>> services = [
+      {
+        'title': 'Pesan Antar',
+        'subtitle': 'Kirim langsung',
+        'icon': TablerIcons.truck,
+        'color': Colors.blue.shade50,
+        'iconColor': Colors.blue.shade700,
+        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Layanan antar segera hadir')),
+            ),
+      },
+      {
+        'title': 'Ambil Sendiri',
+        'subtitle': 'Tanpa antre',
+        'icon': TablerIcons.shopping_bag,
+        'color': const Color(0xFFECFDF5),
+        'iconColor': const Color(0xFF047857),
+        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Layanan pickup segera hadir')),
+            ),
+      },
+      {
+        'title': 'Scan QR Meja',
+        'subtitle': 'Pesan di tempat',
+        'icon': TablerIcons.qrcode,
+        'color': Colors.amber.shade50,
+        'iconColor': Colors.amber.shade700,
+        'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
+      },
+      {
+        'title': 'Katalog Menu',
+        'subtitle': 'Menu digital',
+        'icon': TablerIcons.menu_2,
+        'color': Colors.orange.shade50,
+        'iconColor': Colors.orange.shade700,
+        'onTap': () => context.push('/customer/menu?store_id=${storeId ?? ''}'),
+      },
+      {
+        'title': 'Kupon Promo',
+        'subtitle': 'Hemat belanja',
+        'icon': TablerIcons.ticket,
+        'color': const Color(0xFFFFF1F2),
+        'iconColor': const Color(0xFFBE123C),
+        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Kupon promo segera hadir')),
+            ),
+      },
+      {
+        'title': 'Loyalti Poin',
+        'subtitle': 'Kumpul reward',
+        'icon': TablerIcons.award,
+        'color': Colors.indigo.shade50,
+        'iconColor': Colors.indigo.shade700,
+        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Loyalti reward segera hadir')),
+            ),
+      },
+      {
+        'title': 'Struk Digital',
+        'subtitle': 'Riwayat transaksi',
+        'icon': TablerIcons.receipt,
+        'color': Colors.teal.shade50,
+        'iconColor': Colors.teal.shade700,
+        'onTap': () => context.push('/customer/receipt/demo-transaction'),
+      },
+      {
+        'title': 'Bantuan',
+        'subtitle': 'Hubungi kami',
+        'icon': TablerIcons.help_circle,
+        'color': Colors.grey.shade100,
+        'iconColor': Colors.grey.shade700,
+        'onTap': () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Bantuan layanan segera hadir')),
+            ),
+      },
+    ];
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: services.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 1.5,
+      ),
+      itemBuilder: (context, index) {
+        final service = services[index];
+        return ShadCard(
+          padding: EdgeInsets.zero,
+          child: InkWell(
+            onTap: service['onTap'],
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: service['color'],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          service['icon'],
+                          size: 18,
+                          color: service['iconColor'],
+                        ),
+                      ),
+                      Icon(
+                        TablerIcons.arrow_right,
+                        size: 14,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Text(
+                    service['title'],
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: theme.colorScheme.foreground,
+                    ),
+                  ),
+                  Text(
+                    service['subtitle'],
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: theme.colorScheme.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          _NavigationCard(
-            icon: TablerIcons.ticket,
-            title: 'Gunakan kode QR meja',
-            description:
-                'Rute ini sudah siap menerima store_id dari deep link.',
-            onTap: () =>
-                context.push('/customer/menu?store_id=${storeId ?? ''}'),
-          ),
-          _NavigationCard(
-            icon: TablerIcons.receipt,
-            title: 'Lihat struk digital',
-            description:
-                'Struk, status pesanan, dan notifikasi disiapkan sebagai route terpisah.',
-            onTap: () => context.push('/customer/receipt/demo-transaction'),
-          ),
-          const SizedBox(height: 18),
-          const _SectionTitle(
-            title: 'Status fase awal',
-            subtitle:
-                'Fondasi navigasi customer sudah tersedia. Fitur transaksi akan menyusul di milestone berikutnya.',
-          ),
-          const SizedBox(height: 12),
-          const _StatusChipRow(),
-        ],
-      );
+        );
+      },
+    );
+  }
+}
+
+class _RecommendedStores extends StatelessWidget {
+  const _RecommendedStores();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final stores = [
+      {
+        'name': 'Kopi Kenangan - Plaza Ambarrukmo',
+        'category': 'Minuman, Kopi',
+        'rating': '4.8',
+        'distance': '1.2 km',
+        'bannerColor': Colors.amber.shade700,
+      },
+      {
+        'name': 'Mie Gacoan - Sudirman',
+        'category': 'Makanan, Mie, Pedas',
+        'rating': '4.7',
+        'distance': '2.5 km',
+        'bannerColor': Colors.red.shade700,
+      },
+      {
+        'name': 'Warmindo Prima - Gejayan',
+        'category': 'Makanan, Mie Instan, Kopi',
+        'rating': '4.5',
+        'distance': '0.8 km',
+        'bannerColor': const Color(0xFF047857),
+      },
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'REKOMENDASI TOKO POPULER',
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+              ),
+            ),
+            Text(
+              'Lihat Semua',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.amber.shade800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: stores.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final store = stores[index];
+            return ShadCard(
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Toko ${store['name']} terpilih')),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: store['bannerColor'] as Color,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            TablerIcons.building_store,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              store['name'] as String,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              store['category'] as String,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(
+                                  TablerIcons.star_filled,
+                                  size: 12,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  store['rating'] as String,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '•  ${store['distance']}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: theme.colorScheme.mutedForeground,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        TablerIcons.chevron_right,
+                        size: 16,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
   }
 }
 
@@ -687,146 +1162,7 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-class _StatusChipRow extends StatelessWidget {
-  const _StatusChipRow();
 
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: const [
-        _MiniStatusChip(label: 'Route shell siap'),
-        _MiniStatusChip(label: 'Guest mode aktif'),
-        _MiniStatusChip(label: 'Deep link QR didukung'),
-        _MiniStatusChip(label: 'Milestone berikutnya: checkout'),
-      ],
-    );
-  }
-}
-
-class _MiniStatusChip extends StatelessWidget {
-  const _MiniStatusChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(
-      label: Text(label),
-      backgroundColor: Colors.white,
-      side: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
-    );
-  }
-}
-
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        width: 140,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 22, color: Colors.black87),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavigationCard extends StatelessWidget {
-  const _NavigationCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.14),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: Colors.black87),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        height: 1.35,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(TablerIcons.chevron_right, size: 18),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _HintBanner extends StatelessWidget {
   const _HintBanner({
