@@ -100,7 +100,7 @@ class CustomerShellScreen extends ConsumerWidget {
                   );
                 },
               ),
-              onPressed: () => context.push('/customer/notifications'),
+              onPressed: () => context.push('/notifications'),
             ),
           ),
         ),

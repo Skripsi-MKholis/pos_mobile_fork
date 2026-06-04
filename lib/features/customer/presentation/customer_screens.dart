@@ -1719,22 +1719,30 @@ class CustomerProfileScreen extends ConsumerWidget {
       children: [
         _buildCustomerHeader(context, theme),
         const SizedBox(height: 32),
-        _buildMenuSection(theme, 'AKTIVITAS & PROMO', [
+        _buildMenuSection(theme, 'AKTIVITAS & LAYANAN', [
           _buildMenuItem(
             context,
             theme,
             TablerIcons.bell,
             'Notifikasi',
-            'Atur preferensi promo & status pesanan',
-            () => context.push('/customer/notifications'),
+            'Lihat pemberitahuan & info promo terbaru',
+            () => context.push('/notifications'),
           ),
           _buildMenuItem(
             context,
             theme,
-            TablerIcons.sparkles,
-            'Program Loyalitas',
-            'Lihat poin dan reward yang tersedia',
-            () => context.push('/customer/loyalty'),
+            TablerIcons.scan,
+            'Pindai QR / Barcode',
+            'Pindai kode QR meja gerai atau struk belanja',
+            () => context.push('/customer/scan'),
+          ),
+          _buildMenuItem(
+            context,
+            theme,
+            TablerIcons.map_pin,
+            'Lokasi Gerai',
+            'Cari dan pilih gerai toko terdekat',
+            () => context.push('/customer/select-location'),
           ),
         ]),
         const SizedBox(height: 24),
