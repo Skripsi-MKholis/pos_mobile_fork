@@ -28,18 +28,18 @@
 
 | Screen | File | Status |
 |---|---|---|
-| Shell (Nav Bar) | `customer_shell_screen.dart` | ✅ Ada |
-| Beranda | `CustomerHomeScreen` | ⚠️ Data mock |
-| Katalog Toko | `CustomerStoreDetailScreen` | ⚠️ Data mock |
-| Keranjang | `CustomerCartScreen` | ⚠️ Local only, belum ke DB |
-| Checkout | `CustomerCheckoutPage` | ⚠️ Submit ke `customer_orders` (tabel belum ada di DB!) |
-| Pesanan Saya | `CustomerHistoryScreen` | ❌ Semua data mock |
-| Profil | `CustomerProfileScreen` | ❌ Data hardcode (tamu) |
-| Scan QR | `CustomerScanScreen` | ✅ Fungsional (store_name-based) |
+| Shell (Nav Bar) | `customer_shell_screen.dart` | ✅ Selesai |
+| Beranda | `CustomerHomeScreen` | ✅ Dinamis (Terintegrasi DB & Provider) |
+| Katalog Toko | `CustomerStoreDetailScreen` | ✅ Terintegrasi DB (Dinamis) |
+| Keranjang | `CustomerCartScreen` | ✅ Terintegrasi Settings Toko DB |
+| Checkout | `CustomerCheckoutPage` | ✅ Terintegrasi DB (transactions & transaction_items) |
+| Pesanan Saya | `CustomerHistoryScreen` | ✅ Streaming Real-time DB |
+| Profil | `CustomerProfileScreen` | ✅ Dinamis (userProfileProvider) |
+| Scan QR | `CustomerScanScreen` | ✅ Terintegrasi (store_id & table_id) |
 | Cari | `CustomerSearchScreen` | ⚠️ Data mock |
 | Pilih Lokasi | `CustomerSelectLocationScreen` | ⚠️ Data mock |
-| Struk Digital | `CustomerReceiptScreen` | ❌ Placeholder (`_DetailPage`) |
-| Lacak Pesanan | `CustomerOrderTrackingScreen` | ❌ Placeholder (`_DetailPage`) |
+| Struk Digital | `CustomerReceiptScreen` | ✅ Dinamis (Berdasarkan Data Transaksi DB) |
+| Lacak Pesanan | `CustomerOrderTrackingScreen` | ✅ Real-time KDS Status |
 | Loyalty | `CustomerLoyaltyScreen` | ❌ Placeholder (`_DetailPage`) |
 
 ---
@@ -297,4 +297,4 @@
 
 ---
 
-*Terakhir diperbarui: 5 Juni 2026 — Analisis awal untuk persiapan penyesuaian MVP Role Pelanggan*
+*Terakhir diperbarui: 5 Juni 2026 — Semua penyesuaian utama untuk MVP Role Pelanggan telah selesai diterapkan dan diintegrasikan dengan database Supabase*

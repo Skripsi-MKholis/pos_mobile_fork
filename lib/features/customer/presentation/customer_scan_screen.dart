@@ -6,6 +6,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CustomerScanScreen extends ConsumerStatefulWidget {
   const CustomerScanScreen({super.key});
@@ -38,71 +39,203 @@ class _CustomerScanScreenState extends ConsumerState<CustomerScanScreen> {
     }
   }
 
-  void _processTableScan(String value) {
-    String storeName = 'Kopi Kuno';
-    String tableNumber = 'Umum';
+  Future<void> _processTableScan(String value) async {
+    // Show a loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+        ),
+      ),
+    );
+
+    String? storeId;
+    String? storeName;
+    String? tableParam;
 
     try {
       final uri = Uri.parse(value);
-      if (uri.queryParameters.containsKey('store_name')) {
-        storeName = uri.queryParameters['store_name']!;
-      } else if (uri.queryParameters.containsKey('store_id')) {
-        storeName = uri.queryParameters['store_id']!;
+      if (uri.queryParameters.containsKey('store_id')) {
+        storeId = uri.queryParameters['store_id'];
+      } else if (uri.queryParameters.containsKey('store_name')) {
+        storeName = uri.queryParameters['store_name'];
       }
       if (uri.queryParameters.containsKey('table')) {
-        tableNumber = uri.queryParameters['table']!;
+        tableParam = uri.queryParameters['table'];
       }
     } catch (_) {
       final parts = value.split('-');
       if (parts.length >= 3 && parts[0].toUpperCase() == 'MEJA') {
         storeName = parts[1];
-        tableNumber = parts[2];
+        tableParam = parts[2];
       } else if (parts.length == 2) {
         storeName = parts[0];
-        tableNumber = parts[1];
+        tableParam = parts[1];
       } else {
-        tableNumber = value;
+        final uuidRegex = RegExp(
+            r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$');
+        if (uuidRegex.hasMatch(value)) {
+          storeId = value;
+        } else {
+          storeName = value;
+        }
       }
     }
 
-    showShadDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => ShadDialog(
-        title: const Text('Meja Teridentifikasi!'),
-        description: Text('Apakah Anda berada di gerai "$storeName" pada "$tableNumber"?'),
-        actions: [
-          ShadButton.outline(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() => _isProcessing = false);
-              _scannerController.start();
-            },
-            child: const Text('Batal'),
+    final supabase = Supabase.instance.client;
+
+    // Resolve store
+    Map<String, dynamic>? storeData;
+    try {
+      if (storeId != null) {
+        storeData = await supabase
+            .from('stores')
+            .select('id, name')
+            .eq('id', storeId)
+            .maybeSingle();
+      }
+      
+      if (storeData == null && storeName != null) {
+        final results = await supabase
+            .from('stores')
+            .select('id, name')
+            .ilike('name', '%$storeName%')
+            .limit(1);
+        if (results.isNotEmpty) {
+          storeData = results.first;
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching store: $e');
+    }
+
+    // Dismiss loading dialog
+    if (mounted) {
+      Navigator.pop(context);
+    }
+
+    if (storeData == null) {
+      if (mounted) {
+        showShadDialog(
+          context: context,
+          builder: (context) => ShadDialog(
+            title: const Text('Toko Tidak Ditemukan'),
+            description: Text('Tidak dapat menemukan gerai toko untuk "$value".'),
+            actions: [
+              ShadButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() => _isProcessing = false);
+                  _scannerController.start();
+                },
+                child: const Text('Coba Lagi'),
+              ),
+            ],
           ),
-          ShadButton(
-            backgroundColor: Warna.primary,
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(customerStoreIdProvider.notifier).state = storeName;
-              
-              context.go(
-                Uri(
-                  path: '/customer/store-detail',
-                  queryParameters: {
-                    'store_name': storeName,
-                    'category': 'Makanan & Minuman',
-                    'distance': '10 m',
-                    'banner_color': 'FF9AE600',
-                  },
-                ).toString(),
-              );
-            },
-            child: const Text('Mulai Pesan', style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+      return;
+    }
+
+    final resolvedStoreId = storeData['id'] as String;
+    final resolvedStoreName = storeData['name'] as String;
+
+    // Resolve table
+    String? tableId;
+    String resolvedTableName = tableParam ?? 'Umum';
+
+    if (tableParam != null) {
+      try {
+        final tableResults = await supabase
+            .from('tables')
+            .select('id, name')
+            .eq('store_id', resolvedStoreId)
+            .ilike('name', tableParam)
+            .limit(1);
+        if (tableResults.isNotEmpty) {
+          tableId = tableResults.first['id'] as String;
+          resolvedTableName = tableResults.first['name'] as String;
+        } else {
+          final tableResults2 = await supabase
+              .from('tables')
+              .select('id, name')
+              .eq('store_id', resolvedStoreId)
+              .ilike('name', '%$tableParam%')
+              .limit(1);
+          if (tableResults2.isNotEmpty) {
+            tableId = tableResults2.first['id'] as String;
+            resolvedTableName = tableResults2.first['name'] as String;
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching table: $e');
+      }
+    }
+
+    if (mounted) {
+      showShadDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => ShadDialog(
+          title: const Text('Meja Teridentifikasi!'),
+          description: Text(
+              'Apakah Anda berada di gerai "$resolvedStoreName" pada "$resolvedTableName"?'),
+          actions: [
+            ShadButton.outline(
+              onPressed: () {
+                Navigator.pop(context);
+                setState(() => _isProcessing = false);
+                _scannerController.start();
+              },
+              child: const Text('Batal'),
+            ),
+            ShadButton(
+              backgroundColor: Warna.primary,
+              onPressed: () async {
+                Navigator.pop(context);
+                
+                // Set providers
+                ref.read(customerStoreIdProvider.notifier).state = resolvedStoreId;
+                ref.read(customerTableIdProvider.notifier).state = tableId;
+                ref.read(customerTableNameProvider.notifier).state = resolvedTableName;
+
+                // Auto join store_members
+                final user = supabase.auth.currentUser;
+                if (user != null) {
+                  try {
+                    await supabase.from('store_members').upsert({
+                      'user_id': user.id,
+                      'store_id': resolvedStoreId,
+                      'role': 'Pelanggan',
+                      'status': 'active',
+                    }, onConflict: 'user_id,store_id');
+                  } catch (e) {
+                    debugPrint('Gagal gabung store member: $e');
+                  }
+                }
+
+                if (mounted) {
+                  context.go(
+                    Uri(
+                      path: '/customer/store-detail',
+                      queryParameters: {
+                        'store_id': resolvedStoreId,
+                        'store_name': resolvedStoreName,
+                      },
+                    ).toString(),
+                  );
+                }
+              },
+              child: const Text('Mulai Pesan',
+                  style: TextStyle(
+                      color: Warna.black, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _processReceiptScan(String value) {

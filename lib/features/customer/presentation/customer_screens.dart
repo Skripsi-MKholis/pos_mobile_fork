@@ -6,6 +6,7 @@ import 'package:pos_mobile/configuration/configuration.dart';
 import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
+import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -381,7 +382,8 @@ class _ServiceGrid extends StatelessWidget {
               Uri(
                 path: '/customer/store-detail',
                 queryParameters: {
-                  'store_name': sId,
+                  'store_id': sId,
+                  'store_name': 'Gerai Aktif',
                   'category': 'Makanan & Minuman',
                   'distance': '10 m',
                   'banner_color': 'FF9AE600',
@@ -498,24 +500,27 @@ class _RecommendedStores extends StatelessWidget {
     final theme = ShadTheme.of(context);
     final stores = [
       {
-        'name': 'Kopi Kenangan - Plaza Ambarrukmo',
-        'category': 'Minuman, Kopi',
-        'rating': '4.8',
-        'distance': '1.2 km',
+        'id': 'c249606a-cbbb-4e40-9015-4754003c4a0f',
+        'name': 'Parzello Tech',
+        'category': 'Teknologi & Kuliner',
+        'rating': '4.9',
+        'distance': '0.1 km',
         'bannerColor': Colors.amber.shade700,
       },
       {
-        'name': 'Mie Gacoan - Sudirman',
-        'category': 'Makanan, Mie, Pedas',
+        'id': 'f2effb9f-671a-433c-a76b-e980b4c901e7',
+        'name': 'Test Lagii',
+        'category': 'Makanan & Restoran',
         'rating': '4.7',
-        'distance': '2.5 km',
+        'distance': '1.5 km',
         'bannerColor': Colors.red.shade700,
       },
       {
-        'name': 'Warmindo Prima - Gejayan',
-        'category': 'Makanan, Mie Instan, Kopi',
+        'id': 'cece9918-fa08-4296-bf4e-dd0facc8559b',
+        'name': 'Nebula Nosh',
+        'category': 'Kafe & Kopi',
         'rating': '4.5',
-        'distance': '0.8 km',
+        'distance': '2.3 km',
         'bannerColor': const Color(0xFF047857),
       },
     ];
@@ -561,6 +566,7 @@ class _RecommendedStores extends StatelessWidget {
                     Uri(
                       path: '/customer/store-detail',
                       queryParameters: {
+                        'store_id': store['id'] as String,
                         'store_name': store['name'] as String,
                         'category': store['category'] as String,
                         'distance': store['distance'] as String,
@@ -1423,15 +1429,14 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
     );
   }
 }
-
-class CustomerHistoryScreen extends StatefulWidget {
+class CustomerHistoryScreen extends ConsumerStatefulWidget {
   const CustomerHistoryScreen({super.key});
 
   @override
-  State<CustomerHistoryScreen> createState() => _CustomerHistoryScreenState();
+  ConsumerState<CustomerHistoryScreen> createState() => _CustomerHistoryScreenState();
 }
 
-class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
+class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -1447,61 +1452,81 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
     super.dispose();
   }
 
-  final List<Map<String, dynamic>> _activeOrders = [
-    {
-      'transactionId': 'INV-2026-024',
-      'storeName': 'Kopi Kenangan - Plaza Ambarrukmo',
-      'date': 'Hari ini, 15:40',
-      'amount': 'Rp 24.000',
-      'status': 'Diproses',
-      'statusColor': const Color(0xFFD97706),
-      'statusBg': const Color(0xFFFEF3C7),
-      'items': '1 Kopi Susu Aren',
-    },
-    {
-      'transactionId': 'INV-2026-023',
-      'storeName': 'Mie Gacoan - Sudirman',
-      'date': 'Hari ini, 15:10',
-      'amount': 'Rp 36.000',
-      'status': 'Siap Diambil',
-      'statusColor': const Color(0xFF2563EB),
-      'statusBg': const Color(0xFFDBEAFE),
-      'items': '2 Mie Setan Level 2, 1 Es Sundelbolong',
-    },
-  ];
+  String _formatItemsText(List<dynamic> items) {
+    if (items.isEmpty) return 'Tidak ada item';
+    return items.map((i) => '${i['quantity']}x ${i['product_name']}').join(', ');
+  }
 
-  final List<Map<String, dynamic>> _pastOrders = [
-    {
-      'transactionId': 'INV-2026-021',
-      'storeName': 'Kopi Kenangan - Plaza Ambarrukmo',
-      'date': '2 Juni 2026, 14:32',
-      'amount': 'Rp 72.000',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF059669),
-      'statusBg': const Color(0xFFECFDF5),
-      'items': '2 Kopi Aren, 1 Roti Cokelat',
-    },
-    {
-      'transactionId': 'INV-2026-018',
-      'storeName': 'Mie Gacoan - Sudirman',
-      'date': '29 Mei 2026, 19:15',
-      'amount': 'Rp 41.000',
-      'status': 'Selesai',
-      'statusColor': const Color(0xFF059669),
-      'statusBg': const Color(0xFFECFDF5),
-      'items': '1 Mie Iblis Level 3, 1 Es Genderuwo',
-    },
-    {
-      'transactionId': 'INV-2026-014',
-      'storeName': 'Warmindo Prima - Gejayan',
-      'date': '24 Mei 2026, 12:05',
-      'amount': 'Rp 54.500',
-      'status': 'Dibatalkan',
-      'statusColor': const Color(0xFFE11D48),
-      'statusBg': const Color(0xFFFFF1F2),
-      'items': '3 Indomie Goreng, 2 Es Teh Manis',
-    },
-  ];
+  String _formatDateTime(String? createdAtStr) {
+    if (createdAtStr == null) return '-';
+    try {
+      final dt = DateTime.parse(createdAtStr).toLocal();
+      final now = DateTime.now();
+      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
+        final minutes = dt.minute.toString().padLeft(2, '0');
+        final hours = dt.hour.toString().padLeft(2, '0');
+        return 'Hari ini, $hours:$minutes';
+      }
+      final day = dt.day;
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      final month = months[dt.month - 1];
+      final year = dt.year;
+      final minutes = dt.minute.toString().padLeft(2, '0');
+      final hours = dt.hour.toString().padLeft(2, '0');
+      return '$day $month $year, $hours:$minutes';
+    } catch (_) {
+      return createdAtStr;
+    }
+  }
+
+  String _formatRupiah(num number) {
+    final str = number.toStringAsFixed(0);
+    final buffer = StringBuffer();
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      count++;
+      buffer.write(str[i]);
+      if (count % 3 == 0 && i != 0) {
+        buffer.write('.');
+      }
+    }
+    return 'Rp ' + buffer.toString().split('').reversed.join('');
+  }
+
+  Map<String, dynamic> _getStatusDecorations(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return {
+          'label': 'Menunggu',
+          'color': const Color(0xFFD97706),
+          'bg': const Color(0xFFFEF3C7),
+        };
+      case 'cooking':
+        return {
+          'label': 'Memasak',
+          'color': const Color(0xFFD97706),
+          'bg': const Color(0xFFFEF3C7),
+        };
+      case 'served':
+        return {
+          'label': 'Selesai',
+          'color': const Color(0xFF059669),
+          'bg': const Color(0xFFECFDF5),
+        };
+      case 'cancelled':
+        return {
+          'label': 'Dibatalkan',
+          'color': const Color(0xFFE11D48),
+          'bg': const Color(0xFFFFF1F2),
+        };
+      default:
+        return {
+          'label': status,
+          'color': const Color(0xFF6B7280),
+          'bg': const Color(0xFFF3F4F6),
+        };
+    }
+  }
 
   Widget _buildOrderList(
     List<Map<String, dynamic>> orders,
@@ -1552,13 +1577,29 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
         }
 
         final item = orders[index];
+        final id = item['id'] as String;
+        final status = item['status'] as String? ?? 'Pending';
+        final dec = _getStatusDecorations(status);
+        final storeData = item['stores'] as Map<String, dynamic>?;
+        final storeName = storeData?['name'] as String? ?? 'Gerai POS';
+        final itemsList = item['transaction_items'] as List<dynamic>? ?? [];
+        final itemsStr = _formatItemsText(itemsList);
+        final dateStr = _formatDateTime(item['created_at'] as String?);
+        final totalAmount = item['total_amount'] as num? ?? 0;
+        final amountStr = _formatRupiah(totalAmount);
+
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: ShadCard(
             padding: EdgeInsets.zero,
             child: InkWell(
-              onTap: () =>
-                  context.push('/customer/receipt/${item['transactionId']}'),
+              onTap: () {
+                if (status.toLowerCase() == 'pending' || status.toLowerCase() == 'cooking') {
+                  context.push('/customer/order/$id');
+                } else {
+                  context.push('/customer/receipt/$id');
+                }
+              },
               borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -1569,7 +1610,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          item['transactionId'] as String,
+                          id,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
@@ -1582,15 +1623,15 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: item['statusBg'] as Color,
+                            color: dec['bg'] as Color,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            item['status'] as String,
+                            dec['label'] as String,
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w900,
-                              color: item['statusColor'] as Color,
+                              color: dec['color'] as Color,
                               letterSpacing: 0.5,
                             ),
                           ),
@@ -1599,7 +1640,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      item['storeName'] as String,
+                      storeName,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -1607,7 +1648,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item['items'] as String,
+                      itemsStr,
                       style: TextStyle(
                         fontSize: 11,
                         color: theme.colorScheme.mutedForeground,
@@ -1622,14 +1663,14 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          item['date'] as String,
+                          dateStr,
                           style: TextStyle(
                             fontSize: 10,
                             color: theme.colorScheme.mutedForeground,
                           ),
                         ),
                         Text(
-                          item['amount'] as String,
+                          amountStr,
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w900,
@@ -1650,6 +1691,7 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final transactionsAsync = ref.watch(customerTransactionsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1693,12 +1735,38 @@ class _CustomerHistoryScreenState extends State<CustomerHistoryScreen>
           ],
         ),
         Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: [
-              _buildOrderList(_activeOrders, theme),
-              _buildOrderList(_pastOrders, theme),
-            ],
+          child: transactionsAsync.when(
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+              ),
+            ),
+            error: (err, stack) => Center(
+              child: Text(
+                'Gagal memuat pesanan: $err',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+            data: (transactions) {
+              final active = transactions
+                  .where((t) =>
+                      t['status']?.toString().toLowerCase() == 'pending' ||
+                      t['status']?.toString().toLowerCase() == 'cooking')
+                  .toList();
+              final past = transactions
+                  .where((t) =>
+                      t['status']?.toString().toLowerCase() != 'pending' &&
+                      t['status']?.toString().toLowerCase() != 'cooking')
+                  .toList();
+
+              return TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildOrderList(active, theme),
+                  _buildOrderList(past, theme),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -1717,7 +1785,7 @@ class CustomerProfileScreen extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
       physics: const BouncingScrollPhysics(),
       children: [
-        _buildCustomerHeader(context, theme),
+        _buildCustomerHeader(context, theme, ref),
         const SizedBox(height: 32),
         _buildMenuSection(theme, 'AKTIVITAS & LAYANAN', [
           _buildMenuItem(
@@ -1823,7 +1891,9 @@ class CustomerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCustomerHeader(BuildContext context, ShadThemeData theme) {
+  Widget _buildCustomerHeader(BuildContext context, ShadThemeData theme, WidgetRef ref) {
+    final profileAsync = ref.watch(userProfileProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1831,44 +1901,85 @@ class CustomerProfileScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Warna.primary.withValues(alpha: 0.2)),
       ),
-      child: Row(
-        children: [
-          Container(
-            height: 52,
-            width: 52,
-            decoration: BoxDecoration(
-              color: Warna.primary,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              TablerIcons.user_circle,
-              color: Colors.black,
-              size: 30,
-            ),
+      child: profileAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Pelanggan Tamu',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'ID: CS-MEMBER-882 • Belum Terhubung',
-                  style: theme.textTheme.muted.copyWith(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        ),
+        error: (err, stack) => Row(
+          children: [
+            Container(
+              height: 52,
+              width: 52,
+              decoration: BoxDecoration(
+                color: Colors.red.shade100,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(TablerIcons.user_off, color: Colors.red),
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            const Expanded(
+              child: Text(
+                'Gagal memuat profil',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        data: (profile) {
+          final fullName = profile?['full_name'] as String? ?? 'Pelanggan Tamu';
+          final email = profile?['email'] as String? ?? 'Belum Terhubung';
+          final avatarUrl = profile?['avatar_url'] as String?;
+
+          return Row(
+            children: [
+              Container(
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  color: Warna.primary,
+                  borderRadius: BorderRadius.circular(14),
+                  image: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(avatarUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: avatarUrl == null || avatarUrl.isEmpty
+                    ? const Icon(
+                        TablerIcons.user_circle,
+                        color: Colors.black,
+                        size: 30,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      fullName,
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      email,
+                      style: theme.textTheme.muted.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1983,34 +2094,661 @@ class CustomerCheckoutScreen extends StatelessWidget {
   }
 }
 
-class CustomerOrderTrackingScreen extends StatelessWidget {
+class CustomerOrderTrackingScreen extends ConsumerWidget {
   const CustomerOrderTrackingScreen({super.key, required this.orderId});
 
   final String orderId;
 
   @override
-  Widget build(BuildContext context) {
-    return _DetailPage(
-      title: 'Lacak Pesanan',
-      icon: TablerIcons.timeline_event_text,
-      description:
-          'Order $orderId akan memakai realtime update ketika tabel pesanan pelanggan dihubungkan ke Supabase Realtime.',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionAsync = ref.watch(transactionStreamProvider(orderId));
+    final itemsAsync = ref.watch(transactionItemsStreamProvider(orderId));
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text('Lacak Pesanan', style: TextStyle(fontWeight: FontWeight.w900)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: transactionAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary)),
+        ),
+        error: (err, stack) => Center(child: Text('Gagal melacak pesanan: $err')),
+        data: (transaction) {
+          if (transaction == null) {
+            return const Center(child: Text('Pesanan tidak ditemukan.'));
+          }
+
+          final status = transaction['status'] as String? ?? 'Pending';
+          final paymentMethod = transaction['payment_method'] as String? ?? 'Tunai';
+          final totalAmount = (transaction['total_amount'] ?? 0).toDouble();
+          final notes = transaction['notes'] as String?;
+          final createdAt = DateTime.tryParse(transaction['created_at'] ?? '') ?? DateTime.now();
+
+          return itemsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary))),
+            error: (err, stack) => Center(child: Text('Gagal memuat detail item: $err')),
+            data: (items) {
+              final hasNotPendingItems = items.any((item) => item['status'] != 'Pending');
+              final isCooking = items.any((item) => item['status'] == 'Cooking');
+              final isReady = items.any((item) => item['status'] == 'Ready' || item['status'] == 'Served');
+              final allServed = items.isNotEmpty && items.every((item) => item['status'] == 'Served');
+
+              final isConfirmed = status == 'Berhasil' || hasNotPendingItems || isCooking || isReady;
+              final isPreparing = isCooking || isReady || status == 'Berhasil';
+              final isCompleted = status == 'Berhasil' || allServed;
+
+              return ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  ShadCard(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Order ID: #${orderId.substring(0, 8).toUpperCase()}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                            ),
+                            _buildBadge(status),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        const Divider(),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text(
+                              _formatCurrency(totalAmount),
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Warna.black),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Metode Pembayaran', style: TextStyle(color: Colors.grey, fontSize: 13)),
+                            Text(paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  ShadCard(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Status Pemesanan',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildTimelineStep(
+                          title: 'Pesanan Diterima',
+                          subtitle: 'Pesanan Anda telah masuk antrean kasir.',
+                          time: '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                          isActive: true,
+                          isLast: false,
+                        ),
+                        _buildTimelineStep(
+                          title: 'Dikonfirmasi Kasir',
+                          subtitle: 'Kasir telah menerima dan memproses pesanan.',
+                          isActive: isConfirmed,
+                          isLast: false,
+                        ),
+                        _buildTimelineStep(
+                          title: 'Sedang Disiapkan',
+                          subtitle: 'Koki sedang memasak makanan pesanan Anda.',
+                          isActive: isPreparing,
+                          isLast: false,
+                        ),
+                        _buildTimelineStep(
+                          title: 'Selesai',
+                          subtitle: 'Pesanan telah disajikan / dibayar.',
+                          isActive: isCompleted,
+                          isLast: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  ShadCard(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Daftar Item',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                        ),
+                        const SizedBox(height: 12),
+                        for (final item in items) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${item['product_name']} x${item['quantity']}',
+                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                      ),
+                                      if (item['status'] != null)
+                                        Text(
+                                          'Status: ${item['status']}',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: _getItemStatusColor(item['status'] as String),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                                Text(
+                                  _formatCurrency((item['subtotal'] ?? 0).toDouble()),
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(height: 12),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (status == 'Berhasil')
+                    ShadButton(
+                      size: ShadButtonSize.lg,
+                      backgroundColor: Warna.primary,
+                      onPressed: () {
+                        context.go('/customer/receipt/$orderId');
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(TablerIcons.receipt_2, color: Warna.black),
+                          SizedBox(width: 8),
+                          Text('Lihat Struk Digital', style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    )
+                  else
+                    ShadButton.outline(
+                      size: ShadButtonSize.lg,
+                      onPressed: () {
+                        context.go('/customer/store-detail');
+                      },
+                      child: const Text('Kembali ke Toko'),
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Color _getItemStatusColor(String status) {
+    switch (status) {
+      case 'Pending':
+        return Colors.grey.shade600;
+      case 'Cooking':
+        return Colors.orange.shade700;
+      case 'Ready':
+        return Colors.blue.shade700;
+      case 'Served':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+
+  Widget _buildBadge(String status) {
+    Color bg = Colors.grey.shade100;
+    Color fg = Colors.grey.shade800;
+    String label = status;
+
+    if (status == 'Pending') {
+      bg = Colors.amber.shade100;
+      fg = Colors.amber.shade800;
+      label = 'Pending';
+    } else if (status == 'Berhasil') {
+      bg = Colors.green.shade100;
+      fg = Colors.green.shade800;
+      label = 'Berhasil';
+    } else if (status == 'Dibatalkan') {
+      bg = Colors.red.shade100;
+      fg = Colors.red.shade800;
+      label = 'Batal';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: fg, fontWeight: FontWeight.bold, fontSize: 12),
+      ),
+    );
+  }
+
+  Widget _buildTimelineStep({
+    required String title,
+    required String subtitle,
+    String? time,
+    required bool isActive,
+    required bool isLast,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isActive ? Warna.primary : Colors.grey.shade300,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isActive ? Warna.primary.withOpacity(0.3) : Colors.transparent,
+                  width: 4,
+                ),
+              ),
+              child: isActive
+                  ? const Icon(Icons.check, size: 10, color: Warna.black)
+                  : null,
+            ),
+            if (!isLast)
+              Container(
+                width: 2,
+                height: 40,
+                color: isActive ? Warna.primary : Colors.grey.shade300,
+              ),
+          ],
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isActive ? Colors.black87 : Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  if (time != null)
+                    Text(
+                      time,
+                      style: const TextStyle(color: Colors.grey, fontSize: 11),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: isActive ? Colors.grey.shade700 : Colors.grey.shade400,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-class CustomerReceiptScreen extends StatelessWidget {
+class CustomerReceiptScreen extends ConsumerWidget {
   const CustomerReceiptScreen({super.key, required this.transactionId});
 
   final String transactionId;
 
   @override
-  Widget build(BuildContext context) {
-    return _DetailPage(
-      title: 'Struk Digital',
-      icon: TablerIcons.receipt_2,
-      description:
-          'Struk untuk transaksi $transactionId siap menerima layout final, QR validasi, dan tombol bagikan.',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transactionAsync = ref.watch(transactionStreamProvider(transactionId));
+    final itemsAsync = ref.watch(transactionItemsStreamProvider(transactionId));
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: const Text('Struk Digital', style: TextStyle(fontWeight: FontWeight.w900)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: transactionAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary)),
+        ),
+        error: (err, stack) => Center(child: Text('Gagal memuat struk: $err')),
+        data: (transaction) {
+          if (transaction == null) {
+            return const Center(child: Text('Transaksi tidak ditemukan.'));
+          }
+
+          final status = transaction['status'] as String? ?? 'Pending';
+          final paymentMethod = transaction['payment_method'] as String? ?? 'Tunai';
+          final totalAmount = (transaction['total_amount'] ?? 0).toDouble();
+          final createdAt = DateTime.tryParse(transaction['created_at'] ?? '') ?? DateTime.now();
+
+          final storeDetailsAsync = ref.watch(customerStoreDetailsProvider);
+          final storeDetails = storeDetailsAsync.value;
+          final storeName = storeDetails?['name'] ?? 'Toko Mitra';
+          final storeAddress = storeDetails?['address'] ?? 'Alamat tidak tersedia';
+          final storePhone = storeDetails?['phone'] ?? '-';
+
+          return itemsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary))),
+            error: (err, stack) => Center(child: Text('Gagal memuat item struk: $err')),
+            data: (items) {
+              final subtotal = items.fold<double>(0, (sum, item) => sum + (item['subtotal'] ?? 0).toDouble());
+              final settings = storeDetails?['settings'] as Map<String, dynamic>?;
+              final financial = settings?['financial'] as Map<String, dynamic>?;
+
+              final taxEnabled = financial?['tax_enabled'] ?? false;
+              final taxRate = (financial?['tax_rate'] ?? 0).toDouble();
+              final serviceChargeEnabled = financial?['service_charge_enabled'] ?? false;
+              final serviceChargeRate = (financial?['service_charge_rate'] ?? 0).toDouble();
+
+              final serviceCharge = serviceChargeEnabled ? (subtotal * serviceChargeRate / 100.0) : 0.0;
+              final tax = taxEnabled ? (subtotal * taxRate / 100.0) : 0.0;
+
+              return Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    storeName,
+                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 0.5),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    storeAddress,
+                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    'Telp: $storePhone',
+                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green.shade50,
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(color: Colors.green.shade200),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(TablerIcons.discount_check_filled, color: Colors.green.shade700, size: 14),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'LUNAS',
+                                              style: TextStyle(
+                                                color: Colors.green.shade800,
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 10,
+                                                letterSpacing: 1.0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            _buildTicketSeparator(),
+
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'TGL: ${createdAt.day}/${createdAt.month}/${createdAt.year} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                                      ),
+                                      Text(
+                                        'ID: ${transactionId.substring(0, 8).toUpperCase()}',
+                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 12),
+                                  for (final item in items) ...[
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                item['product_name'] as String? ?? '',
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                              ),
+                                              Text(
+                                                '${item['quantity']} x ${_formatCurrency((item['unit_price'] ?? 0).toDouble())}',
+                                                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatCurrency((item['subtotal'] ?? 0).toDouble()),
+                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
+                                  const SizedBox(height: 4),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('Subtotal', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                      Text(_formatCurrency(subtotal), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  if (serviceChargeEnabled) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Biaya Layanan (${serviceChargeRate.toStringAsFixed(0)}%)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                        Text(_formatCurrency(serviceCharge), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ],
+                                  if (taxEnabled) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text('Pajak (${taxRate.toStringAsFixed(0)}%)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                        Text(_formatCurrency(tax), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ],
+                                  const SizedBox(height: 10),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                                      Text(_formatCurrency(totalAmount), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('METODE BAYAR', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                                      Text(paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            _buildTicketSeparator(),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                              child: Column(
+                                children: [
+                                  const Icon(TablerIcons.qrcode, size: 64, color: Colors.black54),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Terima Kasih atas Kunjungan Anda!',
+                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontStyle: FontStyle.italic),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ShadButton.outline(
+                              size: ShadButtonSize.lg,
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Struk berhasil dibagikan.'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              },
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(TablerIcons.share, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Bagikan Struk'),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ShadButton(
+                              size: ShadButtonSize.lg,
+                              backgroundColor: Warna.primary,
+                              onPressed: () {
+                                context.go('/customer/store-detail');
+                              },
+                              child: const Text('Selesai', style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTicketSeparator() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boxWidth = constraints.constrainWidth();
+        const dashWidth = 5.0;
+        const dashHeight = 1.0;
+        final dashCount = (boxWidth / (2 * dashWidth)).floor();
+        return Flex(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          direction: Axis.horizontal,
+          children: List.generate(dashCount, (_) {
+            return const SizedBox(
+              width: dashWidth,
+              height: dashHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Colors.grey),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }

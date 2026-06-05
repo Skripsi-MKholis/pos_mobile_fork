@@ -10,6 +10,8 @@ class CustomerCatalogProduct {
     this.description,
     this.stockQuantity = 0,
     this.imageUrl,
+    this.category = 'Umum',
+    this.categoryId,
   });
 
   final String id;
@@ -18,6 +20,8 @@ class CustomerCatalogProduct {
   final String? description;
   final int stockQuantity;
   final String? imageUrl;
+  final String category;
+  final String? categoryId;
 
   bool get isOutOfStock => stockQuantity <= 0;
 
@@ -29,6 +33,8 @@ class CustomerCatalogProduct {
       description: map['description']?.toString(),
       stockQuantity: (map['stock_quantity'] as num?)?.toInt() ?? 0,
       imageUrl: map['image_url']?.toString(),
+      category: map['category']?.toString() ?? 'Umum',
+      categoryId: map['category_id']?.toString(),
     );
   }
 }
@@ -41,7 +47,7 @@ final customerCatalogProvider =
     final supabase = Supabase.instance.client;
     final response = await supabase.retryWithFreshSession(() => supabase
         .from('products')
-        .select('id, name, description, price, stock_quantity, image_url')
+        .select('id, name, description, price, stock_quantity, image_url, category, category_id')
         .eq('store_id', storeId)
         .order('name'));
 

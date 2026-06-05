@@ -237,11 +237,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/customer/store-detail',
         builder: (context, state) {
           final storeName = state.uri.queryParameters['store_name'] ?? 'Toko';
+          final storeId = state.uri.queryParameters['store_id'];
           final category = state.uri.queryParameters['category'];
           final distance = state.uri.queryParameters['distance'];
           final bannerColorHex = state.uri.queryParameters['banner_color'];
           return CustomerStoreDetailScreen(
             storeName: storeName,
+            storeId: storeId,
             category: category,
             distance: distance,
             bannerColorHex: bannerColorHex,

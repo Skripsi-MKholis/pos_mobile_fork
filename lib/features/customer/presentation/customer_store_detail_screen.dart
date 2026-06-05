@@ -8,6 +8,8 @@ import 'package:pos_mobile/features/customer/providers/customer_cart_provider.da
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
+import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
+import 'package:pos_mobile/features/customer/providers/customer_catalog_provider.dart';
 
 // Mock Products Catalog Data grouped by store name matches
 final Map<String, List<Map<String, dynamic>>> mockStoreProducts = {
@@ -49,12 +51,14 @@ class CustomerStoreDetailScreen extends ConsumerStatefulWidget {
   const CustomerStoreDetailScreen({
     super.key,
     required this.storeName,
+    this.storeId,
     this.category,
     this.distance,
     this.bannerColorHex,
   });
 
   final String storeName;
+  final String? storeId;
   final String? category;
   final String? distance;
   final String? bannerColorHex;
@@ -74,6 +78,16 @@ class _CustomerStoreDetailScreenState
   String _sortBy = 'default'; // 'default', 'price_asc', 'price_desc'
   bool _isLiked = false;
   bool _hasConfirmedExit = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.storeId != null) {
+        ref.read(customerStoreIdProvider.notifier).state = widget.storeId;
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -153,43 +167,38 @@ class _CustomerStoreDetailScreenState
     );
   }
 
+  IconData _getProductIcon(String category) {
+    final cat = category.toLowerCase();
+    if (cat.contains('kopi') || cat.contains('coffee') || cat.contains('minum') || cat.contains('drink') || cat.contains('tea')) {
+      return TablerIcons.coffee;
+    }
+    if (cat.contains('makan') || cat.contains('food') || cat.contains('mie') || cat.contains('nasi') || cat.contains('roti')) {
+      return TablerIcons.tools_kitchen_2;
+    }
+    return TablerIcons.soup;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final cartItems = ref.watch(customerCartProvider);
     final cartNotifier = ref.read(customerCartProvider.notifier);
 
-    // Get catalog based on store name search
-    final nameLower = widget.storeName.toLowerCase();
-    List<Map<String, dynamic>> rawProducts = defaultMockProducts;
-    for (final entry in mockStoreProducts.entries) {
-      if (nameLower.contains(entry.key)) {
-        rawProducts = entry.value;
-        break;
-      }
-    }
+    final storeId = widget.storeId ?? ref.watch(customerStoreIdProvider);
+    final catalogAsync = ref.watch(customerCatalogProvider(storeId));
+    final storeDetailsAsync = ref.watch(customerStoreDetailsProvider);
 
-    // Filter catalog products
-    var filteredProducts = rawProducts.where((prod) {
-      final q = _searchQuery.toLowerCase();
-      final matchesQuery = prod['name'].toString().toLowerCase().contains(q) ||
-          prod['category'].toString().toLowerCase().contains(q);
-      
-      final matchesCategory = _selectedCategoryTab == 'Semua' ||
-          prod['category'] == _selectedCategoryTab;
-
-      return matchesQuery && matchesCategory;
-    }).toList();
-
-    // Sort catalog products
-    if (_sortBy == 'price_asc') {
-      filteredProducts.sort((a, b) => (a['price'] as double).compareTo(b['price'] as double));
-    } else if (_sortBy == 'price_desc') {
-      filteredProducts.sort((a, b) => (b['price'] as double).compareTo(a['price'] as double));
-    }
+    final storeDetails = storeDetailsAsync.value;
+    final storeName = storeDetails?['name'] ?? widget.storeName;
+    final businessType = storeDetails?['business_type'] ?? widget.category ?? 'Minuman, Makanan Ringan, Kopi';
+    final address = storeDetails?['address'] ?? 'Alamat tidak tersedia';
+    final phone = storeDetails?['phone'] ?? '-';
 
     // Unique Categories list from catalog products
-    final categories = ['Semua', ...rawProducts.map((p) => p['category'] as String).toSet()];
+    final categories = ['Semua', ...(catalogAsync.value?.map((p) => p.category).toSet() ?? const <String>{})];
+    if (!categories.contains(_selectedCategoryTab)) {
+      _selectedCategoryTab = 'Semua';
+    }
 
     // Custom Banner Color
     Color bannerColor = Warna.primary; // Default primary green tint
@@ -349,7 +358,7 @@ class _CustomerStoreDetailScreenState
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      widget.storeName,
+                                      storeName,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w900,
                                         fontSize: 18,
@@ -377,7 +386,7 @@ class _CustomerStoreDetailScreenState
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                widget.category ?? 'Minuman, Makanan Ringan, Kopi',
+                                businessType,
                                 style: TextStyle(
                                   color: theme.colorScheme.mutedForeground,
                                   fontSize: 12,
@@ -406,9 +415,9 @@ class _CustomerStoreDetailScreenState
                                   GestureDetector(
                                     onTap: () {
                                       ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Menghubungi gerai toko...'),
-                                          duration: Duration(seconds: 1),
+                                        SnackBar(
+                                          content: Text('Hubungi gerai: $phone'),
+                                          duration: const Duration(seconds: 2),
                                         ),
                                       );
                                     },
@@ -438,7 +447,7 @@ class _CustomerStoreDetailScreenState
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Jl. Kaliurang KM 5.2, Caturtunggal, Depok, Sleman, Yogyakarta',
+                                address,
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
                                   fontSize: 11,
@@ -576,182 +585,224 @@ class _CustomerStoreDetailScreenState
                   ),
                 ),
 
-                // Catalog Products Grid
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                  sliver: filteredProducts.isEmpty
-                      ? SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(TablerIcons.search_off, size: 48, color: Colors.grey.shade300),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Menu tidak ditemukan',
-                                  style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final prod = filteredProducts[index];
-                              final cartItem = cartItems.firstWhere(
-                                (item) => item.id == prod['id'],
-                                orElse: () => CustomerCartItem(id: '', name: '', price: 0),
-                              );
-                              final quantity = cartItem.id.isNotEmpty ? cartItem.quantity : 0;
+                // Dynamic Catalog Products List
+                catalogAsync.when(
+                  data: (catalog) {
+                    var filteredProducts = catalog.where((prod) {
+                      final q = _searchQuery.toLowerCase();
+                      final matchesQuery = prod.name.toLowerCase().contains(q) ||
+                          prod.category.toLowerCase().contains(q);
+                      
+                      final matchesCategory = _selectedCategoryTab == 'Semua' ||
+                          prod.category == _selectedCategoryTab;
 
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.grey.shade100),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(alpha: 0.01),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
+                      return matchesQuery && matchesCategory;
+                    }).toList();
+
+                    if (_sortBy == 'price_asc') {
+                      filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+                    } else if (_sortBy == 'price_desc') {
+                      filteredProducts.sort((a, b) => b.price.compareTo(a.price));
+                    }
+
+                    if (filteredProducts.isEmpty) {
+                      return const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(TablerIcons.search_off, size: 48, color: Colors.grey),
+                              SizedBox(height: 12),
+                              Text(
+                                'Menu tidak ditemukan',
+                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final prod = filteredProducts[index];
+                            final cartItem = cartItems.firstWhere(
+                              (item) => item.id == prod.id,
+                              orElse: () => CustomerCartItem(id: '', name: '', price: 0),
+                            );
+                            final quantity = cartItem.id.isNotEmpty ? cartItem.quantity : 0;
+                            final hasImage = prod.imageUrl != null && prod.imageUrl!.isNotEmpty;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade100),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.01),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  // Product image / icon
+                                  Container(
+                                    width: 64,
+                                    height: 64,
+                                    decoration: BoxDecoration(
+                                      color: bannerColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                      image: hasImage 
+                                          ? DecorationImage(
+                                              image: NetworkImage(prod.imageUrl!),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null,
                                     ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Product icon placeholder
-                                    Container(
-                                      width: 64,
-                                      height: 64,
-                                      decoration: BoxDecoration(
-                                        color: bannerColor.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(
-                                        prod['icon'] as IconData? ?? TablerIcons.soup,
-                                        color: bannerColor,
-                                        size: 28,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    // Info
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          if (prod['badge'] != null)
-                                            Container(
-                                              margin: const EdgeInsets.only(bottom: 4),
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Warna.primary.withValues(alpha: 0.2),
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                prod['badge'] as String,
-                                                style: const TextStyle(
-                                                  color: Colors.black87,
-                                                  fontSize: 8,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
+                                    child: !hasImage 
+                                        ? Icon(
+                                            _getProductIcon(prod.category),
+                                            color: bannerColor,
+                                            size: 28,
+                                          )
+                                        : null,
+                                  ),
+                                  const SizedBox(width: 14),
+                                  // Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          prod.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        if (prod.description != null && prod.description!.isNotEmpty) ...[
+                                          const SizedBox(height: 2),
                                           Text(
-                                            prod['name'] as String,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                              color: Colors.black87,
+                                            prod.description!,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: theme.colorScheme.mutedForeground,
                                             ),
-                                            maxLines: 1,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          const SizedBox(height: 4),
+                                        ],
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Rp ${prod.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.black,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  // Action
+                                  if (quantity == 0)
+                                    ShadButton(
+                                      size: ShadButtonSize.sm,
+                                      backgroundColor: Warna.primary,
+                                      onPressed: () {
+                                        cartNotifier.addItem(
+                                          CustomerCartItem(
+                                            id: prod.id,
+                                            name: prod.name,
+                                            price: prod.price,
+                                            quantity: 1,
+                                          ),
+                                        );
+                                      },
+                                      child: const Row(
+                                        children: [
+                                          Icon(TablerIcons.plus, size: 14, color: Colors.black87),
+                                          SizedBox(width: 4),
                                           Text(
-                                            'Rp ${(prod['price'] as double).toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.black,
-                                              fontSize: 13,
+                                            'Tambah',
+                                            style: TextStyle(
+                                              color: Colors.black87,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 11,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    // Action
-                                    if (quantity == 0)
-                                      ShadButton(
-                                        size: ShadButtonSize.sm,
-                                        backgroundColor: Warna.primary,
-                                        onPressed: () {
-                                          cartNotifier.addItem(
-                                            CustomerCartItem(
-                                              id: prod['id'] as String,
-                                              name: prod['name'] as String,
-                                              price: prod['price'] as double,
-                                              quantity: 1,
-                                            ),
-                                          );
-                                        },
-                                        child: const Row(
-                                          children: [
-                                            Icon(TablerIcons.plus, size: 14, color: Colors.black87),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              'Tambah',
-                                              style: TextStyle(
-                                                color: Colors.black87,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 11,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    else
-                                      Container(
-                                        height: 32,
-                                        decoration: BoxDecoration(
-                                          color: Warna.primary,
-                                          borderRadius: BorderRadius.circular(16),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            IconButton(
-                                              icon: const Icon(TablerIcons.minus, size: 12, color: Colors.black87),
-                                              onPressed: () {
-                                                cartNotifier.decrement(prod['id'] as String);
-                                              },
-                                            ),
-                                            Text(
-                                              '$quantity',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                            IconButton(
-                                              icon: const Icon(TablerIcons.plus, size: 12, color: Colors.black87),
-                                              onPressed: () {
-                                                cartNotifier.increment(prod['id'] as String);
-                                              },
-                                            ),
-                                          ],
-                                        ),
+                                    )
+                                  else
+                                    Container(
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: Warna.primary,
+                                        borderRadius: BorderRadius.circular(16),
                                       ),
-                                  ],
-                                ),
-                              );
-                            },
-                            childCount: filteredProducts.length,
-                          ),
+                                      child: Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(TablerIcons.minus, size: 12, color: Colors.black87),
+                                            onPressed: () {
+                                              cartNotifier.decrement(prod.id);
+                                            },
+                                          ),
+                                          Text(
+                                            '$quantity',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(TablerIcons.plus, size: 12, color: Colors.black87),
+                                            onPressed: () {
+                                              cartNotifier.increment(prod.id);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                          childCount: filteredProducts.length,
                         ),
+                      ),
+                    );
+                  },
+                  loading: () => const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+                      ),
+                    ),
+                  ),
+                  error: (err, _) => SliverFillRemaining(
+                    child: Center(
+                      child: Text(
+                        'Gagal memuat menu: $err',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -765,7 +816,7 @@ class _CustomerStoreDetailScreenState
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Warna.black, // Dark themed floating cart summary
+                    color: Warna.black,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -801,7 +852,6 @@ class _CustomerStoreDetailScreenState
                           ),
                         ],
                       ),
-                      // View Cart navigates directly to GoRouter Shell Branch for Cart (index 2)
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Warna.primary,
@@ -813,7 +863,6 @@ class _CustomerStoreDetailScreenState
                           elevation: 0,
                         ),
                         onPressed: () {
-                          // In GoRouter StatefulShellRoute, we route to '/customer/cart'
                           context.push('/customer/cart');
                         },
                         child: const Row(
