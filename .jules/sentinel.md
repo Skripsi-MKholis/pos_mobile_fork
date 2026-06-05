@@ -1,0 +1,4 @@
+## 2025-03-01 - Hardcoded Supabase Credentials
+**Vulnerability:** Found hardcoded `supabaseUrl` and `supabaseAnonKey` inside `lib/core/env/env.dart`.
+**Learning:** Hardcoding credentials exposes sensitive access keys to version control and potentially to reverse engineering of the application. The previous code embedded keys directly instead of injecting them dynamically.
+**Prevention:** Use `String.fromEnvironment('SUPABASE_URL', defaultValue: '')` to inject secrets at build time with `--dart-define`. Always add fail-fast validation at app startup (`main.dart`) to ensure required keys are present before initialization.
