@@ -137,6 +137,7 @@
   "outOfStock": "Out of Stock",
   "totalBelanja": "Total Items Price",
   "clearCart": "Clear Cart",
+  "confirmClearCart": "Are you sure you want to clear the cart? This action cannot be undone.",
   "viewDetails": "View Details",
   "noProductsYet": "No products yet",
   "noProductsYetDesc": "Add your first product to start selling.",

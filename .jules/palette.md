@@ -1,0 +1,3 @@
+## 2024-05-20 - [Add Destructive Action Confirmations]
+**Learning:** High-stakes destructive actions in the UI, such as clearing an entire shopping cart, can cause significant user frustration if triggered accidentally. Implementing a confirmation modal drastically improves safety and the overall user experience. Using the established `showShadDialog` pattern keeps the design language consistent.
+**Action:** Always wrap high-stakes destructive actions (e.g., clearing, deleting, removing) with a confirmation dialog. Use standard translations and a red/destructive color for the confirming button to clearly communicate the impact.
