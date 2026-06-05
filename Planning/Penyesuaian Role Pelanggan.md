@@ -244,7 +244,7 @@
 |---|---|---|---|
 | 1 | **Checkout** | Selaraskan desain dengan CartScreen (konsistensi visual) | Perbaiki `payment_method` label |
 | 2 | **Profil** | Tampilkan nama/email dari auth user, bukan hardcode | Perbaiki dialog logout |
-| 3 | **Shell / App Bar** | Ganti chip `activeStoreId` yang menampilkan `store_name` → nama toko yang readable | |
+| 3 | Shell / App Bar / Drawer | Sembunyikan dan hapus informasi Selected Store (Toko Aktif) | Selesai diterapkan ✅ |
 | 4 | **Scan QR** | Ubah provider: simpan `store_id` bukan `store_name` | Berdampak ke seluruh session |
 
 ### Prioritas 2 — Penyesuaian UI Utama (Target MVP)

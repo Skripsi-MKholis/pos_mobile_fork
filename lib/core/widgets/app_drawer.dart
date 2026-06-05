@@ -210,7 +210,6 @@ class _StoreHeaderSection extends ConsumerWidget {
     final bool isCustomerMode = location.startsWith('/customer');
 
     if (isCustomerMode) {
-      final activeStoreId = ref.watch(customerStoreIdProvider);
       return Container(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -225,22 +224,18 @@ class _StoreHeaderSection extends ConsumerWidget {
               child: const Icon(TablerIcons.building_store, color: Colors.black),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'Katalog Pelanggan',
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
                     ),
                   ),
-                  if (activeStoreId != null && activeStoreId.isNotEmpty)
-                    Text(
-                      'Store ID: $activeStoreId',
-                      style: theme.textTheme.muted.copyWith(fontSize: 10),
-                    ),
                 ],
               ),
             ),

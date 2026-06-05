@@ -90,3 +90,105 @@ final customerTransactionsProvider = StreamProvider<List<Map<String, dynamic>>>(
   return controller.stream;
 });
 
+class CustomerAllStoresState {
+  final List<Map<String, dynamic>> stores;
+  final bool hasNextPage;
+  final bool isLoading;
+  final bool isLoadingMore;
+  final String? errorMessage;
+  final String searchQuery;
+  final int page;
+
+  CustomerAllStoresState({
+    this.stores = const [],
+    this.hasNextPage = true,
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.errorMessage,
+    this.searchQuery = '',
+    this.page = 0,
+  });
+
+  CustomerAllStoresState copyWith({
+    List<Map<String, dynamic>>? stores,
+    bool? hasNextPage,
+    bool? isLoading,
+    bool? isLoadingMore,
+    String? errorMessage,
+    String? searchQuery,
+    int? page,
+  }) {
+    return CustomerAllStoresState(
+      stores: stores ?? this.stores,
+      hasNextPage: hasNextPage ?? this.hasNextPage,
+      isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      errorMessage: errorMessage,
+      searchQuery: searchQuery ?? this.searchQuery,
+      page: page ?? this.page,
+    );
+  }
+}
+
+class CustomerAllStoresNotifier extends StateNotifier<CustomerAllStoresState> {
+  CustomerAllStoresNotifier() : super(CustomerAllStoresState()) {
+    fetchStores(refresh: true);
+  }
+
+  static const int _pageSize = 15;
+
+  Future<void> fetchStores({bool refresh = false}) async {
+    if (state.isLoading || state.isLoadingMore) return;
+
+    if (refresh) {
+      state = state.copyWith(isLoading: true, page: 0, stores: [], hasNextPage: true);
+    } else {
+      if (!state.hasNextPage) return;
+      state = state.copyWith(isLoadingMore: true);
+    }
+
+    try {
+      final supabase = Supabase.instance.client;
+      final start = state.page * _pageSize;
+      final end = start + _pageSize - 1;
+
+      var query = supabase.from('stores').select();
+
+      if (state.searchQuery.isNotEmpty) {
+        query = query.or('name.ilike.%${state.searchQuery}%,business_type.ilike.%${state.searchQuery}%');
+      }
+
+      final response = await query
+          .order('name', ascending: true)
+          .range(start, end);
+
+      final newStores = List<Map<String, dynamic>>.from(response);
+
+      state = state.copyWith(
+        stores: refresh ? newStores : [...state.stores, ...newStores],
+        isLoading: false,
+        isLoadingMore: false,
+        hasNextPage: newStores.length == _pageSize,
+        page: state.page + 1,
+      );
+    } catch (e, stack) {
+      debugPrint('Error fetching stores: $e\n$stack');
+      state = state.copyWith(
+        isLoading: false,
+        isLoadingMore: false,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  void updateSearchQuery(String query) {
+    if (state.searchQuery == query) return;
+    state = state.copyWith(searchQuery: query);
+    fetchStores(refresh: true);
+  }
+}
+
+final customerAllStoresProvider = StateNotifierProvider.autoDispose<CustomerAllStoresNotifier, CustomerAllStoresState>((ref) {
+  return CustomerAllStoresNotifier();
+});
+

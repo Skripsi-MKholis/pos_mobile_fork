@@ -539,12 +539,18 @@ class _RecommendedStores extends StatelessWidget {
                 letterSpacing: 2.0,
               ),
             ),
-            Text(
-              'Lihat Semua',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF6B9E00),
+            InkWell(
+              onTap: () => context.push('/customer/all-stores'),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  'Lihat Semua',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF6B9E00),
+                  ),
+                ),
               ),
             ),
           ],
@@ -3805,6 +3811,340 @@ class _CustomerSelectLocationScreenState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CustomerAllStoresScreen extends ConsumerStatefulWidget {
+  const CustomerAllStoresScreen({super.key});
+
+  @override
+  ConsumerState<CustomerAllStoresScreen> createState() => _CustomerAllStoresScreenState();
+}
+
+class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      ref.read(customerAllStoresProvider.notifier).fetchStores();
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _debouncer.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Color _getStoreColor(String name) {
+    final hash = name.hashCode;
+    final colors = [
+      const Color(0xFFD97706),
+      const Color(0xFF2563EB),
+      const Color(0xFF059669),
+      const Color(0xFF7C3AED),
+      const Color(0xFFDB2777),
+      const Color(0xFFEA580C),
+    ];
+    return colors[hash.abs() % colors.length];
+  }
+
+  String _getColorHex(Color color) {
+    return '#${color.value.toRadixString(16).substring(2)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final storesState = ref.watch(customerAllStoresProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text(
+          'Semua Gerai Toko',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            color: theme.colorScheme.border.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ShadInput(
+              controller: _searchController,
+              placeholder: const Text('Cari nama atau jenis toko...'),
+              leading: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Icon(TablerIcons.search, size: 20),
+              ),
+              decoration: ShadDecoration(
+                color: Colors.white,
+                border: ShadBorder.all(
+                  color: theme.colorScheme.border.withValues(alpha: 0.5),
+                  radius: BorderRadius.circular(24),
+                ),
+                shadows: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              onChanged: (val) {
+                _debouncer.run(() {
+                  ref.read(customerAllStoresProvider.notifier).updateSearchQuery(val);
+                });
+              },
+              trailing: storesState.searchQuery.isNotEmpty
+                  ? GestureDetector(
+                      onTap: () {
+                        _searchController.clear();
+                        ref.read(customerAllStoresProvider.notifier).updateSearchQuery('');
+                      },
+                      child: const Icon(TablerIcons.x, size: 18),
+                    )
+                  : null,
+            ),
+          ),
+          Expanded(
+            child: _buildBody(context, storesState, theme),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, CustomerAllStoresState state, ShadThemeData theme) {
+    if (state.isLoading && state.stores.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+        ),
+      );
+    }
+
+    if (state.errorMessage != null && state.stores.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                'Gagal memuat daftar toko:\n${state.errorMessage}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ShadButton(
+              onPressed: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+              backgroundColor: Warna.primary,
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state.stores.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+        color: Warna.primary,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      TablerIcons.building_store,
+                      size: 64,
+                      color: Colors.grey[300],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Toko tidak ditemukan',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+      color: Warna.primary,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: state.stores.length + (state.hasNextPage ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index == state.stores.length) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+                ),
+              ),
+            );
+          }
+
+          final store = state.stores[index];
+          final storeId = store['id'] as String;
+          final name = store['name'] as String? ?? 'Toko POS';
+          final type = store['business_type'] as String? ?? 'Makanan & Minuman';
+          final address = store['address'] as String? ?? 'Alamat tidak tersedia';
+          final color = _getStoreColor(name);
+          final hex = _getColorHex(color);
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ShadCard(
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                onTap: () {
+                  ref.read(customerStoreIdProvider.notifier).state = storeId;
+                  context.push(
+                    Uri(
+                      path: '/customer/store-detail',
+                      queryParameters: {
+                        'store_id': storeId,
+                        'store_name': name,
+                        'category': type,
+                        'distance': '0.1 km',
+                        'banner_color': hex,
+                      },
+                    ).toString(),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            TablerIcons.building_store,
+                            color: color,
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              type,
+                              style: TextStyle(
+                                color: Warna.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  TablerIcons.map_pin,
+                                  size: 13,
+                                  color: Colors.black45,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    address,
+                                    style: TextStyle(
+                                      color: theme.colorScheme.mutedForeground,
+                                      fontSize: 11,
+                                      height: 1.3,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        TablerIcons.chevron_right,
+                        size: 18,
+                        color: Colors.black38,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

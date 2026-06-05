@@ -234,6 +234,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const CustomerSelectLocationScreen(),
       ),
       GoRoute(
+        path: '/customer/all-stores',
+        builder: (context, state) => const CustomerAllStoresScreen(),
+      ),
+      GoRoute(
         path: '/customer/store-detail',
         builder: (context, state) {
           final storeName = state.uri.queryParameters['store_name'] ?? 'Toko';

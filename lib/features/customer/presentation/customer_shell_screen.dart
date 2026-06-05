@@ -33,7 +33,6 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
   @override
   Widget build(BuildContext context) {
     final navigationShell = widget.navigationShell;
-    final activeStoreId = ref.watch(customerStoreIdProvider);
     // Dynamic titles based on active tab index
     String pageTitle = 'Pelanggan';
     switch (navigationShell.currentIndex) {
@@ -49,31 +48,6 @@ class _CustomerShellScreenState extends ConsumerState<CustomerShellScreen> {
     }
 
     List<Widget> actions = [];
-
-    // Add page-specific actions first
-    if (navigationShell.currentIndex == 0) {
-      if (activeStoreId != null && activeStoreId.isNotEmpty) {
-        actions.add(
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: Center(
-              child: Chip(
-                label: Text(
-                  activeStoreId,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-                backgroundColor: Warna.primary.withValues(alpha: 0.18),
-                side: BorderSide(color: Warna.primary.withValues(alpha: 0.3)),
-              ),
-            ),
-          ),
-        );
-      }
-    }
 
     // Always append the circular notification bell button at the far right
     actions.add(
