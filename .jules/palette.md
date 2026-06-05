@@ -1,0 +1,3 @@
+## 2024-05-18 - Added Tooltips to Barcode Scanner Modal
+**Learning:** The built-in Flutter `IconButton` has a native `tooltip` property which acts as an ARIA label equivalent for accessibility and screen reader support. Using `AppLocalizations` directly in the `tooltip` property provides seamless multi-language accessibility without needing to wrap the `IconButton` in an extra `Tooltip` widget.
+**Action:** When adding icon-only `IconButton` widgets, always define the `tooltip` property right away. For custom buttons or containers, use a `Tooltip` widget wrapper, but prefer the native property when using the standard widget.

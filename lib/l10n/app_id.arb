@@ -461,6 +461,8 @@
   "scanOrTypeSku": "Scan atau ketik SKU...",
   "generateRandomSku": "Generate SKU Acak",
   "scanBarcodeCamera": "Scan Barcode Kamera",
+  "toggleFlash": "Nyalakan/Matikan Senter",
+  "closeScanner": "Tutup Pemindai",
   "barcodePreview": "Barcode Preview",
   "share": "Bagikan",
   "costPrice": "Harga Modal",
