@@ -140,20 +140,20 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                // Pre-compute values to prevent redundant evaluations inside the loop
+                final lowerQuery = _searchQuery.toLowerCase();
+                final now = DateTime.now();
+                final yesterday = now.subtract(const Duration(days: 1));
+
                 final filtered = transactions.where((tx) {
                   final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
-                      tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
+                      tx['id'].toString().toLowerCase().contains(lowerQuery) ||
+                      tx['payment_method'].toString().toLowerCase().contains(lowerQuery);
                   final matchesStatus =
                       _filterStatus == 'Semua' || tx['status'] == _filterStatus;
 
                   final txDate = DateTime.parse(tx['created_at']).toLocal();
                   bool matchesDate = true;
-                  final now = DateTime.now();
 
                   if (_dateFilter == 'Hari Ini') {
                     matchesDate =
@@ -161,7 +161,6 @@ class _TransactionHistoryScreenState
                         txDate.month == now.month &&
                         txDate.day == now.day;
                   } else if (_dateFilter == 'Kemarin') {
-                    final yesterday = now.subtract(const Duration(days: 1));
                     matchesDate =
                         txDate.year == yesterday.year &&
                         txDate.month == yesterday.month &&
