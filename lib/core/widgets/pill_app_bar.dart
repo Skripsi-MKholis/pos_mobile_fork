@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 
 class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PillAppBar({
@@ -45,14 +46,18 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           child: Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(
-                TablerIcons.menu_2,
-                size: 20,
-                color: Colors.black,
-              ),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+            builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return IconButton(
+                tooltip: l10n.menu,
+                icon: const Icon(
+                  TablerIcons.menu_2,
+                  size: 20,
+                  color: Colors.black,
+                ),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              );
+            },
           ),
         ),
       );

@@ -1,0 +1,3 @@
+## 2024-06-07 - Add ARIA tooltips to Drawer and Menu App Bar
+**Learning:** Icon-only buttons used for critical actions (Logout, Menu) can lack context without tooltips, making the application less accessible to screen readers and mouse hover users. The internal `AppLocalizations.of(context)` can be used seamlessly inside `Builder` widgets to get proper translations.
+**Action:** Always verify if an `IconButton` or custom widget wrapping an icon lacks text; apply `tooltip` property to the `IconButton` using existing `.arb` files for translations instead of adding wrapper tooltips or text elements.

@@ -530,6 +530,7 @@ class _UserFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final l10n = AppLocalizations.of(context)!;
 
     final String location = GoRouterState.of(context).matchedLocation;
     final bool isCustomerMode = location.startsWith('/customer');
@@ -576,6 +577,7 @@ class _UserFooter extends ConsumerWidget {
               ),
             ),
             IconButton(
+              tooltip: l10n.logoutApp,
               icon: const Icon(
                 TablerIcons.logout,
                 size: 18,
@@ -647,6 +649,7 @@ class _UserFooter extends ConsumerWidget {
             ),
           ),
           IconButton(
+            tooltip: l10n.logoutApp,
             icon: const Icon(
               TablerIcons.logout,
               size: 18,
