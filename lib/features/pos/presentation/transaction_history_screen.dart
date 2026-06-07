@@ -80,8 +80,7 @@ class _TransactionHistoryScreenState
     }
 
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(transactionHistoryProvider.notifier).refresh(),
+      onRefresh: () => ref.read(transactionHistoryProvider.notifier).refresh(),
       color: Warna.primary,
       backgroundColor: Colors.white,
       child: CustomScrollView(
@@ -93,163 +92,165 @@ class _TransactionHistoryScreenState
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          if (isAdmin) ...[
-                            _buildDateChip(l10n.all, 'Semua'),
-                            _buildDateChip(l10n.today, 'Hari Ini'),
-                            _buildDateChip(l10n.yesterday, 'Kemarin'),
-                            _buildDateChip(
-                              _dateFilter == 'Custom' && _customDate != null
-                                  ? DateFormat('dd MMM').format(_customDate!)
-                                  : l10n.selectDate,
-                              'Custom',
-                              isCalendar: true,
-                            ),
-                          ] else
-                            _buildDateChip(l10n.today, 'Hari Ini'),
-                        ],
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        if (isAdmin) ...[
+                          _buildDateChip(l10n.all, 'Semua'),
+                          _buildDateChip(l10n.today, 'Hari Ini'),
+                          _buildDateChip(l10n.yesterday, 'Kemarin'),
+                          _buildDateChip(
+                            _dateFilter == 'Custom' && _customDate != null
+                                ? DateFormat('dd MMM').format(_customDate!)
+                                : l10n.selectDate,
+                            'Custom',
+                            isCalendar: true,
+                          ),
+                        ] else
+                          _buildDateChip(l10n.today, 'Hari Ini'),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    _buildSummaryCards(historyAsync, currencyFormat),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSummaryCards(historyAsync, currencyFormat),
+                ],
               ),
             ),
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _FilterHeaderDelegate(child: _buildFilters(theme)),
-            ),
-            historyAsync.when(
-              data: (state) {
-                final transactions = [...state.transactions];
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _FilterHeaderDelegate(child: _buildFilters(theme)),
+          ),
+          historyAsync.when(
+            data: (state) {
+              final transactions = [...state.transactions];
 
-                // Apply Sort
-                transactions.sort((a, b) {
-                  final dateA = DateTime.parse(a['created_at']).toLocal();
-                  final dateB = DateTime.parse(b['created_at']).toLocal();
-                  return _sortOrder == 'desc'
-                      ? dateB.compareTo(dateA)
-                      : dateA.compareTo(dateB);
-                });
+              // Apply Sort
+              transactions.sort((a, b) {
+                final dateA = DateTime.parse(a['created_at']).toLocal();
+                final dateB = DateTime.parse(b['created_at']).toLocal();
+                return _sortOrder == 'desc'
+                    ? dateB.compareTo(dateA)
+                    : dateA.compareTo(dateB);
+              });
 
-                final filtered = transactions.where((tx) {
-                  final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
-                      tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
-                  final matchesStatus =
-                      _filterStatus == 'Semua' || tx['status'] == _filterStatus;
+              // Optimization: Hoist invariant search query and time evaluations outside the loop
+              // to prevent redundant computations and memory allocations on every iteration.
+              final String queryLower = _searchQuery.toLowerCase();
+              final DateTime now = DateTime.now();
+              final DateTime yesterday = now.subtract(const Duration(days: 1));
 
-                  final txDate = DateTime.parse(tx['created_at']).toLocal();
-                  bool matchesDate = true;
-                  final now = DateTime.now();
+              final filtered = transactions.where((tx) {
+                final matchesSearch =
+                    tx['id'].toString().toLowerCase().contains(queryLower) ||
+                    tx['payment_method'].toString().toLowerCase().contains(
+                      queryLower,
+                    );
+                final matchesStatus =
+                    _filterStatus == 'Semua' || tx['status'] == _filterStatus;
 
-                  if (_dateFilter == 'Hari Ini') {
-                    matchesDate =
-                        txDate.year == now.year &&
-                        txDate.month == now.month &&
-                        txDate.day == now.day;
-                  } else if (_dateFilter == 'Kemarin') {
-                    final yesterday = now.subtract(const Duration(days: 1));
-                    matchesDate =
-                        txDate.year == yesterday.year &&
-                        txDate.month == yesterday.month &&
-                        txDate.day == yesterday.day;
-                  } else if (_dateFilter == 'Custom' && _customDate != null) {
-                    matchesDate =
-                        txDate.year == _customDate!.year &&
-                        txDate.month == _customDate!.month &&
-                        txDate.day == _customDate!.day;
+                final txDate = DateTime.parse(tx['created_at']).toLocal();
+                bool matchesDate = true;
+
+                if (_dateFilter == 'Hari Ini') {
+                  matchesDate =
+                      txDate.year == now.year &&
+                      txDate.month == now.month &&
+                      txDate.day == now.day;
+                } else if (_dateFilter == 'Kemarin') {
+                  matchesDate =
+                      txDate.year == yesterday.year &&
+                      txDate.month == yesterday.month &&
+                      txDate.day == yesterday.day;
+                } else if (_dateFilter == 'Custom' && _customDate != null) {
+                  matchesDate =
+                      txDate.year == _customDate!.year &&
+                      txDate.month == _customDate!.month &&
+                      txDate.day == _customDate!.day;
+                }
+
+                return matchesSearch && matchesStatus && matchesDate;
+              }).toList();
+
+              if (filtered.isEmpty && !state.isLoadingMore) {
+                return SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _buildEmptyState(theme),
+                );
+              }
+
+              // Group by date
+              final Map<String, List<Map<String, dynamic>>> grouped = {};
+              for (var tx in filtered) {
+                final dateStr = dateFullFormat.format(
+                  DateTime.parse(tx['created_at']).toLocal(),
+                );
+                grouped.putIfAbsent(dateStr, () => []).add(tx);
+              }
+
+              return SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  if (index == grouped.length) {
+                    return state.isLoadingMore
+                        ? _buildLoadingIndicator()
+                        : const SizedBox(height: 85);
                   }
 
-                  return matchesSearch && matchesStatus && matchesDate;
-                }).toList();
+                  final date = grouped.keys.elementAt(index);
+                  final dailyTransactions = grouped[date]!;
 
-                if (filtered.isEmpty && !state.isLoadingMore) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _buildEmptyState(theme),
-                  );
-                }
-
-                // Group by date
-                final Map<String, List<Map<String, dynamic>>> grouped = {};
-                for (var tx in filtered) {
-                  final dateStr = dateFullFormat.format(
-                    DateTime.parse(tx['created_at']).toLocal(),
-                  );
-                  grouped.putIfAbsent(dateStr, () => []).add(tx);
-                }
-
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate((context, index) {
-                    if (index == grouped.length) {
-                      return state.isLoadingMore
-                          ? _buildLoadingIndicator()
-                          : const SizedBox(height: 85);
-                    }
-
-                    final date = grouped.keys.elementAt(index);
-                    final dailyTransactions = grouped[date]!;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.muted.withOpacity(0.3),
-                          ),
-                          child: Text(
-                            date == dateFullFormat.format(DateTime.now())
-                                ? l10n.today.toUpperCase()
-                                : date.toUpperCase(),
-                            style: theme.textTheme.small.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: theme.colorScheme.mutedForeground,
-                              letterSpacing: 2.0,
-                              fontSize: 10,
-                            ),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.muted.withOpacity(0.3),
+                        ),
+                        child: Text(
+                          date == dateFullFormat.format(DateTime.now())
+                              ? l10n.today.toUpperCase()
+                              : date.toUpperCase(),
+                          style: theme.textTheme.small.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: theme.colorScheme.mutedForeground,
+                            letterSpacing: 2.0,
+                            fontSize: 10,
                           ),
                         ),
-                        ...dailyTransactions.map(
-                          (tx) => _buildTransactionCard(
-                            tx,
-                            currencyFormat,
-                            dateFormat,
-                            theme,
-                          ),
+                      ),
+                      ...dailyTransactions.map(
+                        (tx) => _buildTransactionCard(
+                          tx,
+                          currencyFormat,
+                          dateFormat,
+                          theme,
                         ),
-                      ],
-                    );
-                  }, childCount: grouped.length + 1),
-                );
-              },
-              loading: () => _buildSkeleton(theme),
-              error: (err, stack) => SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    l10n.failedToLoad(err.toString()),
-                    style: theme.textTheme.muted,
-                  ),
+                      ),
+                    ],
+                  );
+                }, childCount: grouped.length + 1),
+              );
+            },
+            loading: () => _buildSkeleton(theme),
+            error: (err, stack) => SliverFillRemaining(
+              child: Center(
+                child: Text(
+                  l10n.failedToLoad(err.toString()),
+                  style: theme.textTheme.muted,
                 ),
               ),
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptyState(ShadThemeData theme) {
@@ -316,15 +317,18 @@ class _TransactionHistoryScreenState
   ) {
     return historyAsync.when(
       data: (state) {
+        // Optimization: Hoist invariant time evaluations outside the loop
+        // to prevent redundant computations on every iteration.
+        final DateTime now = DateTime.now();
+        final DateTime yesterday = now.subtract(const Duration(days: 1));
+
         final filtered = state.transactions.where((tx) {
           final txDate = DateTime.parse(tx['created_at']).toLocal();
-          final now = DateTime.now();
           if (_dateFilter == 'Hari Ini') {
             return txDate.year == now.year &&
                 txDate.month == now.month &&
                 txDate.day == now.day;
           } else if (_dateFilter == 'Kemarin') {
-            final yesterday = now.subtract(const Duration(days: 1));
             return txDate.year == yesterday.year &&
                 txDate.month == yesterday.month &&
                 txDate.day == yesterday.day;
