@@ -548,5 +548,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "confirmClearCart": "Clear Cart?",
+  "confirmClearCartDesc": "Are you sure you want to clear the cart? All items will be removed."
 }

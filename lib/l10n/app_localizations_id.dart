@@ -978,4 +978,11 @@ class AppLocalizationsId extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registrasi Gagal: $error';
   }
+
+  @override
+  String get confirmClearCart => 'Kosongkan Keranjang?';
+
+  @override
+  String get confirmClearCartDesc =>
+      'Apakah Anda yakin ingin mengosongkan keranjang? Semua item akan dihapus.';
 }

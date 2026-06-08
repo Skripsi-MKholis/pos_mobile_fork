@@ -976,4 +976,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registration Failed: $error';
   }
+
+  @override
+  String get confirmClearCart => 'Clear Cart?';
+
+  @override
+  String get confirmClearCartDesc =>
+      'Are you sure you want to clear the cart? All items will be removed.';
 }
