@@ -1,0 +1,3 @@
+## 2024-06-08 - [Add confirmation modal for destructive action]
+**Learning:** For high-stakes destructive actions in the UI (e.g., clearing the cart), the action should be wrapped in a confirmation modal (using `showShadDialog`) to prevent accidental data loss. This improves the overall user experience and prevents frustration from unintentional clicks.
+**Action:** Always add confirmation dialogs to destructive actions like deleting or clearing data. Ensure localization strings are added correctly and that the destructive nature is communicated visually, for example, by using `ShadButton.destructive()`.

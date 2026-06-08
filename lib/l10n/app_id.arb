@@ -548,5 +548,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "confirmClearCart": "Kosongkan Keranjang?",
+  "confirmClearCartDesc": "Apakah Anda yakin ingin mengosongkan keranjang? Semua item akan dihapus."
 }
