@@ -63,7 +63,7 @@ import 'app_localizations_id.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -86,16 +86,16 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('id'),
+    Locale('id')
   ];
 
   /// No description provided for @menu.
@@ -751,6 +751,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Cart'**
   String get clearCart;
+
+  /// No description provided for @clearCartConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cart'**
+  String get clearCartConfirmTitle;
+
+  /// No description provided for @clearCartConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear your cart? All items will be removed.'**
+  String get clearCartConfirmDesc;
 
   /// No description provided for @viewDetails.
   ///
@@ -1902,9 +1914,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }
