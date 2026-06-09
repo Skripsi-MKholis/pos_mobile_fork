@@ -66,9 +66,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         ),
         description: Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(
-            l10n.deleteProductConfirm(product.name),
-          ),
+          child: Text(l10n.deleteProductConfirm(product.name)),
         ),
         actions: [
           ShadButton.outline(
@@ -92,12 +90,18 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         // Log to Firebase Analytics
         try {
           final categories = ref.read(categoryNotifierProvider).value;
-          final categoryName = categories?.firstWhere(
-              (c) => c.supabaseId == product.categoryId,
-              orElse: () => Category()..name = 'Tanpa Kategori',
-            ).name ?? 'Tanpa Kategori';
+          final categoryName =
+              categories
+                  ?.firstWhere(
+                    (c) => c.supabaseId == product.categoryId,
+                    orElse: () => Category()..name = 'Tanpa Kategori',
+                  )
+                  .name ??
+              'Tanpa Kategori';
 
-          await AnalyticsService.instance.logProductDeletion(categoryName: categoryName);
+          await AnalyticsService.instance.logProductDeletion(
+            categoryName: categoryName,
+          );
         } catch (_) {}
 
         if (mounted) {
@@ -342,14 +346,14 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Expanded(
                 child: productsAsync.when(
                   data: (products) {
+                    // ⚡ Bolt: Hoisted invariant `toLowerCase()` string conversion outside the `.where` loop
+                    // to prevent O(N) redundant memory allocations and computations on every render.
+                    final queryLowerCase = _searchQuery.toLowerCase();
+
                     final filteredProducts = products.where((p) {
                       final matchesSearch =
-                          p.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
-                          ) ||
-                          (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase(),
-                              ) ??
+                          p.name.toLowerCase().contains(queryLowerCase) ||
+                          (p.sku?.toLowerCase().contains(queryLowerCase) ??
                               false);
                       final matchesCategory =
                           _selectedCategory == null ||
@@ -508,14 +512,15 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        maxHeightDiskCache: 150, // Resizes and caches optimized low-res image
+                        maxHeightDiskCache:
+                            150, // Resizes and caches optimized low-res image
                         maxWidthDiskCache: 150,
                         placeholder: (context, url) => Shimmer.fromColors(
                           baseColor: theme.colorScheme.muted.withOpacity(0.5),
-                          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
-                          child: Container(
-                            color: Colors.white,
+                          highlightColor: theme.colorScheme.muted.withOpacity(
+                            0.2,
                           ),
+                          child: Container(color: Colors.white),
                         ),
                         errorWidget: (context, url, error) => const Center(
                           child: Icon(
@@ -526,17 +531,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         ),
                       )
                     : (product.localImagePath != null
-                        ? Image.file(
-                            File(product.localImagePath!),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          )
-                        : Icon(
-                            TablerIcons.package,
-                            color: theme.colorScheme.mutedForeground,
-                            size: 28,
-                          )),
+                          ? Image.file(
+                              File(product.localImagePath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Icon(
+                              TablerIcons.package,
+                              color: theme.colorScheme.mutedForeground,
+                              size: 28,
+                            )),
               ),
             ),
             const SizedBox(width: 14),
@@ -566,7 +571,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Tooltip(
-                            message: AppLocalizations.of(context)!.waitingForSync,
+                            message: AppLocalizations.of(
+                              context,
+                            )!.waitingForSync,
                             child: const Icon(
                               TablerIcons.cloud_off,
                               size: 14,
@@ -807,9 +814,13 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
 
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: l10n.barcodeShareText(widget.product.name, widget.product.sku ?? ''));
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: l10n.barcodeShareText(
+          widget.product.name,
+          widget.product.sku ?? '',
+        ),
+      );
     } catch (e) {
       if (mounted) {
         mySnackBar(
@@ -869,7 +880,10 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.productBarcode,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(TablerIcons.x),
