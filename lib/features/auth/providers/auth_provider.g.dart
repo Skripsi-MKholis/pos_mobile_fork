@@ -35,7 +35,7 @@ final userProfileProvider =
 );
 
 typedef UserProfileRef = AutoDisposeFutureProviderRef<Map<String, dynamic>?>;
-String _$authHash() => r'c61e79137f8f9abcb35232f64be863a854b8d2f0';
+String _$authHash() => r'cef7c9166b7bdbbf3ca536b325488dcbaec11b3b';
 
 /// See also [Auth].
 @ProviderFor(Auth)
