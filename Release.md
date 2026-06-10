@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.5.0+8**
+**1.6.0+9**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Premium UX & Advanced Inventory Overhaul**
+**ZelloPOS Customer Portal & Smart Analytics Integration**
 
 ---
 
@@ -111,4 +111,29 @@ Ringkasan perubahan pada rilis ini:
 * **Standarisasi Branding Hijau POS**: Mengganti semua kode warna lime hijau usang (`0xFF98D100`) dengan warna utama resmi `Warna.primary` (`#9AE600`) di layar Kasir/POS, detail keranjang belanja, dan daftar produk demi harmoni visual premium. Memastikan teks/ikon kontras tinggi menggunakan `Warna.black` untuk keterbacaan optimal.
 * **Sistem AppBar Melayang (Floating AppBar)**: Mengimplementasikan desain global transparent/floating rounded AppBar di seluruh modul aplikasi. Mengatur properti `extendBodyBehindAppBar` pada Scaffold secara dinamis agar konten mengalir mulus di bawah header saat di-scroll tanpa saling tumpang tindih.
 * **Stabilisasi Sinkronisasi & Perbaikan UI**: Memperbaiki alur sinkronisasi data transaksi offline secara real-time dan memoles elemen UI di beberapa halaman inti untuk memastikan kestabilan aplikasi.
+
+---
+
+**Versi 1.6.0+9 (Customer Portal & Smart Analytics Integration)**
+
+Ringkasan perubahan sejak commit `2730edd9d36634ec58aa185a423a0e8c5f6c2245`:
+
+* **Portal & Fitur Pelanggan (Customer Role)**:
+  * **Registrasi & Manajemen Sesi**: Mengintegrasikan `CustomerSessionProvider` untuk menangani status masuk, keluar, dan autentikasi khusus bagi akun pelanggan.
+  * **Database & Migrasi Supabase**: Migrasi skema database baru (`20260603000100_customer_role_base.sql`) untuk mendukung profil pelanggan, riwayat poin loyalitas, serta pencatatan pesanan khusus pelanggan.
+  * **Antarmuka Utama Pelanggan**: Menyediakan antarmuka dashboard pelanggan (`customer_screens.dart`) lengkap dengan riwayat transaksi, pengaturan profil, pencarian outlet terdekat dengan filter lokasi ter-debounce, dan navigasi bottom bar khusus (`customer_shell_screen.dart`).
+  * **Detail Outlet & Katalog Digital**: Halaman khusus toko (`customer_store_detail_screen.dart`) yang menampilkan produk berdasarkan kategori, informasi promo, serta poin loyalitas toko.
+  * **Keranjang Belanja & Checkout Mandiri**: Implementasi sistem checkout lokal (`customer_checkout_page.dart`) dan provider keranjang belanja (`customer_cart_provider.dart`) untuk memfasilitasi pesanan langsung dari aplikasi pelanggan.
+  * **Pemindaian QR/Barcode**: Layar pemindaian (`customer_scan_screen.dart`) menggunakan `mobile_scanner` untuk memudahkan pelanggan melakukan check-in toko atau scan produk.
+* **Onboarding Screen Premium**:
+  * Merombak total tampilan layar onboarding (`onboarding_screen.dart`) dengan ilustrasi interaktif, mikro-animasi premium, layout modern, serta implementasi branding warna *Vibrant Lime Green*.
+* **Play Store In-App Update**:
+  * Menambahkan `UpdateService` (`update_service.dart`) yang terintegrasi dengan modul `in_app_update` untuk mendeteksi pembaruan aplikasi secara otomatis dan memicu dialog pembaruan (fleksibel atau segera) langsung dari dalam aplikasi Google Play.
+* **Smart Analytics & Visualisasi Data**:
+  * Menyempurnakan visualisasi grafik penjualan, tren produk terlaris, serta laporan performa keuangan interaktif di halaman analitik (`smart_analytics_screen.dart`) yang didukung penuh oleh `SmartAnalyticsProvider`.
+* **Navigasi & Komponen UI Global**:
+  * Memperkenalkan `PillAppBar` (`pill_appbar.dart`) untuk navigasi melayang berbentuk pil yang modern dan estetis.
+  * Penyesuaian `router.dart`, `scaffold_with_navbar.dart`, dan `app_drawer.dart` agar responsif secara dinamis dalam membedakan tampilan menu antara peran Owner/Staf dengan peran Pelanggan.
+* **Dokumentasi & Rancangan**:
+  * Menambahkan berkas PRD komprehensif, desain sistem (Style), diagram ERD, Use Case, Activity Diagram, serta daftar fitur yang belum selesai (*Unfinished*) untuk panduan pengembangan lanjutan di folder `Dokumen`.
 
