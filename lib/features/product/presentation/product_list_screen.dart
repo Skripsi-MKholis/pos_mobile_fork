@@ -342,13 +342,15 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Expanded(
                 child: productsAsync.when(
                   data: (products) {
+                    // ⚡ Bolt: Hoist invariant toLowerCase() outside the loop to prevent O(N) redundant string conversions
+                    final lowerQuery = _searchQuery.toLowerCase();
                     final filteredProducts = products.where((p) {
                       final matchesSearch =
                           p.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
+                            lowerQuery,
                           ) ||
                           (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase(),
+                                lowerQuery,
                               ) ??
                               false);
                       final matchesCategory =
