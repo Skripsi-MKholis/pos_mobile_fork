@@ -1,6 +1,6 @@
 ### **Versi Sekarang**
 
-**1.6.0+9**
+**1.7.0+10**
 
 ---
 
@@ -111,6 +111,16 @@ Ringkasan perubahan pada rilis ini:
 * **Standarisasi Branding Hijau POS**: Mengganti semua kode warna lime hijau usang (`0xFF98D100`) dengan warna utama resmi `Warna.primary` (`#9AE600`) di layar Kasir/POS, detail keranjang belanja, dan daftar produk demi harmoni visual premium. Memastikan teks/ikon kontras tinggi menggunakan `Warna.black` untuk keterbacaan optimal.
 * **Sistem AppBar Melayang (Floating AppBar)**: Mengimplementasikan desain global transparent/floating rounded AppBar di seluruh modul aplikasi. Mengatur properti `extendBodyBehindAppBar` pada Scaffold secara dinamis agar konten mengalir mulus di bawah header saat di-scroll tanpa saling tumpang tindih.
 * **Stabilisasi Sinkronisasi & Perbaikan UI**: Memperbaiki alur sinkronisasi data transaksi offline secara real-time dan memoles elemen UI di beberapa halaman inti untuk memastikan kestabilan aplikasi.
+
+---
+
+**Versi 1.7.0+10 (Store Location & Business Model Refinement)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Pemilihan Lokasi Toko (Provinsi & Kota/Kabupaten)**: Menambahkan picker lokasi toko yang terintegrasi dengan API wilayah.id pada halaman **Buat Toko** dan **Informasi Toko**. Pengguna kini dapat memilih Provinsi dan Kota/Kabupaten melalui *bottom sheet* dengan fitur pencarian real-time, sehingga data lokasi toko tersimpan terstruktur di database.
+* **Penyesuaian Model Bisnis**: Model bisnis (Restoran, Retail, Cafe) kini berfungsi sebagai **kategori informatif** saja dan tidak lagi mengontrol aktif/tidaknya fitur aplikasi. Seluruh fitur (KDS, Manajemen Meja, Pelanggan, Promosi, Reservasi) diaktifkan secara penuh untuk semua jenis bisnis sejak toko dibuat.
+* **Skema Database Supabase**: Menambahkan kolom `city` (teks, nullable) pada tabel `stores` untuk menyimpan data kota/kabupaten toko.
 
 ---
 

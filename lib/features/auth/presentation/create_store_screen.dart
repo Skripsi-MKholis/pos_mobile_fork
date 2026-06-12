@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/services/wilayah_service.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/Configuration/components.dart';
@@ -22,11 +23,19 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
   final _addressController = TextEditingController();
   bool _isLoading = false;
 
+  // Location state
+  String? _selectedProvinceCode;
+  String? _selectedProvinceName;
+  String? _selectedCityName;
+  List<Map<String, dynamic>>? _cachedProvinces;
+  bool _loadingProvinces = false;
+  bool _loadingCities = false;
+
   final List<Map<String, dynamic>> _businessModels = [
     {
       'id': 'Restaurant',
       'title': 'Restoran / F&B',
-      'subtitle': 'Mendukung KDS & Reservasi',
+      'subtitle': 'Restoran, warung makan, katering',
       'icon': TablerIcons.tools_kitchen_2,
       'color': const Color(0xFFE9FCD4),
       'iconColor': const Color(0xFF9AE600),
@@ -34,7 +43,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
     {
       'id': 'Retail',
       'title': 'Toko Ritel / Dagang',
-      'subtitle': 'Fokus pada kecepatan & stok produk',
+      'subtitle': 'Toko kelontong, minimarket, fashion',
       'icon': TablerIcons.building_store,
       'color': const Color(0xFFE0F2FE),
       'iconColor': const Color(0xFF0EA5E9),
@@ -42,7 +51,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
     {
       'id': 'Cafe',
       'title': 'Kedai Kopi / Cafe',
-      'subtitle': 'Sistem antrean & display dapur',
+      'subtitle': 'Kafe, bakeri, minuman kekinian',
       'icon': TablerIcons.flame,
       'color': const Color(0xFFFEF3C7),
       'iconColor': const Color(0xFFF59E0B),
@@ -65,6 +74,8 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
             name: _nameController.text.trim(),
             address: _addressController.text.trim(),
             businessType: _selectedModel,
+            province: _selectedProvinceName,
+            city: _selectedCityName,
           );
       if (mounted) {
         context.go('/dashboard');
@@ -82,10 +93,167 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
     }
   }
 
+  Future<void> _pickProvince() async {
+    setState(() => _loadingProvinces = true);
+    List<Map<String, dynamic>> provinces;
+    try {
+      provinces = _cachedProvinces ?? await WilayahService.instance.getProvinces();
+      _cachedProvinces = provinces;
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(context: context, text: 'Gagal memuat provinsi: $e', status: ToastStatus.error);
+      }
+      setState(() => _loadingProvinces = false);
+      return;
+    } finally {
+      if (mounted) setState(() => _loadingProvinces = false);
+    }
+
+    if (!mounted) return;
+    final selected = await _showLocationPickerSheet(
+      title: 'Pilih Provinsi',
+      items: provinces,
+    );
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedProvinceCode = selected['code'];
+        _selectedProvinceName = WilayahService.instance.toTitleCase(selected['name']);
+        _selectedCityName = null;
+      });
+    }
+  }
+
+  Future<void> _pickCity() async {
+    if (_selectedProvinceCode == null) {
+      mySnackBar(context: context, text: 'Pilih provinsi terlebih dahulu', status: ToastStatus.error);
+      return;
+    }
+    setState(() => _loadingCities = true);
+    List<Map<String, dynamic>> cities;
+    try {
+      cities = await WilayahService.instance.getCities(_selectedProvinceCode!);
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(context: context, text: 'Gagal memuat kota: $e', status: ToastStatus.error);
+      }
+      setState(() => _loadingCities = false);
+      return;
+    } finally {
+      if (mounted) setState(() => _loadingCities = false);
+    }
+
+    if (!mounted) return;
+    final selected = await _showLocationPickerSheet(
+      title: 'Pilih Kota / Kabupaten',
+      items: cities,
+    );
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedCityName = WilayahService.instance.toTitleCase(selected['name']);
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showLocationPickerSheet({
+    required String title,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final searchController = TextEditingController();
+    Map<String, dynamic>? result;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final query = searchController.text.toLowerCase();
+            final filtered = query.isEmpty
+                ? items
+                : items
+                    .where((e) => e['name'].toString().toLowerCase().contains(query))
+                    .toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Cari...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                        prefixIcon: const Icon(TablerIcons.search, size: 18),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onChanged: (_) => setModalState(() {}),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        return ListTile(
+                          title: Text(
+                            WilayahService.instance.toTitleCase(item['name']),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                          onTap: () {
+                            result = item;
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final primaryColor = theme.colorScheme.primary;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
@@ -97,7 +265,6 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  // Header Icon
                   Center(
                     child: Container(
                       width: 56,
@@ -113,8 +280,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(TablerIcons.building_store,
-                          size: 28, color: Colors.black),
+                      child: const Icon(TablerIcons.building_store, size: 28, color: Colors.black),
                     ),
                   ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
 
@@ -134,15 +300,11 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                   Text(
                     'Satu langkah lagi untuk memulai bisnis Anda. Mari buat toko pertama Anda.',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.muted.copyWith(
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
+                    style: theme.textTheme.muted.copyWith(fontSize: 14, height: 1.4),
                   ).animate().fadeIn(delay: 400.ms),
 
                   const SizedBox(height: 24),
 
-                  // Step Card
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -158,7 +320,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Progress Bar
+                        // Progress bar
                         Stack(
                           children: [
                             Container(
@@ -166,8 +328,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 color: Colors.grey.shade100,
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(32)),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                               ),
                             ),
                             AnimatedContainer(
@@ -177,13 +338,11 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                                   (_currentStep == 0 ? 0.5 : 1.0),
                               decoration: BoxDecoration(
                                 color: Warna.primary,
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(32)),
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
                               ),
                             ),
                           ],
                         ),
-
                         Padding(
                           padding: const EdgeInsets.all(32.0),
                           child: AnimatedSwitcher(
@@ -199,7 +358,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                 ],
               ),
             ),
-            // Back Button
+            // Back button
             Positioned(
               top: 12,
               left: 12,
@@ -225,12 +384,12 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Pilih Model Bisnis',
+          'Pilih Kategori Bisnis',
           style: theme.textTheme.h3.copyWith(fontWeight: FontWeight.w900),
         ),
         const SizedBox(height: 8),
         Text(
-          'Fitur akan menyesuaikan secara otomatis.',
+          'Pilih kategori yang paling sesuai dengan bisnis Anda.',
           style: theme.textTheme.muted.copyWith(fontSize: 14),
         ),
         const SizedBox(height: 24),
@@ -278,6 +437,8 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
           ],
         ),
         const SizedBox(height: 24),
+
+        // Nama toko
         Text(
           'NAMA TOKO / OUTLET',
           style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
@@ -293,6 +454,39 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
           ),
         ),
         const SizedBox(height: 24),
+
+        // Provinsi
+        Text(
+          'PROVINSI',
+          style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+        ),
+        const SizedBox(height: 12),
+        _buildLocationPickerTile(
+          icon: TablerIcons.map,
+          value: _selectedProvinceName,
+          placeholder: 'Pilih Provinsi',
+          isLoading: _loadingProvinces,
+          onTap: _pickProvince,
+        ),
+        const SizedBox(height: 20),
+
+        // Kota / Kabupaten
+        Text(
+          'KOTA / KABUPATEN',
+          style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
+        ),
+        const SizedBox(height: 12),
+        _buildLocationPickerTile(
+          icon: TablerIcons.map_pin,
+          value: _selectedCityName,
+          placeholder: _selectedProvinceCode == null ? 'Pilih provinsi dulu' : 'Pilih Kota / Kabupaten',
+          isLoading: _loadingCities,
+          isDisabled: _selectedProvinceCode == null,
+          onTap: _pickCity,
+        ),
+        const SizedBox(height: 24),
+
+        // Alamat
         Text(
           'ALAMAT LENGKAP',
           style: theme.textTheme.muted.copyWith(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1),
@@ -309,6 +503,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
           ),
         ),
         const SizedBox(height: 40),
+
         SizedBox(
           width: double.infinity,
           child: ShadButton(
@@ -317,28 +512,71 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
             backgroundColor: Warna.primary.withOpacity(_isLoading ? 0.5 : 1.0),
             foregroundColor: Colors.black,
             child: _isLoading
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                : const Text('Konfirmasi & Mulai', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: Text.rich(
-            TextSpan(
-              text: 'Dengan klik Konfirmasi, fitur ',
-              style: theme.textTheme.muted.copyWith(fontSize: 11),
-              children: [
-                TextSpan(
-                  text: _selectedModel.toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Warna.primary),
-                ),
-                const TextSpan(text: ' akan langsung disiapkan untuk anda.'),
-              ],
-            ),
-            textAlign: TextAlign.center,
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                  )
+                : const Text(
+                    'Konfirmasi & Mulai',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLocationPickerTile({
+    required IconData icon,
+    required String? value,
+    required String placeholder,
+    required bool isLoading,
+    required VoidCallback onTap,
+    bool isDisabled = false,
+  }) {
+    return GestureDetector(
+      onTap: isDisabled || isLoading ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDisabled ? Colors.grey.shade100 : const Color(0xFFF3F4F6),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: isDisabled ? Colors.grey.shade400 : Colors.grey.shade600),
+            const SizedBox(width: 12),
+            Expanded(
+              child: isLoading
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.grey.shade400,
+                      ),
+                    )
+                  : Text(
+                      value ?? placeholder,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
+                        color: value != null
+                            ? Colors.black87
+                            : (isDisabled ? Colors.grey.shade400 : Colors.grey.shade500),
+                      ),
+                    ),
+            ),
+            Icon(
+              TablerIcons.chevron_down,
+              size: 16,
+              color: isDisabled ? Colors.grey.shade300 : Colors.grey.shade500,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -364,7 +602,7 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
                       color: Warna.primary.withOpacity(0.1),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                   ]
                 : [],
           ),

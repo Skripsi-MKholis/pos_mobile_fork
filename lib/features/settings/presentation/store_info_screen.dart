@@ -7,6 +7,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/services/wilayah_service.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shimmer/shimmer.dart';
@@ -24,6 +25,253 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   File? _imageFile;
   bool _logoRemoved = false;
   final _picker = ImagePicker();
+
+  // Location state
+  String? _selectedProvinceCode;
+  String? _selectedProvinceName;
+  String? _selectedCityName;
+  List<Map<String, dynamic>>? _cachedProvinces;
+  bool _loadingProvinces = false;
+  bool _loadingCities = false;
+  bool _locationInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_locationInitialized) {
+      _locationInitialized = true;
+      final activeStore = ref.read(activeStoreProvider).value;
+      if (activeStore != null) {
+        _selectedProvinceName = activeStore['province'] as String?;
+        _selectedCityName = activeStore['city'] as String?;
+      }
+    }
+  }
+
+  Future<void> _pickProvince() async {
+    setState(() => _loadingProvinces = true);
+    List<Map<String, dynamic>> provinces;
+    try {
+      provinces = _cachedProvinces ?? await WilayahService.instance.getProvinces();
+      _cachedProvinces = provinces;
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(context: context, text: 'Gagal memuat provinsi: $e', status: ToastStatus.error);
+      }
+      setState(() => _loadingProvinces = false);
+      return;
+    } finally {
+      if (mounted) setState(() => _loadingProvinces = false);
+    }
+
+    if (!mounted) return;
+    final selected = await _showLocationPickerSheet(title: 'Pilih Provinsi', items: provinces);
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedProvinceCode = selected['code'];
+        _selectedProvinceName = WilayahService.instance.toTitleCase(selected['name']);
+        _selectedCityName = null;
+      });
+    }
+  }
+
+  Future<void> _pickCity() async {
+    if (_selectedProvinceCode == null && _selectedProvinceName != null) {
+      // Province was pre-populated from DB without a code; need to find the code
+      // by searching cached provinces
+      if (_cachedProvinces == null) {
+        setState(() => _loadingProvinces = true);
+        try {
+          _cachedProvinces = await WilayahService.instance.getProvinces();
+        } catch (_) {} finally {
+          if (mounted) setState(() => _loadingProvinces = false);
+        }
+      }
+      if (_cachedProvinces != null) {
+        final match = _cachedProvinces!.where((p) =>
+            WilayahService.instance.toTitleCase(p['name']) == _selectedProvinceName).firstOrNull;
+        if (match != null) _selectedProvinceCode = match['code'];
+      }
+    }
+
+    if (_selectedProvinceCode == null) {
+      if (!mounted) return;
+      mySnackBar(context: context, text: 'Pilih provinsi terlebih dahulu', status: ToastStatus.error);
+      return;
+    }
+
+    setState(() => _loadingCities = true);
+    List<Map<String, dynamic>> cities;
+    try {
+      cities = await WilayahService.instance.getCities(_selectedProvinceCode!);
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(context: context, text: 'Gagal memuat kota: $e', status: ToastStatus.error);
+      }
+      setState(() => _loadingCities = false);
+      return;
+    } finally {
+      if (mounted) setState(() => _loadingCities = false);
+    }
+
+    if (!mounted) return;
+    final selected = await _showLocationPickerSheet(title: 'Pilih Kota / Kabupaten', items: cities);
+    if (selected != null && mounted) {
+      setState(() {
+        _selectedCityName = WilayahService.instance.toTitleCase(selected['name']);
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _showLocationPickerSheet({
+    required String title,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    final searchController = TextEditingController();
+    Map<String, dynamic>? result;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final query = searchController.text.toLowerCase();
+            final filtered = query.isEmpty
+                ? items
+                : items
+                    .where((e) => e['name'].toString().toLowerCase().contains(query))
+                    .toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Cari...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                        prefixIcon: const Icon(TablerIcons.search, size: 18),
+                        fillColor: const Color(0xFFF3F4F6),
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onChanged: (_) => setModalState(() {}),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final item = filtered[index];
+                        return ListTile(
+                          title: Text(
+                            WilayahService.instance.toTitleCase(item['name']),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                          onTap: () {
+                            result = item;
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    return result;
+  }
+
+  Widget _buildLocationPickerTile({
+    required IconData icon,
+    required String? value,
+    required String placeholder,
+    required bool isLoading,
+    required VoidCallback onTap,
+    bool isDisabled = false,
+  }) {
+    return GestureDetector(
+      onTap: isDisabled || isLoading ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDisabled ? Colors.grey.shade100 : const Color(0xFFF9F9F9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: isDisabled ? Colors.grey.shade400 : Colors.grey),
+            const SizedBox(width: 12),
+            Expanded(
+              child: isLoading
+                  ? SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.grey.shade400,
+                      ),
+                    )
+                  : Text(
+                      value ?? placeholder,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
+                        color: value != null
+                            ? Colors.black87
+                            : (isDisabled ? Colors.grey.shade400 : Colors.grey.shade500),
+                      ),
+                    ),
+            ),
+            Icon(
+              TablerIcons.chevron_down,
+              size: 16,
+              color: isDisabled ? Colors.grey.shade300 : Colors.grey.shade500,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -364,6 +612,39 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
                   child: Icon(TablerIcons.map_pin, size: 18, color: Colors.grey),
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // Province
+              Text(
+                isId ? 'Provinsi' : 'Province',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              _buildLocationPickerTile(
+                icon: TablerIcons.map,
+                value: _selectedProvinceName,
+                placeholder: isId ? 'Pilih Provinsi' : 'Select Province',
+                isLoading: _loadingProvinces,
+                onTap: _pickProvince,
+              ),
+              const SizedBox(height: 20),
+
+              // City
+              Text(
+                isId ? 'Kota / Kabupaten' : 'City / Regency',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              _buildLocationPickerTile(
+                icon: TablerIcons.map_pin,
+                value: _selectedCityName,
+                placeholder: _selectedProvinceName == null
+                    ? (isId ? 'Pilih provinsi dulu' : 'Select province first')
+                    : (isId ? 'Pilih Kota / Kabupaten' : 'Select City / Regency'),
+                isLoading: _loadingCities,
+                isDisabled: _selectedProvinceName == null,
+                onTap: _pickCity,
+              ),
             ],
           ),
         ),
@@ -503,10 +784,12 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         'phone': values['phone'],
         'address': values['address'],
         'logo_url': logoUrl,
+        'province': _selectedProvinceName,
+        'city': _selectedCityName,
       };
 
       await supabase.from('stores').update(updatedData).eq('id', activeStore['id']);
-      
+
       // Update local state
       await ref.read(activeStoreProvider.notifier).selectStore({
         ...activeStore,

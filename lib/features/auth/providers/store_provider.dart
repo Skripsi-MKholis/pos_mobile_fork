@@ -93,24 +93,28 @@ class ActiveStore extends _$ActiveStore {
     required String name,
     required String address,
     required String businessType,
+    String? province,
+    String? city,
   }) async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
     if (user == null) throw 'User not authenticated';
 
-    // 1. Insert into stores
+    // 1. Insert into stores — all features enabled by default regardless of business type
     final storeResponse = await supabase.from('stores').insert({
       'name': name,
       'address': address,
       'business_type': businessType,
+      'province': province,
+      'city': city,
       'owner_id': user.id,
       'settings': {
         'features': {
-          'kds': businessType == 'Restaurant' || businessType == 'Cafe',
-          'tables': businessType == 'Restaurant',
+          'kds': true,
+          'tables': true,
           'customers': true,
           'promotions': true,
-          'reservations': businessType == 'Restaurant',
+          'reservations': true,
         },
         'operational': {
           'business_model': businessType.toLowerCase(),

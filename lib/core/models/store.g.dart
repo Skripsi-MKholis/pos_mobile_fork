@@ -22,48 +22,58 @@ const StoreSchema = CollectionSchema(
       name: r'address',
       type: IsarType.string,
     ),
-    r'inviteCode': PropertySchema(
+    r'city': PropertySchema(
       id: 1,
+      name: r'city',
+      type: IsarType.string,
+    ),
+    r'inviteCode': PropertySchema(
+      id: 2,
       name: r'inviteCode',
       type: IsarType.string,
     ),
     r'logoUrl': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'logoUrl',
       type: IsarType.string,
     ),
     r'name': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'name',
       type: IsarType.string,
     ),
     r'ownerId': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'ownerId',
       type: IsarType.string,
     ),
     r'phone': PropertySchema(
-      id: 5,
+      id: 6,
       name: r'phone',
       type: IsarType.string,
     ),
+    r'province': PropertySchema(
+      id: 7,
+      name: r'province',
+      type: IsarType.string,
+    ),
     r'settings': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'settings',
       type: IsarType.string,
     ),
     r'supabaseId': PropertySchema(
-      id: 7,
+      id: 9,
       name: r'supabaseId',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 8,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     ),
     r'userRole': PropertySchema(
-      id: 9,
+      id: 11,
       name: r'userRole',
       type: IsarType.string,
     )
@@ -109,6 +119,12 @@ int _storeEstimateSize(
     }
   }
   {
+    final value = object.city;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
     final value = object.inviteCode;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -124,6 +140,12 @@ int _storeEstimateSize(
   bytesCount += 3 + object.ownerId.length * 3;
   {
     final value = object.phone;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
+  {
+    final value = object.province;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
     }
@@ -151,15 +173,17 @@ void _storeSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.address);
-  writer.writeString(offsets[1], object.inviteCode);
-  writer.writeString(offsets[2], object.logoUrl);
-  writer.writeString(offsets[3], object.name);
-  writer.writeString(offsets[4], object.ownerId);
-  writer.writeString(offsets[5], object.phone);
-  writer.writeString(offsets[6], object.settings);
-  writer.writeString(offsets[7], object.supabaseId);
-  writer.writeDateTime(offsets[8], object.updatedAt);
-  writer.writeString(offsets[9], object.userRole);
+  writer.writeString(offsets[1], object.city);
+  writer.writeString(offsets[2], object.inviteCode);
+  writer.writeString(offsets[3], object.logoUrl);
+  writer.writeString(offsets[4], object.name);
+  writer.writeString(offsets[5], object.ownerId);
+  writer.writeString(offsets[6], object.phone);
+  writer.writeString(offsets[7], object.province);
+  writer.writeString(offsets[8], object.settings);
+  writer.writeString(offsets[9], object.supabaseId);
+  writer.writeDateTime(offsets[10], object.updatedAt);
+  writer.writeString(offsets[11], object.userRole);
 }
 
 Store _storeDeserialize(
@@ -170,16 +194,18 @@ Store _storeDeserialize(
 ) {
   final object = Store(
     address: reader.readStringOrNull(offsets[0]),
+    city: reader.readStringOrNull(offsets[1]),
     id: id,
-    inviteCode: reader.readStringOrNull(offsets[1]),
-    logoUrl: reader.readStringOrNull(offsets[2]),
-    name: reader.readString(offsets[3]),
-    ownerId: reader.readString(offsets[4]),
-    phone: reader.readStringOrNull(offsets[5]),
-    settings: reader.readStringOrNull(offsets[6]),
-    supabaseId: reader.readString(offsets[7]),
-    updatedAt: reader.readDateTimeOrNull(offsets[8]),
-    userRole: reader.readStringOrNull(offsets[9]),
+    inviteCode: reader.readStringOrNull(offsets[2]),
+    logoUrl: reader.readStringOrNull(offsets[3]),
+    name: reader.readString(offsets[4]),
+    ownerId: reader.readString(offsets[5]),
+    phone: reader.readStringOrNull(offsets[6]),
+    province: reader.readStringOrNull(offsets[7]),
+    settings: reader.readStringOrNull(offsets[8]),
+    supabaseId: reader.readString(offsets[9]),
+    updatedAt: reader.readDateTimeOrNull(offsets[10]),
+    userRole: reader.readStringOrNull(offsets[11]),
   );
   return object;
 }
@@ -198,18 +224,22 @@ P _storeDeserializeProp<P>(
     case 2:
       return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 4:
       return (reader.readString(offset)) as P;
     case 5:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 6:
       return (reader.readStringOrNull(offset)) as P;
     case 7:
-      return (reader.readString(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 9:
+      return (reader.readString(offset)) as P;
+    case 10:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 11:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -545,6 +575,150 @@ extension StoreQueryFilter on QueryBuilder<Store, Store, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'address',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'city',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'city',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'city',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityContains(String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'city',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityMatches(String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'city',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'city',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> cityIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'city',
         value: '',
       ));
     });
@@ -1296,6 +1470,152 @@ extension StoreQueryFilter on QueryBuilder<Store, Store, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'province',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'province',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'province',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'province',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'province',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'province',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterFilterCondition> provinceIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'province',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<Store, Store, QAfterFilterCondition> settingsIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1805,6 +2125,18 @@ extension StoreQuerySortBy on QueryBuilder<Store, Store, QSortBy> {
     });
   }
 
+  QueryBuilder<Store, Store, QAfterSortBy> sortByCity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'city', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> sortByCityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'city', Sort.desc);
+    });
+  }
+
   QueryBuilder<Store, Store, QAfterSortBy> sortByInviteCode() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'inviteCode', Sort.asc);
@@ -1862,6 +2194,18 @@ extension StoreQuerySortBy on QueryBuilder<Store, Store, QSortBy> {
   QueryBuilder<Store, Store, QAfterSortBy> sortByPhoneDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phone', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> sortByProvince() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'province', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> sortByProvinceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'province', Sort.desc);
     });
   }
 
@@ -1924,6 +2268,18 @@ extension StoreQuerySortThenBy on QueryBuilder<Store, Store, QSortThenBy> {
   QueryBuilder<Store, Store, QAfterSortBy> thenByAddressDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'address', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> thenByCity() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'city', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> thenByCityDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'city', Sort.desc);
     });
   }
 
@@ -1999,6 +2355,18 @@ extension StoreQuerySortThenBy on QueryBuilder<Store, Store, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Store, Store, QAfterSortBy> thenByProvince() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'province', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Store, Store, QAfterSortBy> thenByProvinceDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'province', Sort.desc);
+    });
+  }
+
   QueryBuilder<Store, Store, QAfterSortBy> thenBySettings() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'settings', Sort.asc);
@@ -2056,6 +2424,13 @@ extension StoreQueryWhereDistinct on QueryBuilder<Store, Store, QDistinct> {
     });
   }
 
+  QueryBuilder<Store, Store, QDistinct> distinctByCity(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'city', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<Store, Store, QDistinct> distinctByInviteCode(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -2088,6 +2463,13 @@ extension StoreQueryWhereDistinct on QueryBuilder<Store, Store, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'phone', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Store, Store, QDistinct> distinctByProvince(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'province', caseSensitive: caseSensitive);
     });
   }
 
@@ -2132,6 +2514,12 @@ extension StoreQueryProperty on QueryBuilder<Store, Store, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Store, String?, QQueryOperations> cityProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'city');
+    });
+  }
+
   QueryBuilder<Store, String?, QQueryOperations> inviteCodeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'inviteCode');
@@ -2159,6 +2547,12 @@ extension StoreQueryProperty on QueryBuilder<Store, Store, QQueryProperty> {
   QueryBuilder<Store, String?, QQueryOperations> phoneProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'phone');
+    });
+  }
+
+  QueryBuilder<Store, String?, QQueryOperations> provinceProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'province');
     });
   }
 

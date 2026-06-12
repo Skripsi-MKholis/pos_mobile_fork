@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/confirm_email_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/forgot_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/setup_password_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/store_selection_screen.dart';
@@ -63,7 +64,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isAuthPage =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
-          state.matchedLocation == '/forgot-password';
+          state.matchedLocation == '/forgot-password' ||
+          state.matchedLocation == '/confirm-email' ||
+          state.matchedLocation == '/setup-password';
 
       final isFirstRunAsync = ref.read(onboardingNotifierProvider);
 
@@ -152,6 +155,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/confirm-email',
+        builder: (context, state) {
+          final email = state.uri.queryParameters['email'] ?? '';
+          return ConfirmEmailScreen(email: email);
+        },
       ),
       GoRoute(
         path: '/setup-password',

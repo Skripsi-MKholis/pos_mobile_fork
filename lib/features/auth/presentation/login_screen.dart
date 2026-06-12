@@ -43,11 +43,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/select-store');
     } catch (e) {
       if (mounted) {
-        mySnackBar(
-          context: context,
-          text: l10n.loginFailed(e.toString()),
-          status: ToastStatus.error,
-        );
+        final errStr = e.toString().toLowerCase();
+        final isEmailUnconfirmed = errStr.contains('email not confirmed') ||
+            errStr.contains('email confirmation') ||
+            errStr.contains('not confirmed');
+
+        if (isEmailUnconfirmed) {
+          context.push('/confirm-email?email=${Uri.encodeComponent(email)}');
+        } else {
+          mySnackBar(
+            context: context,
+            text: l10n.loginFailed(e.toString()),
+            status: ToastStatus.error,
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -405,6 +414,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _handleLogin,
+                        onLongPress: _isLoading ? null : () => context.go('/customer/home'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Warna.primary,
                           foregroundColor: Colors.black,
@@ -502,34 +512,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ).animate().fadeIn(delay: 500.ms),
-                    
-                    const SizedBox(height: 20),
-
-                    // Customer entry point
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          context.go('/customer/home');
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: BorderSide(color: Colors.grey.shade300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        icon: const Icon(TablerIcons.qrcode, size: 18),
-                        label: const Text(
-                          'Masuk sebagai Pelanggan',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: 550.ms),
                     
                     // Footer Link
                     Center(

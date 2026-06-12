@@ -63,15 +63,57 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           text: l10n.registrationSuccess,
           status: ToastStatus.success,
         );
-        context.pushReplacement('/setup-password');
+        context.go('/select-store');
       }
     } catch (e) {
       if (mounted) {
-        mySnackBar(
-          context: context,
-          text: l10n.registrationFailed(e.toString()),
-          status: ToastStatus.error,
-        );
+        final errStr = e.toString().toLowerCase();
+        final isAlreadyRegistered = errStr.contains('already registered') ||
+            errStr.contains('already been registered') ||
+            errStr.contains('email already') ||
+            errStr.contains('user already exists') ||
+            errStr.contains('duplicate') ||
+            errStr.contains('unique constraint');
+
+        final locale = ref.read(localeNotifierProvider);
+        final isId = locale.languageCode == 'id';
+
+        if (isAlreadyRegistered) {
+          showShadDialog(
+            context: context,
+            builder: (ctx) => ShadDialog(
+              title: Text(
+                isId ? 'Email Sudah Terdaftar' : 'Email Already Registered',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              description: Text(
+                isId
+                    ? 'Akun dengan email "$email" sudah terdaftar.\nSilakan masuk menggunakan akun yang sudah ada, atau gunakan email lain untuk mendaftar.'
+                    : 'An account with "$email" already exists.\nPlease sign in with your existing account, or use a different email to register.',
+                style: TextStyle(fontSize: 13.5, color: Colors.grey.shade600, height: 1.5),
+              ),
+              actions: [
+                ShadButton.outline(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    context.pop();
+                  },
+                  child: Text(isId ? 'Masuk' : 'Sign In'),
+                ),
+                ShadButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(isId ? 'Coba Email Lain' : 'Use Another Email'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          mySnackBar(
+            context: context,
+            text: l10n.registrationFailed(e.toString()),
+            status: ToastStatus.error,
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -31,14 +31,22 @@ class Auth extends _$Auth {
       email: email,
       password: password,
       data: data,
+      emailRedirectTo: 'io.supabase.zellopos://login-callback/',
     );
     await AnalyticsService.instance.logSignUp(method: 'email');
+  }
+
+  Future<void> resendConfirmationEmail(String email) async {
+    await Supabase.instance.client.auth.resend(
+      type: OtpType.signup,
+      email: email,
+    );
   }
 
   Future<void> resetPassword(String email) async {
     await Supabase.instance.client.auth.resetPasswordForEmail(
       email,
-      redirectTo: 'io.supabase.flutterpos://reset-callback/',
+      redirectTo: 'io.supabase.zellopos://reset-callback/',
     );
   }
 
