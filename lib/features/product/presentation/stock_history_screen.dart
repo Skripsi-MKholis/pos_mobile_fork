@@ -110,10 +110,12 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               child: historyAsync.when(
                 data: (logs) {
                   // Filter logs locally based on search query and category type
+                  // ⚡ Bolt: Hoist string conversions outside the loop to prevent O(N) redundant allocations
+                  final lowerQuery = _searchQuery.toLowerCase();
                   final filteredLogs = logs.where((log) {
                     final matchesSearch = log.productName
                         .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
+                        .contains(lowerQuery);
                         
                     final matchesType = _filterType == 'all' ||
                         (_filterType == 'sale' && log.changeType == 'sale') ||
