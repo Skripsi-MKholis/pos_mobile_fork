@@ -1,6 +1,6 @@
 ### **Versi Sekarang**
 
-**1.7.0+10**
+**1.8.0+11**
 
 ---
 
@@ -121,6 +121,14 @@ Ringkasan perubahan pada rilis ini:
 * **Pemilihan Lokasi Toko (Provinsi & Kota/Kabupaten)**: Menambahkan picker lokasi toko yang terintegrasi dengan API wilayah.id pada halaman **Buat Toko** dan **Informasi Toko**. Pengguna kini dapat memilih Provinsi dan Kota/Kabupaten melalui *bottom sheet* dengan fitur pencarian real-time, sehingga data lokasi toko tersimpan terstruktur di database.
 * **Penyesuaian Model Bisnis**: Model bisnis (Restoran, Retail, Cafe) kini berfungsi sebagai **kategori informatif** saja dan tidak lagi mengontrol aktif/tidaknya fitur aplikasi. Seluruh fitur (KDS, Manajemen Meja, Pelanggan, Promosi, Reservasi) diaktifkan secara penuh untuk semua jenis bisnis sejak toko dibuat.
 * **Skema Database Supabase**: Menambahkan kolom `city` (teks, nullable) pada tabel `stores` untuk menyimpan data kota/kabupaten toko.
+
+---
+
+**Versi 1.8.0+11 (Android Compatibility & Play Store Fix)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Dukungan Ukuran Halaman Memori 16 KB**: Memperbarui versi NDK Android ke `28.2.13676358` pada konfigurasi `build.gradle.kts` untuk memenuhi persyaratan wajib Google Play Console terkait dukungan 16KB memory page size di Android 15+. Perbaikan ini diperlukan agar tombol "Simpan" di Play Console tidak terkunci dan proses rilis dapat dilanjutkan.
 
 ---
 
