@@ -18,6 +18,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  if (Env.supabaseUrl.isEmpty || Env.supabaseAnonKey.isEmpty) {
+    throw Exception('Supabase credentials (SUPABASE_URL, SUPABASE_ANON_KEY) must be provided via --dart-define');
+  }
+
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   try {
     await Supabase.instance.client.ensureValidSession();
