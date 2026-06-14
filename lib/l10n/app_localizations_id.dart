@@ -347,6 +347,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get clearCart => 'Kosongkan Keranjang';
 
   @override
+  String get confirmClearCart => 'Kosongkan Keranjang?';
+
+  @override
+  String get confirmClearCartDesc =>
+      'Apakah Anda yakin ingin mengosongkan semua item dari keranjang? Tindakan ini tidak dapat dibatalkan.';
+
+  @override
   String get viewDetails => 'Cek Detail';
 
   @override
