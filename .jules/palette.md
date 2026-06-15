@@ -1,0 +1,3 @@
+## 2024-06-06 - Preventing Accidental Destructive Actions
+**Learning:** Destructive actions like "Clear Cart" implemented as a single-click icon button can lead to frustrating data loss for users in a fast-paced POS environment. Implementing an explicit confirmation dialog creates necessary friction that prevents this negative outcome without significantly slowing down intentional workflows.
+**Action:** Always wrap high-stakes destructive actions (e.g., clearing carts, deleting items) in a confirmation modal (using `showShadDialog`) that clearly indicates the consequence and requires explicit user confirmation.
