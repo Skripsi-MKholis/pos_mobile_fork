@@ -54,8 +54,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     final code = value.trim().toLowerCase();
     Product? foundProduct;
     for (final p in products) {
-      if ((p.sku != null && p.sku!.trim().toLowerCase() == code) ||
-          (p.barcode != null && p.barcode!.trim().toLowerCase() == code)) {
+      final skuLower = p.sku?.trim().toLowerCase();
+      final barcodeLower = p.barcode?.trim().toLowerCase();
+      if ((skuLower != null && skuLower == code) ||
+          (barcodeLower != null && barcodeLower == code)) {
         foundProduct = p;
         break;
       }
@@ -465,14 +467,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
+                  // Hoist invariant string conversion outside of the loop for performance
+                  final lowerQuery = _searchQuery.toLowerCase();
                   var filteredProducts = products
                       .where(
                         (p) =>
                             (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
+                                  lowerQuery,
                                 ) ||
                                 (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
+                                      lowerQuery,
                                     ) ??
                                     false)) &&
                             (_selectedCategoryId == null ||
@@ -1204,8 +1208,10 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
     // Search product
     Product? foundProduct;
     for (final p in widget.products) {
-      if ((p.sku != null && p.sku!.trim().toLowerCase() == code) ||
-          (p.barcode != null && p.barcode!.trim().toLowerCase() == code)) {
+      final skuLower = p.sku?.trim().toLowerCase();
+      final barcodeLower = p.barcode?.trim().toLowerCase();
+      if ((skuLower != null && skuLower == code) ||
+          (barcodeLower != null && barcodeLower == code)) {
         foundProduct = p;
         break;
       }

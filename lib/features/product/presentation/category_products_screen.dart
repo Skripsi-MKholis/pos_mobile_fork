@@ -225,12 +225,14 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  // Hoist invariant string conversion outside of the loop for performance
+                  final lowerQuery = _searchQuery.toLowerCase();
                   final filtered = products.where((p) {
                     final isInCategory = widget.category.supabaseId == 'uncategorized'
                         ? p.categoryId == null
                         : p.categoryId == widget.category.supabaseId;
-                    final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                        (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+                    final matchesSearch = p.name.toLowerCase().contains(lowerQuery) ||
+                        (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
                     return isInCategory && matchesSearch;
                   }).toList();
 
@@ -477,9 +479,11 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
     final isId = Localizations.localeOf(context).languageCode == 'id';
     final theme = ShadTheme.of(context);
 
+    // Hoist invariant string conversion outside of the loop for performance
+    final lowerQuery = _sheetQuery.toLowerCase();
     final filtered = widget.availableProducts.where((p) {
-      return p.name.toLowerCase().contains(_sheetQuery.toLowerCase()) ||
-          (p.sku?.toLowerCase().contains(_sheetQuery.toLowerCase()) ?? false);
+      return p.name.toLowerCase().contains(lowerQuery) ||
+          (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
     }).toList();
 
     return Container(
