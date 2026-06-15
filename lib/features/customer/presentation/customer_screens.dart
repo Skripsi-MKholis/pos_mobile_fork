@@ -57,7 +57,9 @@ class CustomerHomeScreen extends ConsumerWidget {
           onPressed: () => context.push('/customer/scan'),
           backgroundColor: Warna.primary,
           elevation: 6,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: const Icon(TablerIcons.scan, color: Warna.black, size: 24),
         ),
       ),
@@ -393,7 +395,9 @@ class _ServiceGrid extends StatelessWidget {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Silakan pilih gerai toko terlebih dahulu di halaman utama!'),
+                content: Text(
+                  'Silakan pilih gerai toko terlebih dahulu di halaman utama!',
+                ),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -567,7 +571,8 @@ class _RecommendedStores extends StatelessWidget {
               padding: EdgeInsets.zero,
               child: InkWell(
                 onTap: () {
-                  final bannerColorHex = '#${(store['bannerColor'] as Color).value.toRadixString(16).substring(2)}';
+                  final bannerColorHex =
+                      '#${(store['bannerColor'] as Color).value.toRadixString(16).substring(2)}';
                   context.push(
                     Uri(
                       path: '/customer/store-detail',
@@ -831,13 +836,34 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
 
   IconData _getProductIcon(String productName) {
     final name = productName.toLowerCase();
-    if (name.contains('kopi') || name.contains('coffee') || name.contains('latte') || name.contains('americano')) {
+    if (name.contains('kopi') ||
+        name.contains('coffee') ||
+        name.contains('latte') ||
+        name.contains('americano')) {
       return TablerIcons.coffee;
-    } else if (name.contains('mie') || name.contains('noodle') || name.contains('setan') || name.contains('hompimpa') || name.contains('suit') || name.contains('bakso') || name.contains('soup')) {
+    } else if (name.contains('mie') ||
+        name.contains('noodle') ||
+        name.contains('setan') ||
+        name.contains('hompimpa') ||
+        name.contains('suit') ||
+        name.contains('bakso') ||
+        name.contains('soup')) {
       return TablerIcons.soup;
-    } else if (name.contains('roti') || name.contains('bread') || name.contains('cake') || name.contains('cokelat') || name.contains('cookie') || name.contains('keju')) {
+    } else if (name.contains('roti') ||
+        name.contains('bread') ||
+        name.contains('cake') ||
+        name.contains('cokelat') ||
+        name.contains('cookie') ||
+        name.contains('keju')) {
       return TablerIcons.cookie;
-    } else if (name.contains('teh') || name.contains('tea') || name.contains('es') || name.contains('jeruk') || name.contains('sundelbolong') || name.contains('gobak') || name.contains('minuman') || name.contains('jus')) {
+    } else if (name.contains('teh') ||
+        name.contains('tea') ||
+        name.contains('es') ||
+        name.contains('jeruk') ||
+        name.contains('sundelbolong') ||
+        name.contains('gobak') ||
+        name.contains('minuman') ||
+        name.contains('jus')) {
       return TablerIcons.glass_full;
     }
     return TablerIcons.shopping_bag;
@@ -903,7 +929,10 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                     },
                     child: const Text(
                       'Mulai Belanja',
-                      style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Warna.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -917,15 +946,22 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
     final subtotal = items.fold<double>(0, (sum, item) => sum + item.lineTotal);
     final tax = subtotal * 0.11; // 11% Tax
     const serviceFee = 2000.0; // Biaya Layanan Rp 2.000
-    
-    final grandTotal = (subtotal + tax + serviceFee).clamp(0.0, double.infinity);
+
+    final grandTotal = (subtotal + tax + serviceFee).clamp(
+      0.0,
+      double.infinity,
+    );
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text(
           'Keranjang Belanja',
-          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black87),
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 16,
+            color: Colors.black87,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -944,7 +980,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                   context: context,
                   builder: (context) => ShadDialog(
                     title: const Text('Kosongkan Keranjang'),
-                    description: const Text('Apakah Anda yakin ingin menghapus semua item dari keranjang belanja?'),
+                    description: const Text(
+                      'Apakah Anda yakin ingin menghapus semua item dari keranjang belanja?',
+                    ),
                     actions: [
                       ShadButton.outline(
                         onPressed: () => Navigator.pop(context),
@@ -980,7 +1018,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(TablerIcons.building_store, size: 20, color: Warna.black),
+                  const Icon(
+                    TablerIcons.building_store,
+                    size: 20,
+                    color: Warna.black,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -1086,7 +1128,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                             child: Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(TablerIcons.minus, size: 12, color: Colors.black87),
+                                  icon: const Icon(
+                                    TablerIcons.minus,
+                                    size: 12,
+                                    color: Colors.black87,
+                                  ),
                                   onPressed: () {
                                     cartNotifier.decrement(item.id);
                                   },
@@ -1100,7 +1146,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(TablerIcons.plus, size: 12, color: Colors.black87),
+                                  icon: const Icon(
+                                    TablerIcons.plus,
+                                    size: 12,
+                                    color: Colors.black87,
+                                  ),
                                   onPressed: () {
                                     cartNotifier.increment(item.id);
                                   },
@@ -1110,7 +1160,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                           ),
                           const SizedBox(width: 4),
                           IconButton(
-                            icon: const Icon(TablerIcons.trash, size: 18, color: Colors.redAccent),
+                            icon: const Icon(
+                              TablerIcons.trash,
+                              size: 18,
+                              color: Colors.redAccent,
+                            ),
                             onPressed: () {
                               cartNotifier.removeItem(item.id);
                             },
@@ -1137,7 +1191,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                 children: [
                   const Text(
                     'Tipe Pesanan',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Row(
@@ -1152,7 +1210,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                               color: _isDineIn ? Warna.primary : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: _isDineIn ? Warna.primary : Colors.grey.shade200,
+                                color: _isDineIn
+                                    ? Warna.primary
+                                    : Colors.grey.shade200,
                               ),
                             ),
                             child: Center(
@@ -1162,7 +1222,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                                   Icon(
                                     TablerIcons.tools_kitchen_2,
                                     size: 16,
-                                    color: _isDineIn ? Colors.black : Colors.grey.shade600,
+                                    color: _isDineIn
+                                        ? Colors.black
+                                        : Colors.grey.shade600,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -1170,7 +1232,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: _isDineIn ? Colors.black : Colors.grey.shade600,
+                                      color: _isDineIn
+                                          ? Colors.black
+                                          : Colors.grey.shade600,
                                     ),
                                   ),
                                 ],
@@ -1190,7 +1254,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                               color: !_isDineIn ? Warna.primary : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: !_isDineIn ? Warna.primary : Colors.grey.shade200,
+                                color: !_isDineIn
+                                    ? Warna.primary
+                                    : Colors.grey.shade200,
                               ),
                             ),
                             child: Center(
@@ -1200,7 +1266,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                                   Icon(
                                     TablerIcons.shopping_bag,
                                     size: 16,
-                                    color: !_isDineIn ? Colors.black : Colors.grey.shade600,
+                                    color: !_isDineIn
+                                        ? Colors.black
+                                        : Colors.grey.shade600,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -1208,7 +1276,9 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: !_isDineIn ? Colors.black : Colors.grey.shade600,
+                                      color: !_isDineIn
+                                          ? Colors.black
+                                          : Colors.grey.shade600,
                                     ),
                                   ),
                                 ],
@@ -1241,12 +1311,19 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                       ),
                       child: Row(
                         children: [
-                          Icon(TablerIcons.info_circle, color: Colors.amber.shade700, size: 16),
+                          Icon(
+                            TablerIcons.info_circle,
+                            color: Colors.amber.shade700,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               'Pesanan Anda akan dikemas dengan rapi untuk dibawa pulang.',
-                              style: TextStyle(fontSize: 11, color: Colors.amber.shade800),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.amber.shade800,
+                              ),
                             ),
                           ),
                         ],
@@ -1271,12 +1348,18 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                 children: [
                   const Text(
                     'Catatan Pesanan (Opsional)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   ShadInput(
                     controller: _notesController,
-                    placeholder: const Text('Contoh: Es batu sedikit, tidak pakai sendok plastik...'),
+                    placeholder: const Text(
+                      'Contoh: Es batu sedikit, tidak pakai sendok plastik...',
+                    ),
                     maxLines: 2,
                   ),
                 ],
@@ -1304,14 +1387,24 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                 children: [
                   const Text(
                     'Rincian Pembayaran',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
                   ),
                   const SizedBox(height: 14),
-                  _buildBillingRow('Subtotal produk', _formatCurrency(subtotal)),
+                  _buildBillingRow(
+                    'Subtotal produk',
+                    _formatCurrency(subtotal),
+                  ),
                   const SizedBox(height: 8),
                   _buildBillingRow('PPN (11%)', _formatCurrency(tax)),
                   const SizedBox(height: 8),
-                  _buildBillingRow('Biaya Layanan & Aplikasi', _formatCurrency(serviceFee)),
+                  _buildBillingRow(
+                    'Biaya Layanan & Aplikasi',
+                    _formatCurrency(serviceFee),
+                  ),
                   const SizedBox(height: 12),
                   const Divider(height: 1),
                   const SizedBox(height: 12),
@@ -1320,7 +1413,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                     children: [
                       const Text(
                         'Total Bayar',
-                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.black87),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: Colors.black87,
+                        ),
                       ),
                       Text(
                         _formatCurrency(grandTotal),
@@ -1361,23 +1458,24 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                 if (_isDineIn && _tableController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Silakan masukkan nomor meja Anda terlebih dahulu!'),
+                      content: Text(
+                        'Silakan masukkan nomor meja Anda terlebih dahulu!',
+                      ),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
                   return;
                 }
-                
-                final table = _isDineIn ? _tableController.text.trim() : 'Takeaway';
+
+                final table = _isDineIn
+                    ? _tableController.text.trim()
+                    : 'Takeaway';
                 final notes = _notesController.text.trim();
-                
+
                 context.push(
                   Uri(
                     path: '/customer/checkout',
-                    queryParameters: {
-                      'table': table,
-                      'notes': notes,
-                    },
+                    queryParameters: {'table': table, 'notes': notes},
                   ).toString(),
                 );
               },
@@ -1403,7 +1501,11 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(TablerIcons.chevron_right, size: 16, color: Warna.black),
+                      const Icon(
+                        TablerIcons.chevron_right,
+                        size: 16,
+                        color: Warna.black,
+                      ),
                     ],
                   ),
                 ],
@@ -1435,11 +1537,13 @@ class _CustomerCartScreenState extends ConsumerState<CustomerCartScreen> {
     );
   }
 }
+
 class CustomerHistoryScreen extends ConsumerStatefulWidget {
   const CustomerHistoryScreen({super.key});
 
   @override
-  ConsumerState<CustomerHistoryScreen> createState() => _CustomerHistoryScreenState();
+  ConsumerState<CustomerHistoryScreen> createState() =>
+      _CustomerHistoryScreenState();
 }
 
 class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
@@ -1460,7 +1564,9 @@ class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
 
   String _formatItemsText(List<dynamic> items) {
     if (items.isEmpty) return 'Tidak ada item';
-    return items.map((i) => '${i['quantity']}x ${i['product_name']}').join(', ');
+    return items
+        .map((i) => '${i['quantity']}x ${i['product_name']}')
+        .join(', ');
   }
 
   String _formatDateTime(String? createdAtStr) {
@@ -1474,7 +1580,20 @@ class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
         return 'Hari ini, $hours:$minutes';
       }
       final day = dt.day;
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
       final month = months[dt.month - 1];
       final year = dt.year;
       final minutes = dt.minute.toString().padLeft(2, '0');
@@ -1600,7 +1719,8 @@ class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
             padding: EdgeInsets.zero,
             child: InkWell(
               onTap: () {
-                if (status.toLowerCase() == 'pending' || status.toLowerCase() == 'cooking') {
+                if (status.toLowerCase() == 'pending' ||
+                    status.toLowerCase() == 'cooking') {
                   context.push('/customer/order/$id');
                 } else {
                   context.push('/customer/receipt/$id');
@@ -1755,14 +1875,18 @@ class _CustomerHistoryScreenState extends ConsumerState<CustomerHistoryScreen>
             ),
             data: (transactions) {
               final active = transactions
-                  .where((t) =>
-                      t['status']?.toString().toLowerCase() == 'pending' ||
-                      t['status']?.toString().toLowerCase() == 'cooking')
+                  .where(
+                    (t) =>
+                        t['status']?.toString().toLowerCase() == 'pending' ||
+                        t['status']?.toString().toLowerCase() == 'cooking',
+                  )
                   .toList();
               final past = transactions
-                  .where((t) =>
-                      t['status']?.toString().toLowerCase() != 'pending' &&
-                      t['status']?.toString().toLowerCase() != 'cooking')
+                  .where(
+                    (t) =>
+                        t['status']?.toString().toLowerCase() != 'pending' &&
+                        t['status']?.toString().toLowerCase() != 'cooking',
+                  )
                   .toList();
 
               return TabBarView(
@@ -1897,7 +2021,11 @@ class CustomerProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCustomerHeader(BuildContext context, ShadThemeData theme, WidgetRef ref) {
+  Widget _buildCustomerHeader(
+    BuildContext context,
+    ShadThemeData theme,
+    WidgetRef ref,
+  ) {
     final profileAsync = ref.watch(userProfileProvider);
 
     return Container(
@@ -1968,7 +2096,10 @@ class CustomerProfileScreen extends ConsumerWidget {
                   children: [
                     Text(
                       fullName,
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -2113,37 +2244,64 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Lacak Pesanan', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          'Lacak Pesanan',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: transactionAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary)),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+          ),
         ),
-        error: (err, stack) => Center(child: Text('Gagal melacak pesanan: $err')),
+        error: (err, stack) =>
+            Center(child: Text('Gagal melacak pesanan: $err')),
         data: (transaction) {
           if (transaction == null) {
             return const Center(child: Text('Pesanan tidak ditemukan.'));
           }
 
           final status = transaction['status'] as String? ?? 'Pending';
-          final paymentMethod = transaction['payment_method'] as String? ?? 'Tunai';
+          final paymentMethod =
+              transaction['payment_method'] as String? ?? 'Tunai';
           final totalAmount = (transaction['total_amount'] ?? 0).toDouble();
           final notes = transaction['notes'] as String?;
-          final createdAt = DateTime.tryParse(transaction['created_at'] ?? '') ?? DateTime.now();
+          final createdAt =
+              DateTime.tryParse(transaction['created_at'] ?? '') ??
+              DateTime.now();
 
           return itemsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary))),
-            error: (err, stack) => Center(child: Text('Gagal memuat detail item: $err')),
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+              ),
+            ),
+            error: (err, stack) =>
+                Center(child: Text('Gagal memuat detail item: $err')),
             data: (items) {
-              final hasNotPendingItems = items.any((item) => item['status'] != 'Pending');
-              final isCooking = items.any((item) => item['status'] == 'Cooking');
-              final isReady = items.any((item) => item['status'] == 'Ready' || item['status'] == 'Served');
-              final allServed = items.isNotEmpty && items.every((item) => item['status'] == 'Served');
+              final hasNotPendingItems = items.any(
+                (item) => item['status'] != 'Pending',
+              );
+              final isCooking = items.any(
+                (item) => item['status'] == 'Cooking',
+              );
+              final isReady = items.any(
+                (item) =>
+                    item['status'] == 'Ready' || item['status'] == 'Served',
+              );
+              final allServed =
+                  items.isNotEmpty &&
+                  items.every((item) => item['status'] == 'Served');
 
-              final isConfirmed = status == 'Berhasil' || hasNotPendingItems || isCooking || isReady;
+              final isConfirmed =
+                  status == 'Berhasil' ||
+                  hasNotPendingItems ||
+                  isCooking ||
+                  isReady;
               final isPreparing = isCooking || isReady || status == 'Berhasil';
               final isCompleted = status == 'Berhasil' || allServed;
 
@@ -2160,7 +2318,10 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                           children: [
                             Text(
                               'Order ID: #${orderId.substring(0, 8).toUpperCase()}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                              ),
                             ),
                             _buildBadge(status),
                           ],
@@ -2171,10 +2332,17 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Total Pembayaran', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const Text(
+                              'Total Pembayaran',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
                             Text(
                               _formatCurrency(totalAmount),
-                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Warna.black),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                color: Warna.black,
+                              ),
                             ),
                           ],
                         ),
@@ -2182,8 +2350,20 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Metode Pembayaran', style: TextStyle(color: Colors.grey, fontSize: 13)),
-                            Text(paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            const Text(
+                              'Metode Pembayaran',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              paymentMethod,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -2198,19 +2378,24 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                       children: [
                         const Text(
                           'Status Pemesanan',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
                         ),
                         const SizedBox(height: 20),
                         _buildTimelineStep(
                           title: 'Pesanan Diterima',
                           subtitle: 'Pesanan Anda telah masuk antrean kasir.',
-                          time: '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                          time:
+                              '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
                           isActive: true,
                           isLast: false,
                         ),
                         _buildTimelineStep(
                           title: 'Dikonfirmasi Kasir',
-                          subtitle: 'Kasir telah menerima dan memproses pesanan.',
+                          subtitle:
+                              'Kasir telah menerima dan memproses pesanan.',
                           isActive: isConfirmed,
                           isLast: false,
                         ),
@@ -2238,7 +2423,10 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                       children: [
                         const Text(
                           'Daftar Item',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         for (final item in items) ...[
@@ -2249,11 +2437,14 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '${item['product_name']} x${item['quantity']}',
-                                        style: const TextStyle(fontWeight: FontWeight.w600),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       if (item['status'] != null)
                                         Text(
@@ -2261,15 +2452,21 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: _getItemStatusColor(item['status'] as String),
+                                            color: _getItemStatusColor(
+                                              item['status'] as String,
+                                            ),
                                           ),
                                         ),
                                     ],
                                   ),
                                 ),
                                 Text(
-                                  _formatCurrency((item['subtotal'] ?? 0).toDouble()),
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  _formatCurrency(
+                                    (item['subtotal'] ?? 0).toDouble(),
+                                  ),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -2293,7 +2490,13 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                         children: [
                           Icon(TablerIcons.receipt_2, color: Warna.black),
                           SizedBox(width: 8),
-                          Text('Lihat Struk Digital', style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold)),
+                          Text(
+                            'Lihat Struk Digital',
+                            style: TextStyle(
+                              color: Warna.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     )
@@ -2380,7 +2583,9 @@ class CustomerOrderTrackingScreen extends ConsumerWidget {
                 color: isActive ? Warna.primary : Colors.grey.shade300,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isActive ? Warna.primary.withOpacity(0.3) : Colors.transparent,
+                  color: isActive
+                      ? Warna.primary.withOpacity(0.3)
+                      : Colors.transparent,
                   width: 4,
                 ),
               ),
@@ -2443,20 +2648,27 @@ class CustomerReceiptScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionAsync = ref.watch(transactionStreamProvider(transactionId));
+    final transactionAsync = ref.watch(
+      transactionStreamProvider(transactionId),
+    );
     final itemsAsync = ref.watch(transactionItemsStreamProvider(transactionId));
 
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Struk Digital', style: TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          'Struk Digital',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: transactionAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary)),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+          ),
         ),
         error: (err, stack) => Center(child: Text('Gagal memuat struk: $err')),
         data: (transaction) {
@@ -2465,35 +2677,55 @@ class CustomerReceiptScreen extends ConsumerWidget {
           }
 
           final status = transaction['status'] as String? ?? 'Pending';
-          final paymentMethod = transaction['payment_method'] as String? ?? 'Tunai';
+          final paymentMethod =
+              transaction['payment_method'] as String? ?? 'Tunai';
           final totalAmount = (transaction['total_amount'] ?? 0).toDouble();
-          final createdAt = DateTime.tryParse(transaction['created_at'] ?? '') ?? DateTime.now();
+          final createdAt =
+              DateTime.tryParse(transaction['created_at'] ?? '') ??
+              DateTime.now();
 
           final storeDetailsAsync = ref.watch(customerStoreDetailsProvider);
           final storeDetails = storeDetailsAsync.value;
           final storeName = storeDetails?['name'] ?? 'Toko Mitra';
-          final storeAddress = storeDetails?['address'] ?? 'Alamat tidak tersedia';
+          final storeAddress =
+              storeDetails?['address'] ?? 'Alamat tidak tersedia';
           final storePhone = storeDetails?['phone'] ?? '-';
 
           return itemsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Warna.primary))),
-            error: (err, stack) => Center(child: Text('Gagal memuat item struk: $err')),
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+              ),
+            ),
+            error: (err, stack) =>
+                Center(child: Text('Gagal memuat item struk: $err')),
             data: (items) {
-              final subtotal = items.fold<double>(0, (sum, item) => sum + (item['subtotal'] ?? 0).toDouble());
-              final settings = storeDetails?['settings'] as Map<String, dynamic>?;
+              final subtotal = items.fold<double>(
+                0,
+                (sum, item) => sum + (item['subtotal'] ?? 0).toDouble(),
+              );
+              final settings =
+                  storeDetails?['settings'] as Map<String, dynamic>?;
               final financial = settings?['financial'] as Map<String, dynamic>?;
 
               final taxEnabled = financial?['tax_enabled'] ?? false;
               final taxRate = (financial?['tax_rate'] ?? 0).toDouble();
-              final serviceChargeEnabled = financial?['service_charge_enabled'] ?? false;
-              final serviceChargeRate = (financial?['service_charge_rate'] ?? 0).toDouble();
+              final serviceChargeEnabled =
+                  financial?['service_charge_enabled'] ?? false;
+              final serviceChargeRate = (financial?['service_charge_rate'] ?? 0)
+                  .toDouble();
 
-              final serviceCharge = serviceChargeEnabled ? (subtotal * serviceChargeRate / 100.0) : 0.0;
+              final serviceCharge = serviceChargeEnabled
+                  ? (subtotal * serviceChargeRate / 100.0)
+                  : 0.0;
               final tax = taxEnabled ? (subtotal * taxRate / 100.0) : 0.0;
 
               return Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -2512,23 +2744,38 @@ class CustomerReceiptScreen extends ConsumerWidget {
                         child: Column(
                           children: [
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                24,
+                                20,
+                                16,
+                              ),
                               child: Column(
                                 children: [
                                   Text(
                                     storeName,
-                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 0.5),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 18,
+                                      letterSpacing: 0.5,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     storeAddress,
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 11,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                   Text(
                                     'Telp: $storePhone',
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 11,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 12),
@@ -2536,16 +2783,27 @@ class CustomerReceiptScreen extends ConsumerWidget {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.green.shade50,
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: Colors.green.shade200),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.green.shade200,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(TablerIcons.discount_check_filled, color: Colors.green.shade700, size: 14),
+                                            Icon(
+                                              TablerIcons.discount_check_filled,
+                                              color: Colors.green.shade700,
+                                              size: 14,
+                                            ),
                                             const SizedBox(width: 4),
                                             Text(
                                               'LUNAS',
@@ -2568,20 +2826,31 @@ class CustomerReceiptScreen extends ConsumerWidget {
                             _buildTicketSeparator(),
 
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         'TGL: ${createdAt.day}/${createdAt.month}/${createdAt.year} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
-                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 11,
+                                        ),
                                       ),
                                       Text(
                                         'ID: ${transactionId.substring(0, 8).toUpperCase()}',
-                                        style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.bold),
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -2590,27 +2859,45 @@ class CustomerReceiptScreen extends ConsumerWidget {
                                   const SizedBox(height: 12),
                                   for (final item in items) ...[
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                item['product_name'] as String? ?? '',
-                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                                item['product_name']
+                                                        as String? ??
+                                                    '',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 13,
+                                                  color: Colors.black87,
+                                                ),
                                               ),
                                               Text(
                                                 '${item['quantity']} x ${_formatCurrency((item['unit_price'] ?? 0).toDouble())}',
-                                                style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade500,
+                                                  fontSize: 11,
+                                                ),
                                               ),
                                             ],
                                           ),
                                         ),
                                         Text(
-                                          _formatCurrency((item['subtotal'] ?? 0).toDouble()),
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+                                          _formatCurrency(
+                                            (item['subtotal'] ?? 0).toDouble(),
+                                          ),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            color: Colors.black87,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -2620,29 +2907,68 @@ class CustomerReceiptScreen extends ConsumerWidget {
                                   const Divider(height: 1),
                                   const SizedBox(height: 12),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('Subtotal', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                                      Text(_formatCurrency(subtotal), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      const Text(
+                                        'Subtotal',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatCurrency(subtotal),
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   if (serviceChargeEnabled) ...[
                                     const SizedBox(height: 6),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text('Biaya Layanan (${serviceChargeRate.toStringAsFixed(0)}%)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                        Text(_formatCurrency(serviceCharge), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        Text(
+                                          'Biaya Layanan (${serviceChargeRate.toStringAsFixed(0)}%)',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatCurrency(serviceCharge),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
                                   if (taxEnabled) ...[
                                     const SizedBox(height: 6),
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text('Pajak (${taxRate.toStringAsFixed(0)}%)', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                        Text(_formatCurrency(tax), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                        Text(
+                                          'Pajak (${taxRate.toStringAsFixed(0)}%)',
+                                          style: const TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        Text(
+                                          _formatCurrency(tax),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
@@ -2650,18 +2976,44 @@ class CustomerReceiptScreen extends ConsumerWidget {
                                   const Divider(height: 1),
                                   const SizedBox(height: 12),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('TOTAL', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-                                      Text(_formatCurrency(totalAmount), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                                      const Text(
+                                        'TOTAL',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        _formatCurrency(totalAmount),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 16,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      const Text('METODE BAYAR', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                                      Text(paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                                      const Text(
+                                        'METODE BAYAR',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      Text(
+                                        paymentMethod,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],
@@ -2670,14 +3022,27 @@ class CustomerReceiptScreen extends ConsumerWidget {
 
                             _buildTicketSeparator(),
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                16,
+                                20,
+                                24,
+                              ),
                               child: Column(
                                 children: [
-                                  const Icon(TablerIcons.qrcode, size: 64, color: Colors.black54),
+                                  const Icon(
+                                    TablerIcons.qrcode,
+                                    size: 64,
+                                    color: Colors.black54,
+                                  ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'Terima Kasih atas Kunjungan Anda!',
-                                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11, fontStyle: FontStyle.italic),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 11,
+                                      fontStyle: FontStyle.italic,
+                                    ),
                                     textAlign: TextAlign.center,
                                   ),
                                 ],
@@ -2718,7 +3083,13 @@ class CustomerReceiptScreen extends ConsumerWidget {
                               onPressed: () {
                                 context.go('/customer/store-detail');
                               },
-                              child: const Text('Selesai', style: TextStyle(color: Warna.black, fontWeight: FontWeight.bold)),
+                              child: const Text(
+                                'Selesai',
+                                style: TextStyle(
+                                  color: Warna.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -3030,7 +3401,6 @@ String _formatCurrency(double value) {
   ).format(value);
 }
 
-
 class CustomerSearchScreen extends StatefulWidget {
   const CustomerSearchScreen({super.key});
 
@@ -3184,16 +3554,18 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
 
+    // ⚡ Bolt: Hoist _query.toLowerCase() outside the .where loop
+    // to prevent redundant O(N) string conversions per item.
+    final qLower = _query.toLowerCase();
     final filteredItems = _allItems.where((item) {
       final name = item['name'].toString().toLowerCase();
       final category = (item['category'] ?? '').toString().toLowerCase();
       final store = (item['store'] ?? '').toString().toLowerCase();
       final type = item['type'].toString().toLowerCase();
-      final q = _query.toLowerCase();
-      return name.contains(q) ||
-          category.contains(q) ||
-          store.contains(q) ||
-          type.contains(q);
+      return name.contains(qLower) ||
+          category.contains(qLower) ||
+          store.contains(qLower) ||
+          type.contains(qLower);
     }).toList();
 
     return Scaffold(
@@ -3478,7 +3850,8 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                       _addHistory(item['name'] as String);
                       if (isStore) {
                         final colorVal = item['iconColor'] as Color;
-                        final hex = '#${colorVal.value.toRadixString(16).substring(2)}';
+                        final hex =
+                            '#${colorVal.value.toRadixString(16).substring(2)}';
                         context.push(
                           Uri(
                             path: '/customer/store-detail',
@@ -3492,12 +3865,13 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                         );
                       } else {
                         // Product clicked: find matching store details
-                        final storeLabel = (item['store'] ?? 'Kopi Kenangan') as String;
+                        final storeLabel =
+                            (item['store'] ?? 'Kopi Kenangan') as String;
                         String storeName = 'Kopi Kenangan - Plaza Ambarrukmo';
                         String category = 'Kopi & Roti';
                         String distance = '1.2 km';
                         String hex = '#D97706';
-                        
+
                         if (storeLabel.contains('Gacoan')) {
                           storeName = 'Mie Gacoan - Sudirman';
                           category = 'Mie Pedas & Dimsum';
@@ -3509,7 +3883,7 @@ class _CustomerSearchScreenState extends State<CustomerSearchScreen> {
                           distance = '3.1 km';
                           hex = '#059669';
                         }
-                        
+
                         context.push(
                           Uri(
                             path: '/customer/store-detail',
@@ -3573,10 +3947,12 @@ class _CustomerSelectLocationScreenState
     final theme = ShadTheme.of(context);
     final currentLocation = ref.watch(customerLocationProvider);
 
+    // ⚡ Bolt: Hoist _searchQuery.toLowerCase() outside the .where loop
+    // to prevent redundant O(N) string conversions per item.
+    final queryLower = _searchQuery.toLowerCase();
     final filteredLocations = demoLocations.where((loc) {
-      final query = _searchQuery.toLowerCase();
-      return loc['city']!.toLowerCase().contains(query) ||
-          loc['region']!.toLowerCase().contains(query);
+      return loc['city']!.toLowerCase().contains(queryLower) ||
+          loc['region']!.toLowerCase().contains(queryLower);
     }).toList();
 
     return Scaffold(
@@ -3784,8 +4160,9 @@ class _CustomerSelectLocationScreenState
                       title: Text(
                         loc['city']!,
                         style: TextStyle(
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w600,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w600,
                           color: isSelected ? Colors.black : Colors.black87,
                         ),
                       ),
@@ -3820,10 +4197,12 @@ class CustomerAllStoresScreen extends ConsumerStatefulWidget {
   const CustomerAllStoresScreen({super.key});
 
   @override
-  ConsumerState<CustomerAllStoresScreen> createState() => _CustomerAllStoresScreenState();
+  ConsumerState<CustomerAllStoresScreen> createState() =>
+      _CustomerAllStoresScreenState();
 }
 
-class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScreen> {
+class _CustomerAllStoresScreenState
+    extends ConsumerState<CustomerAllStoresScreen> {
   final TextEditingController _searchController = TextEditingController();
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   final ScrollController _scrollController = ScrollController();
@@ -3835,7 +4214,8 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       ref.read(customerAllStoresProvider.notifier).fetchStores();
     }
   }
@@ -3924,29 +4304,35 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
               ),
               onChanged: (val) {
                 _debouncer.run(() {
-                  ref.read(customerAllStoresProvider.notifier).updateSearchQuery(val);
+                  ref
+                      .read(customerAllStoresProvider.notifier)
+                      .updateSearchQuery(val);
                 });
               },
               trailing: storesState.searchQuery.isNotEmpty
                   ? GestureDetector(
                       onTap: () {
                         _searchController.clear();
-                        ref.read(customerAllStoresProvider.notifier).updateSearchQuery('');
+                        ref
+                            .read(customerAllStoresProvider.notifier)
+                            .updateSearchQuery('');
                       },
                       child: const Icon(TablerIcons.x, size: 18),
                     )
                   : null,
             ),
           ),
-          Expanded(
-            child: _buildBody(context, storesState, theme),
-          ),
+          Expanded(child: _buildBody(context, storesState, theme)),
         ],
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, CustomerAllStoresState state, ShadThemeData theme) {
+  Widget _buildBody(
+    BuildContext context,
+    CustomerAllStoresState state,
+    ShadThemeData theme,
+  ) {
     if (state.isLoading && state.stores.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(
@@ -3970,7 +4356,9 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
             ),
             const SizedBox(height: 16),
             ShadButton(
-              onPressed: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+              onPressed: () => ref
+                  .read(customerAllStoresProvider.notifier)
+                  .fetchStores(refresh: true),
               backgroundColor: Warna.primary,
               child: const Text('Coba Lagi'),
             ),
@@ -3981,7 +4369,9 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
 
     if (state.stores.isEmpty) {
       return RefreshIndicator(
-        onRefresh: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+        onRefresh: () => ref
+            .read(customerAllStoresProvider.notifier)
+            .fetchStores(refresh: true),
         color: Warna.primary,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -4016,7 +4406,9 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
     }
 
     return RefreshIndicator(
-      onRefresh: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
+      onRefresh: () => ref
+          .read(customerAllStoresProvider.notifier)
+          .fetchStores(refresh: true),
       color: Warna.primary,
       child: ListView.builder(
         controller: _scrollController,
@@ -4039,7 +4431,8 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
           final storeId = store['id'] as String;
           final name = store['name'] as String? ?? 'Toko POS';
           final type = store['business_type'] as String? ?? 'Makanan & Minuman';
-          final address = store['address'] as String? ?? 'Alamat tidak tersedia';
+          final address =
+              store['address'] as String? ?? 'Alamat tidak tersedia';
           final color = _getStoreColor(name);
           final hex = _getColorHex(color);
 
