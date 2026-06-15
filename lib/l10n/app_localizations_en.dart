@@ -347,6 +347,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearCart => 'Clear Cart';
 
   @override
+  String get clearCartConfirm => 'Are you sure you want to clear the cart?';
+
+  @override
+  String get clearCartConfirmDesc =>
+      'This action will remove all items from the current cart.';
+
+  @override
   String get viewDetails => 'View Details';
 
   @override
