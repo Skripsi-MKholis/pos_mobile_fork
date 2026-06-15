@@ -1,5 +1,8 @@
 {
   "@@locale": "en",
+  "back": "Back",
+  "decreaseQuantity": "Decrease Quantity",
+  "increaseQuantity": "Increase Quantity",
   "menu": "Menu",
   "catalogAndStock": "CATALOG & STOCK",
   "productList": "Product List",

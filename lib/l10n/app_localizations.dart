@@ -98,6 +98,24 @@ abstract class AppLocalizations {
     Locale('id'),
   ];
 
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @decreaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrease Quantity'**
+  String get decreaseQuantity;
+
+  /// No description provided for @increaseQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase Quantity'**
+  String get increaseQuantity;
+
   /// No description provided for @menu.
   ///
   /// In en, this message translates to:

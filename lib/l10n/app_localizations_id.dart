@@ -9,6 +9,15 @@ class AppLocalizationsId extends AppLocalizations {
   AppLocalizationsId([String locale = 'id']) : super(locale);
 
   @override
+  String get back => 'Kembali';
+
+  @override
+  String get decreaseQuantity => 'Kurangi Kuantitas';
+
+  @override
+  String get increaseQuantity => 'Tambah Kuantitas';
+
+  @override
   String get menu => 'Menu';
 
   @override
