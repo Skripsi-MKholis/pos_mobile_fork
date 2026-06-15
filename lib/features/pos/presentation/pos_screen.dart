@@ -699,17 +699,19 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   Widget _buildSortButton() {
     final theme = ShadTheme.of(context);
-    return InkWell(
-      onTap: () {
-        showModalBottomSheet(
-          context: context,
-          useRootNavigator: true, // Show over bottom bar
-          backgroundColor: Colors.transparent,
-          builder: (sheetContext) => _buildSortBottomSheet(sheetContext),
-        );
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
+    return Tooltip(
+      message: 'Urutkan Produk',
+      child: InkWell(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            useRootNavigator: true, // Show over bottom bar
+            backgroundColor: Colors.transparent,
+            builder: (sheetContext) => _buildSortBottomSheet(sheetContext),
+          );
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
@@ -717,10 +719,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: theme.colorScheme.border),
         ),
-        child: Icon(
-          TablerIcons.arrows_sort,
-          size: 18,
-          color: theme.colorScheme.foreground,
+          child: Icon(
+            TablerIcons.arrows_sort,
+            size: 18,
+            color: theme.colorScheme.foreground,
+          ),
         ),
       ),
     );
@@ -1047,7 +1050,36 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: l10n.clearCart,
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () async {
+                    final confirmed = await showShadDialog<bool>(
+                      context: context,
+                      builder: (context) => ShadDialog(
+                        title: const Text('Kosongkan Keranjang?'),
+                        description: const Text(
+                          'Apakah Anda yakin ingin menghapus semua item dari keranjang?',
+                        ),
+                        actions: [
+                          ShadButton.outline(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('Batal'),
+                          ),
+                          ShadButton(
+                            backgroundColor: Colors.red,
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text(
+                              'Kosongkan',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) {
+                      cartNotifier.clearCart();
+                    }
+                  },
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
