@@ -14,37 +14,185 @@ import 'package:pos_mobile/features/customer/providers/customer_catalog_provider
 // Mock Products Catalog Data grouped by store name matches
 final Map<String, List<Map<String, dynamic>>> mockStoreProducts = {
   'kopi kenangan': [
-    {'id': 'kk1', 'name': 'Kopi Kenangan Mantan', 'price': 22000.0, 'category': 'Minuman', 'badge': 'Terlaris', 'icon': TablerIcons.coffee},
-    {'id': 'kk2', 'name': 'Dua Shot Iced Shaken', 'price': 28000.0, 'category': 'Minuman', 'badge': 'Rekomendasi', 'icon': TablerIcons.coffee},
-    {'id': 'kk3', 'name': 'Avocoffee Blend', 'price': 30000.0, 'category': 'Minuman', 'icon': TablerIcons.coffee},
-    {'id': 'kk4', 'name': 'Americano Klasik Dingin', 'price': 18000.0, 'category': 'Minuman', 'icon': TablerIcons.coffee},
-    {'id': 'kk5', 'name': 'Roti Tjokelat Klasik', 'price': 12000.0, 'category': 'Makanan', 'badge': 'Baru', 'icon': TablerIcons.cookie},
-    {'id': 'kk6', 'name': 'Roti Keju Manis', 'price': 12000.0, 'category': 'Makanan', 'icon': TablerIcons.cookie},
+    {
+      'id': 'kk1',
+      'name': 'Kopi Kenangan Mantan',
+      'price': 22000.0,
+      'category': 'Minuman',
+      'badge': 'Terlaris',
+      'icon': TablerIcons.coffee,
+    },
+    {
+      'id': 'kk2',
+      'name': 'Dua Shot Iced Shaken',
+      'price': 28000.0,
+      'category': 'Minuman',
+      'badge': 'Rekomendasi',
+      'icon': TablerIcons.coffee,
+    },
+    {
+      'id': 'kk3',
+      'name': 'Avocoffee Blend',
+      'price': 30000.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.coffee,
+    },
+    {
+      'id': 'kk4',
+      'name': 'Americano Klasik Dingin',
+      'price': 18000.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.coffee,
+    },
+    {
+      'id': 'kk5',
+      'name': 'Roti Tjokelat Klasik',
+      'price': 12000.0,
+      'category': 'Makanan',
+      'badge': 'Baru',
+      'icon': TablerIcons.cookie,
+    },
+    {
+      'id': 'kk6',
+      'name': 'Roti Keju Manis',
+      'price': 12000.0,
+      'category': 'Makanan',
+      'icon': TablerIcons.cookie,
+    },
   ],
   'mie gacoan': [
-    {'id': 'mg1', 'name': 'Mie Suit (Gurih No Pedas)', 'price': 12000.0, 'category': 'Makanan', 'icon': TablerIcons.soup},
-    {'id': 'mg2', 'name': 'Mie Hompimpa (Pedas Asin)', 'price': 13500.0, 'category': 'Makanan', 'badge': 'Terlaris', 'icon': TablerIcons.soup},
-    {'id': 'mg3', 'name': 'Mie Gacoan (Pedas Manis)', 'price': 13500.0, 'category': 'Makanan', 'badge': 'Favorit', 'icon': TablerIcons.soup},
-    {'id': 'mg4', 'name': 'Siomay Dimsum (3 pcs)', 'price': 11000.0, 'category': 'Cemilan', 'icon': TablerIcons.meat},
-    {'id': 'mg5', 'name': 'Udang Keju Crispy (3 pcs)', 'price': 12500.0, 'category': 'Cemilan', 'badge': 'Rekomendasi', 'icon': TablerIcons.meat},
-    {'id': 'mg6', 'name': 'Es Gobak Sodor Segar', 'price': 10500.0, 'category': 'Minuman', 'icon': TablerIcons.glass_full},
-    {'id': 'mg7', 'name': 'Es Teklek Manis', 'price': 9000.0, 'category': 'Minuman', 'icon': TablerIcons.glass_full},
+    {
+      'id': 'mg1',
+      'name': 'Mie Suit (Gurih No Pedas)',
+      'price': 12000.0,
+      'category': 'Makanan',
+      'icon': TablerIcons.soup,
+    },
+    {
+      'id': 'mg2',
+      'name': 'Mie Hompimpa (Pedas Asin)',
+      'price': 13500.0,
+      'category': 'Makanan',
+      'badge': 'Terlaris',
+      'icon': TablerIcons.soup,
+    },
+    {
+      'id': 'mg3',
+      'name': 'Mie Gacoan (Pedas Manis)',
+      'price': 13500.0,
+      'category': 'Makanan',
+      'badge': 'Favorit',
+      'icon': TablerIcons.soup,
+    },
+    {
+      'id': 'mg4',
+      'name': 'Siomay Dimsum (3 pcs)',
+      'price': 11000.0,
+      'category': 'Cemilan',
+      'icon': TablerIcons.meat,
+    },
+    {
+      'id': 'mg5',
+      'name': 'Udang Keju Crispy (3 pcs)',
+      'price': 12500.0,
+      'category': 'Cemilan',
+      'badge': 'Rekomendasi',
+      'icon': TablerIcons.meat,
+    },
+    {
+      'id': 'mg6',
+      'name': 'Es Gobak Sodor Segar',
+      'price': 10500.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.glass_full,
+    },
+    {
+      'id': 'mg7',
+      'name': 'Es Teklek Manis',
+      'price': 9000.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.glass_full,
+    },
   ],
   'warmindo': [
-    {'id': 'wm1', 'name': 'Indomie Goreng Double + Telur', 'price': 15000.0, 'category': 'Makanan', 'badge': 'Terlaris', 'icon': TablerIcons.soup},
-    {'id': 'wm2', 'name': 'Indomie Kuah Soto Special', 'price': 14000.0, 'category': 'Makanan', 'icon': TablerIcons.soup},
-    {'id': 'wm3', 'name': 'Nasi Goreng Magelangan', 'price': 16000.0, 'category': 'Makanan', 'badge': 'Favorit', 'icon': TablerIcons.tools_kitchen_2},
-    {'id': 'wm4', 'name': 'Telur Setengah Matang (2 pcs)', 'price': 8000.0, 'category': 'Cemilan', 'icon': TablerIcons.egg},
-    {'id': 'wm5', 'name': 'Es Teh Manis Jumbo', 'price': 5000.0, 'category': 'Minuman', 'icon': TablerIcons.glass_full},
-    {'id': 'wm6', 'name': 'Es Jeruk Nipis Peras', 'price': 6000.0, 'category': 'Minuman', 'icon': TablerIcons.glass_full},
+    {
+      'id': 'wm1',
+      'name': 'Indomie Goreng Double + Telur',
+      'price': 15000.0,
+      'category': 'Makanan',
+      'badge': 'Terlaris',
+      'icon': TablerIcons.soup,
+    },
+    {
+      'id': 'wm2',
+      'name': 'Indomie Kuah Soto Special',
+      'price': 14000.0,
+      'category': 'Makanan',
+      'icon': TablerIcons.soup,
+    },
+    {
+      'id': 'wm3',
+      'name': 'Nasi Goreng Magelangan',
+      'price': 16000.0,
+      'category': 'Makanan',
+      'badge': 'Favorit',
+      'icon': TablerIcons.tools_kitchen_2,
+    },
+    {
+      'id': 'wm4',
+      'name': 'Telur Setengah Matang (2 pcs)',
+      'price': 8000.0,
+      'category': 'Cemilan',
+      'icon': TablerIcons.egg,
+    },
+    {
+      'id': 'wm5',
+      'name': 'Es Teh Manis Jumbo',
+      'price': 5000.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.glass_full,
+    },
+    {
+      'id': 'wm6',
+      'name': 'Es Jeruk Nipis Peras',
+      'price': 6000.0,
+      'category': 'Minuman',
+      'icon': TablerIcons.glass_full,
+    },
   ],
 };
 
 final List<Map<String, dynamic>> defaultMockProducts = [
-  {'id': 'g1', 'name': 'Premium Coffee Latte', 'price': 25000.0, 'category': 'Minuman', 'badge': 'Rekomendasi', 'icon': TablerIcons.coffee},
-  {'id': 'g2', 'name': 'Chocolate Lava Cake', 'price': 20000.0, 'category': 'Cemilan', 'icon': TablerIcons.cookie},
-  {'id': 'g3', 'name': 'Spaghetti Bolognese', 'price': 35000.0, 'category': 'Makanan', 'badge': 'Terlaris', 'icon': TablerIcons.tools_kitchen_2},
-  {'id': 'g4', 'name': 'Iced Peach Tea Segar', 'price': 15000.0, 'category': 'Minuman', 'icon': TablerIcons.glass_full},
+  {
+    'id': 'g1',
+    'name': 'Premium Coffee Latte',
+    'price': 25000.0,
+    'category': 'Minuman',
+    'badge': 'Rekomendasi',
+    'icon': TablerIcons.coffee,
+  },
+  {
+    'id': 'g2',
+    'name': 'Chocolate Lava Cake',
+    'price': 20000.0,
+    'category': 'Cemilan',
+    'icon': TablerIcons.cookie,
+  },
+  {
+    'id': 'g3',
+    'name': 'Spaghetti Bolognese',
+    'price': 35000.0,
+    'category': 'Makanan',
+    'badge': 'Terlaris',
+    'icon': TablerIcons.tools_kitchen_2,
+  },
+  {
+    'id': 'g4',
+    'name': 'Iced Peach Tea Segar',
+    'price': 15000.0,
+    'category': 'Minuman',
+    'icon': TablerIcons.glass_full,
+  },
 ];
 
 class CustomerStoreDetailScreen extends ConsumerStatefulWidget {
@@ -72,7 +220,7 @@ class _CustomerStoreDetailScreenState
     extends ConsumerState<CustomerStoreDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 200));
-  
+
   String _searchQuery = '';
   String _selectedCategoryTab = 'Semua';
   String _sortBy = 'default'; // 'default', 'price_asc', 'price_desc'
@@ -123,7 +271,9 @@ class _CustomerStoreDetailScreenState
       context: context,
       builder: (context) => ShadDialog(
         title: const Text('Bagikan Toko'),
-        description: Text('Bagikan link toko "${widget.storeName}" ke teman Anda.'),
+        description: Text(
+          'Bagikan link toko "${widget.storeName}" ke teman Anda.',
+        ),
         actions: [
           ShadButton(
             backgroundColor: Warna.primary,
@@ -169,10 +319,18 @@ class _CustomerStoreDetailScreenState
 
   IconData _getProductIcon(String category) {
     final cat = category.toLowerCase();
-    if (cat.contains('kopi') || cat.contains('coffee') || cat.contains('minum') || cat.contains('drink') || cat.contains('tea')) {
+    if (cat.contains('kopi') ||
+        cat.contains('coffee') ||
+        cat.contains('minum') ||
+        cat.contains('drink') ||
+        cat.contains('tea')) {
       return TablerIcons.coffee;
     }
-    if (cat.contains('makan') || cat.contains('food') || cat.contains('mie') || cat.contains('nasi') || cat.contains('roti')) {
+    if (cat.contains('makan') ||
+        cat.contains('food') ||
+        cat.contains('mie') ||
+        cat.contains('nasi') ||
+        cat.contains('roti')) {
       return TablerIcons.tools_kitchen_2;
     }
     return TablerIcons.soup;
@@ -190,12 +348,19 @@ class _CustomerStoreDetailScreenState
 
     final storeDetails = storeDetailsAsync.value;
     final storeName = storeDetails?['name'] ?? widget.storeName;
-    final businessType = storeDetails?['business_type'] ?? widget.category ?? 'Minuman, Makanan Ringan, Kopi';
+    final businessType =
+        storeDetails?['business_type'] ??
+        widget.category ??
+        'Minuman, Makanan Ringan, Kopi';
     final address = storeDetails?['address'] ?? 'Alamat tidak tersedia';
     final phone = storeDetails?['phone'] ?? '-';
 
     // Unique Categories list from catalog products
-    final categories = ['Semua', ...(catalogAsync.value?.map((p) => p.category).toSet() ?? const <String>{})];
+    final categories = [
+      'Semua',
+      ...(catalogAsync.value?.map((p) => p.category).toSet() ??
+          const <String>{}),
+    ];
     if (!categories.contains(_selectedCategoryTab)) {
       _selectedCategoryTab = 'Semua';
     }
@@ -245,7 +410,11 @@ class _CustomerStoreDetailScreenState
                         color: Colors.black26,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(TablerIcons.chevron_left, color: Colors.white, size: 20),
+                      child: const Icon(
+                        TablerIcons.chevron_left,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                     onPressed: () async {
                       if (cartItems.isEmpty) {
@@ -271,7 +440,9 @@ class _CustomerStoreDetailScreenState
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          _isLiked ? TablerIcons.heart_filled : TablerIcons.heart,
+                          _isLiked
+                              ? TablerIcons.heart_filled
+                              : TablerIcons.heart,
                           color: _isLiked ? Colors.redAccent : Colors.white,
                           size: 20,
                         ),
@@ -283,8 +454,8 @@ class _CustomerStoreDetailScreenState
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              _isLiked 
-                                  ? 'Toko ditambahkan ke Favorit Anda' 
+                              _isLiked
+                                  ? 'Toko ditambahkan ke Favorit Anda'
                                   : 'Toko dihapus dari Favorit Anda',
                             ),
                             duration: const Duration(seconds: 1),
@@ -300,7 +471,11 @@ class _CustomerStoreDetailScreenState
                           color: Colors.black26,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(TablerIcons.share, color: Colors.white, size: 20),
+                        child: const Icon(
+                          TablerIcons.share,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                       onPressed: () => _handleShare(context),
                     ),
@@ -354,7 +529,8 @@ class _CustomerStoreDetailScreenState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -367,11 +543,16 @@ class _CustomerStoreDetailScreenState
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.green.shade50,
                                       borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.green.shade200),
+                                      border: Border.all(
+                                        color: Colors.green.shade200,
+                                      ),
                                     ),
                                     child: const Text(
                                       'Buka',
@@ -397,39 +578,66 @@ class _CustomerStoreDetailScreenState
                               const SizedBox(height: 12),
                               Row(
                                 children: [
-                                  const Icon(TablerIcons.star_filled, color: Colors.amber, size: 16),
+                                  const Icon(
+                                    TablerIcons.star_filled,
+                                    color: Colors.amber,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 4),
                                   const Text(
                                     '4.8',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                   const SizedBox(width: 14),
-                                  const Icon(TablerIcons.map_pin, color: Colors.redAccent, size: 16),
+                                  const Icon(
+                                    TablerIcons.map_pin,
+                                    color: Colors.redAccent,
+                                    size: 16,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     widget.distance ?? '1.2 km',
-                                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black87,
+                                    ),
                                   ),
                                   const Spacer(),
                                   // Contact phone simulated action
                                   GestureDetector(
                                     onTap: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
-                                          content: Text('Hubungi gerai: $phone'),
+                                          content: Text(
+                                            'Hubungi gerai: $phone',
+                                          ),
                                           duration: const Duration(seconds: 2),
                                         ),
                                       );
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 6,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: Warna.primary.withValues(alpha: 0.15),
+                                        color: Warna.primary.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Row(
                                         children: [
-                                          Icon(TablerIcons.phone, size: 13, color: Warna.black),
+                                          Icon(
+                                            TablerIcons.phone,
+                                            size: 13,
+                                            color: Warna.black,
+                                          ),
                                           SizedBox(width: 4),
                                           Text(
                                             'Hubungi',
@@ -464,7 +672,9 @@ class _CustomerStoreDetailScreenState
                             Expanded(
                               child: ShadInput(
                                 controller: _searchController,
-                                placeholder: const Text('Cari menu di gerai ini...'),
+                                placeholder: const Text(
+                                  'Cari menu di gerai ini...',
+                                ),
                                 leading: const Padding(
                                   padding: EdgeInsets.all(8.0),
                                   child: Icon(TablerIcons.search, size: 18),
@@ -472,7 +682,9 @@ class _CustomerStoreDetailScreenState
                                 decoration: ShadDecoration(
                                   color: Colors.white,
                                   border: ShadBorder.all(
-                                    color: theme.colorScheme.border.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.border.withValues(
+                                      alpha: 0.5,
+                                    ),
                                     radius: BorderRadius.circular(24),
                                   ),
                                 ),
@@ -492,7 +704,10 @@ class _CustomerStoreDetailScreenState
                                             _searchQuery = '';
                                           });
                                         },
-                                        child: const Icon(TablerIcons.x, size: 16),
+                                        child: const Icon(
+                                          TablerIcons.x,
+                                          size: 16,
+                                        ),
                                       )
                                     : null,
                               ),
@@ -506,10 +721,16 @@ class _CustomerStoreDetailScreenState
                                   color: Colors.white,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: theme.colorScheme.border.withValues(alpha: 0.5),
+                                    color: theme.colorScheme.border.withValues(
+                                      alpha: 0.5,
+                                    ),
                                   ),
                                 ),
-                                child: const Icon(TablerIcons.arrows_sort, size: 18, color: Colors.black87),
+                                child: const Icon(
+                                  TablerIcons.arrows_sort,
+                                  size: 18,
+                                  color: Colors.black87,
+                                ),
                               ),
                               onSelected: (val) {
                                 setState(() {
@@ -542,7 +763,8 @@ class _CustomerStoreDetailScreenState
                             scrollDirection: Axis.horizontal,
                             physics: const BouncingScrollPhysics(),
                             itemCount: categories.length,
-                            separatorBuilder: (context, index) => const SizedBox(width: 8),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final cat = categories[index];
                               final isSelected = _selectedCategoryTab == cat;
@@ -554,14 +776,21 @@ class _CustomerStoreDetailScreenState
                                 },
                                 borderRadius: BorderRadius.circular(20),
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: isSelected ? Warna.primary : Colors.white,
+                                    color: isSelected
+                                        ? Warna.primary
+                                        : Colors.white,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
-                                      color: isSelected 
-                                          ? Warna.primary 
-                                          : theme.colorScheme.border.withValues(alpha: 0.5),
+                                      color: isSelected
+                                          ? Warna.primary
+                                          : theme.colorScheme.border.withValues(
+                                              alpha: 0.5,
+                                            ),
                                     ),
                                   ),
                                   child: Center(
@@ -569,8 +798,12 @@ class _CustomerStoreDetailScreenState
                                       cat,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                        color: isSelected ? Colors.black : Colors.black87,
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.black87,
                                       ),
                                     ),
                                   ),
@@ -588,21 +821,28 @@ class _CustomerStoreDetailScreenState
                 // Dynamic Catalog Products List
                 catalogAsync.when(
                   data: (catalog) {
+                    // ⚡ Bolt Performance Optimization: Extract invariant toLowerCase() outside the loop
+                    final q = _searchQuery.toLowerCase();
                     var filteredProducts = catalog.where((prod) {
-                      final q = _searchQuery.toLowerCase();
-                      final matchesQuery = prod.name.toLowerCase().contains(q) ||
+                      final matchesQuery =
+                          prod.name.toLowerCase().contains(q) ||
                           prod.category.toLowerCase().contains(q);
-                      
-                      final matchesCategory = _selectedCategoryTab == 'Semua' ||
+
+                      final matchesCategory =
+                          _selectedCategoryTab == 'Semua' ||
                           prod.category == _selectedCategoryTab;
 
                       return matchesQuery && matchesCategory;
                     }).toList();
 
                     if (_sortBy == 'price_asc') {
-                      filteredProducts.sort((a, b) => a.price.compareTo(b.price));
+                      filteredProducts.sort(
+                        (a, b) => a.price.compareTo(b.price),
+                      );
                     } else if (_sortBy == 'price_desc') {
-                      filteredProducts.sort((a, b) => b.price.compareTo(a.price));
+                      filteredProducts.sort(
+                        (a, b) => b.price.compareTo(a.price),
+                      );
                     }
 
                     if (filteredProducts.isEmpty) {
@@ -612,11 +852,18 @@ class _CustomerStoreDetailScreenState
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(TablerIcons.search_off, size: 48, color: Colors.grey),
+                              Icon(
+                                TablerIcons.search_off,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
                               SizedBox(height: 12),
                               Text(
                                 'Menu tidak ditemukan',
-                                style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
@@ -627,171 +874,191 @@ class _CustomerStoreDetailScreenState
                     return SliverPadding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                       sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final prod = filteredProducts[index];
-                            final cartItem = cartItems.firstWhere(
-                              (item) => item.id == prod.id,
-                              orElse: () => CustomerCartItem(id: '', name: '', price: 0),
-                            );
-                            final quantity = cartItem.id.isNotEmpty ? cartItem.quantity : 0;
-                            final hasImage = prod.imageUrl != null && prod.imageUrl!.isNotEmpty;
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final prod = filteredProducts[index];
+                          final cartItem = cartItems.firstWhere(
+                            (item) => item.id == prod.id,
+                            orElse: () =>
+                                CustomerCartItem(id: '', name: '', price: 0),
+                          );
+                          final quantity = cartItem.id.isNotEmpty
+                              ? cartItem.quantity
+                              : 0;
+                          final hasImage =
+                              prod.imageUrl != null &&
+                              prod.imageUrl!.isNotEmpty;
 
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey.shade100),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.01),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  // Product image / icon
-                                  Container(
-                                    width: 64,
-                                    height: 64,
-                                    decoration: BoxDecoration(
-                                      color: bannerColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(10),
-                                      image: hasImage 
-                                          ? DecorationImage(
-                                              image: NetworkImage(prod.imageUrl!),
-                                              fit: BoxFit.cover,
-                                            )
-                                          : null,
-                                    ),
-                                    child: !hasImage 
-                                        ? Icon(
-                                            _getProductIcon(prod.category),
-                                            color: bannerColor,
-                                            size: 28,
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade100),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.01),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                // Product image / icon
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    color: bannerColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                    image: hasImage
+                                        ? DecorationImage(
+                                            image: NetworkImage(prod.imageUrl!),
+                                            fit: BoxFit.cover,
                                           )
                                         : null,
                                   ),
-                                  const SizedBox(width: 14),
-                                  // Info
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
+                                  child: !hasImage
+                                      ? Icon(
+                                          _getProductIcon(prod.category),
+                                          color: bannerColor,
+                                          size: 28,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 14),
+                                // Info
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        prod.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color: Colors.black87,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (prod.description != null &&
+                                          prod.description!.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
                                         Text(
-                                          prod.name,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                            color: Colors.black87,
+                                          prod.description!,
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: theme
+                                                .colorScheme
+                                                .mutedForeground,
                                           ),
-                                          maxLines: 1,
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        if (prod.description != null && prod.description!.isNotEmpty) ...[
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            prod.description!,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: theme.colorScheme.mutedForeground,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
-                                        const SizedBox(height: 4),
+                                      ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Rp ${prod.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.black,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Action
+                                if (quantity == 0)
+                                  ShadButton(
+                                    size: ShadButtonSize.sm,
+                                    backgroundColor: Warna.primary,
+                                    onPressed: () {
+                                      cartNotifier.addItem(
+                                        CustomerCartItem(
+                                          id: prod.id,
+                                          name: prod.name,
+                                          price: prod.price,
+                                          quantity: 1,
+                                        ),
+                                      );
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          TablerIcons.plus,
+                                          size: 14,
+                                          color: Colors.black87,
+                                        ),
+                                        SizedBox(width: 4),
                                         Text(
-                                          'Rp ${prod.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.black,
-                                            fontSize: 13,
+                                          'Tambah',
+                                          style: TextStyle(
+                                            color: Colors.black87,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  // Action
-                                  if (quantity == 0)
-                                    ShadButton(
-                                      size: ShadButtonSize.sm,
-                                      backgroundColor: Warna.primary,
-                                      onPressed: () {
-                                        cartNotifier.addItem(
-                                          CustomerCartItem(
-                                            id: prod.id,
-                                            name: prod.name,
-                                            price: prod.price,
-                                            quantity: 1,
-                                          ),
-                                        );
-                                      },
-                                      child: const Row(
-                                        children: [
-                                          Icon(TablerIcons.plus, size: 14, color: Colors.black87),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            'Tambah',
-                                            style: TextStyle(
-                                              color: Colors.black87,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 11,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: Warna.primary,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(TablerIcons.minus, size: 12, color: Colors.black87),
-                                            onPressed: () {
-                                              cartNotifier.decrement(prod.id);
-                                            },
-                                          ),
-                                          Text(
-                                            '$quantity',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(TablerIcons.plus, size: 12, color: Colors.black87),
-                                            onPressed: () {
-                                              cartNotifier.increment(prod.id);
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                  )
+                                else
+                                  Container(
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: Warna.primary,
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
-                                ],
-                              ),
-                            );
-                          },
-                          childCount: filteredProducts.length,
-                        ),
+                                    child: Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                            TablerIcons.minus,
+                                            size: 12,
+                                            color: Colors.black87,
+                                          ),
+                                          onPressed: () {
+                                            cartNotifier.decrement(prod.id);
+                                          },
+                                        ),
+                                        Text(
+                                          '$quantity',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            TablerIcons.plus,
+                                            size: 12,
+                                            color: Colors.black87,
+                                          ),
+                                          onPressed: () {
+                                            cartNotifier.increment(prod.id);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        }, childCount: filteredProducts.length),
                       ),
                     );
                   },
                   loading: () => const SliverFillRemaining(
                     child: Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Warna.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Warna.primary,
+                        ),
                       ),
                     ),
                   ),
@@ -814,7 +1081,10 @@ class _CustomerStoreDetailScreenState
                 right: 16,
                 bottom: 16 + MediaQuery.of(context).padding.bottom,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Warna.black,
                     borderRadius: BorderRadius.circular(16),
@@ -859,7 +1129,10 @@ class _CustomerStoreDetailScreenState
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           elevation: 0,
                         ),
                         onPressed: () {
@@ -867,7 +1140,11 @@ class _CustomerStoreDetailScreenState
                         },
                         child: const Row(
                           children: [
-                            Icon(TablerIcons.shopping_cart, size: 16, color: Warna.black),
+                            Icon(
+                              TablerIcons.shopping_cart,
+                              size: 16,
+                              color: Warna.black,
+                            ),
                             SizedBox(width: 6),
                             Text(
                               'Keranjang',

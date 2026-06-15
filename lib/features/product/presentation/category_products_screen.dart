@@ -20,10 +20,12 @@ class CategoryProductsScreen extends ConsumerStatefulWidget {
   const CategoryProductsScreen({super.key, required this.category});
 
   @override
-  ConsumerState<CategoryProductsScreen> createState() => _CategoryProductsScreenState();
+  ConsumerState<CategoryProductsScreen> createState() =>
+      _CategoryProductsScreenState();
 }
 
-class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen> {
+class _CategoryProductsScreenState
+    extends ConsumerState<CategoryProductsScreen> {
   String _searchQuery = '';
 
   Future<void> _unlinkProduct(Product product) async {
@@ -81,12 +83,17 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
     }
   }
 
-  void _showAddProductsModal(List<Product> allProducts, List<Category> allCategories) {
+  void _showAddProductsModal(
+    List<Product> allProducts,
+    List<Category> allCategories,
+  ) {
     final isId = Localizations.localeOf(context).languageCode == 'id';
     final localContext = context;
-    
+
     // Filter out products that are already in this category
-    final availableProducts = allProducts.where((p) => p.categoryId != widget.category.supabaseId).toList();
+    final availableProducts = allProducts
+        .where((p) => p.categoryId != widget.category.supabaseId)
+        .toList();
 
     showModalBottomSheet(
       context: context,
@@ -198,16 +205,26 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                   ),
                   const SizedBox(height: 12),
                   productsAsync.maybeWhen(
-                    data: (products) => widget.category.supabaseId == 'uncategorized'
+                    data: (products) =>
+                        widget.category.supabaseId == 'uncategorized'
                         ? const SizedBox.shrink()
                         : SizedBox(
                             width: double.infinity,
                             child: ShadButton(
                               backgroundColor: Warna.primary,
-                              onPressed: () => _showAddProductsModal(products, allCategories),
-                              leading: const Icon(TablerIcons.plus, size: 18, color: Warna.black),
+                              onPressed: () => _showAddProductsModal(
+                                products,
+                                allCategories,
+                              ),
+                              leading: const Icon(
+                                TablerIcons.plus,
+                                size: 18,
+                                color: Warna.black,
+                              ),
                               child: Text(
-                                isId ? 'Tambah Produk Baru ke Kategori' : 'Add New Products to Category',
+                                isId
+                                    ? 'Tambah Produk Baru ke Kategori'
+                                    : 'Add New Products to Category',
                                 style: const TextStyle(
                                   color: Warna.black,
                                   fontWeight: FontWeight.bold,
@@ -225,12 +242,16 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt Performance Optimization: Extract invariant toLowerCase() outside the loop
+                  final q = _searchQuery.toLowerCase();
                   final filtered = products.where((p) {
-                    final isInCategory = widget.category.supabaseId == 'uncategorized'
+                    final isInCategory =
+                        widget.category.supabaseId == 'uncategorized'
                         ? p.categoryId == null
                         : p.categoryId == widget.category.supabaseId;
-                    final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                        (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+                    final matchesSearch =
+                        p.name.toLowerCase().contains(q) ||
+                        (p.sku?.toLowerCase().contains(q) ?? false);
                     return isInCategory && matchesSearch;
                   }).toList();
 
@@ -242,7 +263,9 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                           Container(
                             padding: const EdgeInsets.all(24),
                             decoration: BoxDecoration(
-                              color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                              color: theme.colorScheme.muted.withValues(
+                                alpha: 0.5,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -266,7 +289,9 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                                 ? 'Belum ada produk terdaftar di kategori ini.'
                                 : 'No products registered in this category yet.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: theme.colorScheme.mutedForeground),
+                            style: TextStyle(
+                              color: theme.colorScheme.mutedForeground,
+                            ),
                           ),
                         ],
                       ),
@@ -335,14 +360,17 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        maxHeightDiskCache: 120, // Resizes and caches optimized low-res image
+                        maxHeightDiskCache:
+                            120, // Resizes and caches optimized low-res image
                         maxWidthDiskCache: 120,
                         placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
-                          highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
-                          child: Container(
-                            color: Colors.white,
+                          baseColor: theme.colorScheme.muted.withValues(
+                            alpha: 0.5,
                           ),
+                          highlightColor: theme.colorScheme.muted.withValues(
+                            alpha: 0.2,
+                          ),
+                          child: Container(color: Colors.white),
                         ),
                         errorWidget: (context, url, error) => const Center(
                           child: Icon(
@@ -353,17 +381,17 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                         ),
                       )
                     : (product.localImagePath != null
-                        ? Image.file(
-                            File(product.localImagePath!),
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          )
-                        : Icon(
-                            TablerIcons.package,
-                            color: theme.colorScheme.mutedForeground,
-                            size: 24,
-                          )),
+                          ? Image.file(
+                              File(product.localImagePath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            )
+                          : Icon(
+                              TablerIcons.package,
+                              color: theme.colorScheme.mutedForeground,
+                              size: 24,
+                            )),
               ),
             ),
             const SizedBox(width: 14),
@@ -423,7 +451,9 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                 if (widget.category.supabaseId != 'uncategorized') ...[
                   const SizedBox(width: 8),
                   Tooltip(
-                    message: isId ? 'Keluarkan dari Kategori' : 'Remove from Category',
+                    message: isId
+                        ? 'Keluarkan dari Kategori'
+                        : 'Remove from Category',
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
                       onTap: () => _unlinkProduct(product),
@@ -465,7 +495,8 @@ class _AddProductsBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_AddProductsBottomSheet> createState() => _AddProductsBottomSheetState();
+  State<_AddProductsBottomSheet> createState() =>
+      _AddProductsBottomSheetState();
 }
 
 class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
@@ -477,9 +508,11 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
     final isId = Localizations.localeOf(context).languageCode == 'id';
     final theme = ShadTheme.of(context);
 
+    // ⚡ Bolt Performance Optimization: Extract invariant toLowerCase() outside the loop
+    final sq = _sheetQuery.toLowerCase();
     final filtered = widget.availableProducts.where((p) {
-      return p.name.toLowerCase().contains(_sheetQuery.toLowerCase()) ||
-          (p.sku?.toLowerCase().contains(_sheetQuery.toLowerCase()) ?? false);
+      return p.name.toLowerCase().contains(sq) ||
+          (p.sku?.toLowerCase().contains(sq) ?? false);
     }).toList();
 
     return Container(
@@ -516,7 +549,9 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                   ),
                 ),
                 Text(
-                  isId ? 'Ke "${widget.category.name}"' : 'To "${widget.category.name}"',
+                  isId
+                      ? 'Ke "${widget.category.name}"'
+                      : 'To "${widget.category.name}"',
                   style: TextStyle(
                     color: theme.colorScheme.mutedForeground,
                     fontSize: 13,
@@ -531,7 +566,9 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: ShadInput(
-              placeholder: Text(isId ? 'Cari nama produk...' : 'Search product name...'),
+              placeholder: Text(
+                isId ? 'Cari nama produk...' : 'Search product name...',
+              ),
               leading: const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Icon(TablerIcons.search, size: 20),
@@ -550,8 +587,12 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
             child: filtered.isEmpty
                 ? Center(
                     child: Text(
-                      isId ? 'Semua produk sudah memiliki kategori ini' : 'All products already have this category',
-                      style: TextStyle(color: theme.colorScheme.mutedForeground),
+                      isId
+                          ? 'Semua produk sudah memiliki kategori ini'
+                          : 'All products already have this category',
+                      style: TextStyle(
+                        color: theme.colorScheme.mutedForeground,
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -559,7 +600,9 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final product = filtered[index];
-                      final isSelected = _selectedIds.contains(product.supabaseId);
+                      final isSelected = _selectedIds.contains(
+                        product.supabaseId,
+                      );
 
                       return InkWell(
                         onTap: () {
@@ -574,7 +617,9 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.shade100),
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -610,7 +655,8 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                                         Category? currentCat;
                                         if (product.categoryId != null) {
                                           for (final c in widget.categories) {
-                                            if (c.supabaseId == product.categoryId) {
+                                            if (c.supabaseId ==
+                                                product.categoryId) {
                                               currentCat = c;
                                               break;
                                             }
@@ -618,17 +664,26 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                                         }
                                         final hasCat = currentCat != null;
                                         return Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: hasCat
-                                                ? Warna.primary.withValues(alpha: 0.15)
+                                                ? Warna.primary.withValues(
+                                                    alpha: 0.15,
+                                                  )
                                                 : Colors.grey.shade100,
-                                            borderRadius: BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: Text(
                                             hasCat
                                                 ? currentCat.name
-                                                : (isId ? 'Tanpa Kategori' : 'No Category'),
+                                                : (isId
+                                                      ? 'Tanpa Kategori'
+                                                      : 'No Category'),
                                             style: TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.w600,
@@ -673,7 +728,9 @@ class _AddProductsBottomSheetState extends State<_AddProductsBottomSheet> {
                             Navigator.pop(context);
                           },
                     child: Text(
-                      isId ? 'Tambahkan (${_selectedIds.length})' : 'Add (${_selectedIds.length})',
+                      isId
+                          ? 'Tambahkan (${_selectedIds.length})'
+                          : 'Add (${_selectedIds.length})',
                       style: const TextStyle(
                         color: Warna.black,
                         fontWeight: FontWeight.bold,
