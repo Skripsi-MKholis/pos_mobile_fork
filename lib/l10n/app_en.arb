@@ -298,8 +298,6 @@
     }
   },
   "totalSelected": "Total Selected",
-  "cancel": "Cancel",
-  "settings": "Settings",
   "revenue": "Revenue",
   "searchTransaction": "Search transaction...",
   "success": "Success",
@@ -345,7 +343,6 @@
   },
   "searchNameOrSku": "Search name or SKU...",
   "manageCategories": "Manage Categories",
-  "productNotFound": "Product not found",
   "productNotFoundDesc": "Try using another keyword or add a new product to your catalog.",
   "resetFilter": "Reset Filter",
   "lowStockCount": "Low: {count}",
@@ -462,7 +459,6 @@
   "generateRandomSku": "Generate Random SKU",
   "scanBarcodeCamera": "Scan Barcode (Camera)",
   "barcodePreview": "Barcode Preview",
-  "share": "Share",
   "costPrice": "Cost Price",
   "sellingPrice": "Selling Price",
   "initialStock": "Initial Stock",
@@ -477,10 +473,8 @@
       }
     }
   },
-  "manageStock": "Manage Stock",
   "monitorAndUpdateStock": "Monitor and update your product stock",
   "allCategories": "All Categories",
-  "productNotFound": "Product not found",
   "stockUpdated": "Stock of {productName} updated to {stock}",
   "@stockUpdated": {
     "placeholders": {
@@ -548,5 +542,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "toggleFlashlight": "Toggle Flashlight",
+  "closeScanner": "Close Scanner"
 }
