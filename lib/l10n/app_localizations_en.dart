@@ -976,4 +976,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registration Failed: $error';
   }
+
+  @override
+  String get toggleFlashlight => 'Toggle Flashlight';
+
+  @override
+  String get closeScanner => 'Close Scanner';
 }

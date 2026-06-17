@@ -1873,6 +1873,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration Failed: {error}'**
   String registrationFailed(String error);
+
+  /// No description provided for @toggleFlashlight.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Flashlight'**
+  String get toggleFlashlight;
+
+  /// No description provided for @closeScanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Scanner'**
+  String get closeScanner;
 }
 
 class _AppLocalizationsDelegate

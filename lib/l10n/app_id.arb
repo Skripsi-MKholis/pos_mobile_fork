@@ -298,8 +298,6 @@
     }
   },
   "totalSelected": "Total Terpilih",
-  "cancel": "Batal",
-  "settings": "Pengaturan",
   "revenue": "Omzet",
   "searchTransaction": "Cari transaksi...",
   "success": "Berhasil",
@@ -345,7 +343,6 @@
   },
   "searchNameOrSku": "Cari nama atau SKU...",
   "manageCategories": "Kelola Kategori",
-  "productNotFound": "Produk tidak ditemukan",
   "productNotFoundDesc": "Coba gunakan kata kunci lain atau tambah produk baru ke katalog Anda.",
   "resetFilter": "Reset Filter",
   "lowStockCount": "Tipis: {count}",
@@ -462,7 +459,6 @@
   "generateRandomSku": "Generate SKU Acak",
   "scanBarcodeCamera": "Scan Barcode Kamera",
   "barcodePreview": "Barcode Preview",
-  "share": "Bagikan",
   "costPrice": "Harga Modal",
   "sellingPrice": "Harga Jual",
   "initialStock": "Stok Awal",
@@ -477,10 +473,8 @@
       }
     }
   },
-  "manageStock": "Kelola Stok",
   "monitorAndUpdateStock": "Pantau dan perbarui stok produk Anda",
   "allCategories": "Semua Kategori",
-  "productNotFound": "Produk tidak ditemukan",
   "stockUpdated": "Stok {productName} diperbarui menjadi {stock}",
   "@stockUpdated": {
     "placeholders": {
@@ -548,5 +542,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "toggleFlashlight": "Nyalakan/Matikan Senter",
+  "closeScanner": "Tutup Pemindai"
 }
