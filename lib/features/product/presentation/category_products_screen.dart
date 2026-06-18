@@ -225,12 +225,14 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
             Expanded(
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt: Hoist string conversions outside the loop to prevent O(N) redundant allocations
+                  final lowerQuery = _searchQuery.toLowerCase();
                   final filtered = products.where((p) {
                     final isInCategory = widget.category.supabaseId == 'uncategorized'
                         ? p.categoryId == null
                         : p.categoryId == widget.category.supabaseId;
-                    final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                        (p.sku?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+                    final matchesSearch = p.name.toLowerCase().contains(lowerQuery) ||
+                        (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
                     return isInCategory && matchesSearch;
                   }).toList();
 
