@@ -48,6 +48,31 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     super.dispose();
   }
 
+  void _confirmClearCart(CartNotifier cartNotifier) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showShadDialog<bool>(
+      context: context,
+      builder: (context) => ShadDialog(
+        title: Text(l10n.clearCartConfirm),
+        description: Text(l10n.clearCartDesc),
+        actions: [
+          ShadButton.outline(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
+          ),
+          ShadButton.destructive(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.clearCart),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      cartNotifier.clearCart();
+    }
+  }
+
   void _handleSearchSubmitted(String value, List<Product> products) {
     if (value.trim().isEmpty) return;
 
@@ -1047,7 +1072,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: l10n.clearCart,
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () => _confirmClearCart(cartNotifier),
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
