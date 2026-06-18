@@ -67,7 +67,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
       mySnackBar(
         context: context,
-        text: AppLocalizations.of(context)!.productAddedToCart(foundProduct.name),
+        text:
+            AppLocalizations.of(context)!.productAddedToCart(foundProduct.name),
         status: ToastStatus.success,
       );
 
@@ -155,7 +156,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 const SizedBox(height: 16),
                 tablesAsync.when(
                   data: (tables) => tables.isEmpty
-                      ? Center(child: Text(AppLocalizations.of(context)!.noTableAvailable))
+                      ? Center(
+                          child: Text(
+                              AppLocalizations.of(context)!.noTableAvailable))
                       : Wrap(
                           spacing: 12,
                           runSpacing: 12,
@@ -169,22 +172,27 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                   final confirmed = await showShadDialog<bool>(
                                     context: context,
                                     builder: (context) => ShadDialog(
-                                      title: Text(AppLocalizations.of(context)!.tableOccupied),
+                                      title: Text(AppLocalizations.of(context)!
+                                          .tableOccupied),
                                       description: Text(
-                                        AppLocalizations.of(context)!.tableOccupiedDesc,
+                                        AppLocalizations.of(context)!
+                                            .tableOccupiedDesc,
                                       ),
                                       actions: [
                                         ShadButton.outline(
                                           onPressed: () =>
                                               Navigator.pop(context, false),
-                                          child: Text(AppLocalizations.of(context)!.cancel),
+                                          child: Text(
+                                              AppLocalizations.of(context)!
+                                                  .cancel),
                                         ),
                                         ShadButton(
                                           backgroundColor: Warna.primary,
                                           onPressed: () =>
                                               Navigator.pop(context, true),
                                           child: Text(
-                                            AppLocalizations.of(context)!.addOrder,
+                                            AppLocalizations.of(context)!
+                                                .addOrder,
                                             style: const TextStyle(
                                               color: Colors.black,
                                             ),
@@ -196,17 +204,15 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
                                   if (confirmed == true) {
                                     // Load existing items for this table
-                                    final monitoring = ref
-                                        .read(tableMonitoringProvider)
-                                        .value;
+                                    final monitoring =
+                                        ref.read(tableMonitoringProvider).value;
                                     final tableOrder = monitoring?.firstWhere(
                                       (o) => o.table.id == table.id,
                                     );
 
                                     if (tableOrder != null &&
                                         tableOrder.transaction != null) {
-                                      final products =
-                                          ref
+                                      final products = ref
                                               .read(productNotifierProvider)
                                               .value ??
                                           [];
@@ -266,19 +272,19 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                   color: isSelected
                                       ? Warna.primary
                                       : (isOccupied
-                                            ? Colors.red.withValues(alpha: 0.1)
-                                            : ShadTheme.of(
-                                                context,
-                                              ).colorScheme.muted),
+                                          ? Colors.red.withValues(alpha: 0.1)
+                                          : ShadTheme.of(
+                                              context,
+                                            ).colorScheme.muted),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isSelected
                                         ? Warna.primary
                                         : (isOccupied
-                                              ? Colors.red.withValues(
-                                                  alpha: 0.2,
-                                                )
-                                              : Colors.transparent),
+                                            ? Colors.red.withValues(
+                                                alpha: 0.2,
+                                              )
+                                            : Colors.transparent),
                                   ),
                                 ),
                                 child: Column(
@@ -290,8 +296,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                       color: isSelected
                                           ? Colors.black
                                           : (isOccupied
-                                                ? Colors.red
-                                                : Colors.grey),
+                                              ? Colors.red
+                                              : Colors.grey),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -416,8 +422,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         activeStore?['settings'] as Map<String, dynamic>?;
                     final features =
                         settings?['features'] as Map<String, dynamic>?;
-                    final hasTables =
-                        features?['tables'] == true &&
+                    final hasTables = features?['tables'] == true &&
                         activeStore ==
                             null; // Sembunyikan untuk sementara waktu
 
@@ -456,177 +461,183 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             child: Stack(
               children: [
                 RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(productNotifierProvider);
-                ref.invalidate(categoryNotifierProvider);
-                await ref.read(productNotifierProvider.future);
-              },
-              color: Warna.primary,
-              backgroundColor: Colors.white,
-              child: productsAsync.when(
-                data: (products) {
-                  var filteredProducts = products
-                      .where(
-                        (p) =>
-                            (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ||
-                                (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ) ??
-                                    false)) &&
-                            (_selectedCategoryId == null ||
-                                p.categoryId == _selectedCategoryId),
-                      )
-                      .toList();
+                  onRefresh: () async {
+                    ref.invalidate(productNotifierProvider);
+                    ref.invalidate(categoryNotifierProvider);
+                    await ref.read(productNotifierProvider.future);
+                  },
+                  color: Warna.primary,
+                  backgroundColor: Colors.white,
+                  child: productsAsync.when(
+                    data: (products) {
+                      var filteredProducts = products
+                          .where(
+                            (p) =>
+                                (p.name.toLowerCase().contains(
+                                          _searchQuery.toLowerCase(),
+                                        ) ||
+                                    (p.sku?.toLowerCase().contains(
+                                              _searchQuery.toLowerCase(),
+                                            ) ??
+                                        false)) &&
+                                (_selectedCategoryId == null ||
+                                    p.categoryId == _selectedCategoryId),
+                          )
+                          .toList();
 
-                  // Apply sorting
-                  switch (_sortOption) {
-                    case 'name_asc':
-                      filteredProducts.sort(
-                        (a, b) => a.name.toLowerCase().compareTo(
-                          b.name.toLowerCase(),
-                        ),
-                      );
-                      break;
-                    case 'name_desc':
-                      filteredProducts.sort(
-                        (a, b) => b.name.toLowerCase().compareTo(
-                          a.name.toLowerCase(),
-                        ),
-                      );
-                      break;
-                    case 'price_asc':
-                      filteredProducts.sort(
-                        (a, b) => a.price.compareTo(b.price),
-                      );
-                      break;
-                    case 'price_desc':
-                      filteredProducts.sort(
-                        (a, b) => b.price.compareTo(a.price),
-                      );
-                      break;
-                    case 'stock_desc':
-                      filteredProducts.sort(
-                        (a, b) => b.stockQuantity.compareTo(a.stockQuantity),
-                      );
-                      break;
-                  }
+                      // Apply sorting
+                      switch (_sortOption) {
+                        case 'name_asc':
+                          filteredProducts.sort(
+                            (a, b) => a.name.toLowerCase().compareTo(
+                                  b.name.toLowerCase(),
+                                ),
+                          );
+                          break;
+                        case 'name_desc':
+                          filteredProducts.sort(
+                            (a, b) => b.name.toLowerCase().compareTo(
+                                  a.name.toLowerCase(),
+                                ),
+                          );
+                          break;
+                        case 'price_asc':
+                          filteredProducts.sort(
+                            (a, b) => a.price.compareTo(b.price),
+                          );
+                          break;
+                        case 'price_desc':
+                          filteredProducts.sort(
+                            (a, b) => b.price.compareTo(a.price),
+                          );
+                          break;
+                        case 'stock_desc':
+                          filteredProducts.sort(
+                            (a, b) =>
+                                b.stockQuantity.compareTo(a.stockQuantity),
+                          );
+                          break;
+                      }
 
-                  if (products.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            TablerIcons.package,
-                            size: 80,
-                            color: Colors.grey[200],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.noProductsYet,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.noProductsYetDesc,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 24),
-                          if (isAdmin) ...[
-                            ShadButton(
-                              onPressed: () => context.push('/products/add'),
-                              leading: const Icon(TablerIcons.plus, size: 18),
-                              child: Text(l10n.addProduct),
-                            ),
-                            const SizedBox(height: 12),
-                            ShadButton.outline(
-                              onPressed: () => context.push('/products'),
-                              leading: const Icon(
-                                TablerIcons.settings,
-                                size: 18,
+                      if (products.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                TablerIcons.package,
+                                size: 80,
+                                color: Colors.grey[200],
                               ),
-                              child: Text(l10n.manageProduct),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  }
-
-                  if (filteredProducts.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            TablerIcons.search_off,
-                            size: 48,
-                            color: Colors.grey[300],
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.noProductsYet,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.noProductsYetDesc,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 24),
+                              if (isAdmin) ...[
+                                ShadButton(
+                                  onPressed: () =>
+                                      context.push('/products/add'),
+                                  leading:
+                                      const Icon(TablerIcons.plus, size: 18),
+                                  child: Text(l10n.addProduct),
+                                ),
+                                const SizedBox(height: 12),
+                                ShadButton.outline(
+                                  onPressed: () => context.push('/products'),
+                                  leading: const Icon(
+                                    TablerIcons.settings,
+                                    size: 18,
+                                  ),
+                                  child: Text(l10n.manageProduct),
+                                ),
+                              ],
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.productNotFound,
-                            style: const TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                        );
+                      }
 
-                  return GridView.builder(
-                    physics: const BouncingScrollPhysics(
-                      parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                    padding: EdgeInsets.fromLTRB(
-                      16,
-                      16,
-                      16,
-                      cartItems.isNotEmpty ? 190 : 100,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      if (filteredProducts.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                TablerIcons.search_off,
+                                size: 48,
+                                color: Colors.grey[300],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.productNotFound,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return GridView.builder(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          16,
+                          16,
+                          cartItems.isNotEmpty ? 190 : 100,
+                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           childAspectRatio: 0.8,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                    itemCount: filteredProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = filteredProducts[index];
-                      final cartItem = cartItems.firstWhere(
-                        (item) => item.product.supabaseId == product.supabaseId,
-                        orElse: () => CartItem(product: product, quantity: 0),
-                      );
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          final cartItem = cartItems.firstWhere(
+                            (item) =>
+                                item.product.supabaseId == product.supabaseId,
+                            orElse: () =>
+                                CartItem(product: product, quantity: 0),
+                          );
 
-                      return _buildProductCard(
-                        context,
-                        product,
-                        cartItem,
-                        cartNotifier,
-                        currencyFormat,
+                          return _buildProductCard(
+                            context,
+                            product,
+                            cartItem,
+                            cartNotifier,
+                            currencyFormat,
+                          );
+                        },
                       );
                     },
-                  );
-                },
-                loading: () => _buildProductSkeleton(context),
-                error: (err, stack) => Center(child: Text('Error: $err')),
-              ),
-            ),
+                    loading: () => _buildProductSkeleton(context),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
+                  ),
+                ),
                 if (cartItems.isNotEmpty)
                   Positioned(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: _buildCartSummary(context, cartNotifier, currencyFormat),
+                    child: _buildCartSummary(
+                        context, cartNotifier, currencyFormat),
                   ),
               ],
             ),
@@ -674,14 +685,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isSelected
-                ? Warna.primary
-                : theme.colorScheme.muted,
+            color: isSelected ? Warna.primary : theme.colorScheme.muted,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected
-                  ? Warna.primary
-                  : theme.colorScheme.border,
+              color: isSelected ? Warna.primary : theme.colorScheme.border,
             ),
           ),
           child: Text(
@@ -752,7 +759,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
             children: [
               Text(
                 l10n.sortBy,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ...options.map(
@@ -821,11 +829,14 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              maxHeightDiskCache: 250, // Resizes and caches optimized low-res image
+                              maxHeightDiskCache:
+                                  250, // Resizes and caches optimized low-res image
                               maxWidthDiskCache: 250,
                               placeholder: (context, url) => Shimmer.fromColors(
-                                baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
-                                highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
+                                baseColor: theme.colorScheme.muted
+                                    .withValues(alpha: 0.5),
+                                highlightColor: theme.colorScheme.muted
+                                    .withValues(alpha: 0.2),
                                 child: Container(
                                   color: Colors.white,
                                 ),
@@ -834,7 +845,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                                 child: Icon(
                                   TablerIcons.package_off,
                                   size: 32,
-                                  color: theme.colorScheme.mutedForeground.withValues(alpha: 0.4),
+                                  color: theme.colorScheme.mutedForeground
+                                      .withValues(alpha: 0.4),
                                 ),
                               ),
                             )
@@ -842,7 +854,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                               child: Icon(
                                 TablerIcons.package,
                                 size: 32,
-                                color: theme.colorScheme.mutedForeground.withValues(alpha: 0.4),
+                                color: theme.colorScheme.mutedForeground
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                     ),
@@ -966,7 +979,8 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.muted.withValues(alpha: 0.5),
+                            color:
+                                theme.colorScheme.muted.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -1047,7 +1061,29 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               Tooltip(
                 message: l10n.clearCart,
                 child: ShadIconButton.outline(
-                  onPressed: () => cartNotifier.clearCart(),
+                  onPressed: () async {
+                    final confirmed = await showShadDialog<bool>(
+                      context: context,
+                      builder: (context) => ShadDialog(
+                        title: Text(l10n.clearCartConfirmTitle),
+                        description: Text(l10n.clearCartConfirmDesc),
+                        actions: [
+                          ShadButton.outline(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(l10n.cancel),
+                          ),
+                          ShadButton.destructive(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(l10n.clearCart),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed == true) {
+                      cartNotifier.clearCart();
+                    }
+                  },
                   icon: const Icon(
                     TablerIcons.trash,
                     size: 18,
@@ -1219,7 +1255,9 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
       HapticFeedback.lightImpact();
 
       // Show success notification inside scanner
-      _showNotification(AppLocalizations.of(context)!.productAddedScan(foundProduct.name), true);
+      _showNotification(
+          AppLocalizations.of(context)!.productAddedScan(foundProduct.name),
+          true);
 
       // Add to session history or increment if exists
       setState(() {
@@ -1242,7 +1280,8 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
         HapticFeedback.heavyImpact();
       });
 
-      _showNotification(AppLocalizations.of(context)!.skuNotRegistered(barcodeValue), false);
+      _showNotification(
+          AppLocalizations.of(context)!.skuNotRegistered(barcodeValue), false);
     }
   }
 
@@ -1558,7 +1597,8 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    AppLocalizations.of(context)!.pointCameraToBarcode,
+                                    AppLocalizations.of(context)!
+                                        .pointCameraToBarcode,
                                     style: TextStyle(
                                       color: Colors.grey.shade500,
                                       fontSize: 12,
