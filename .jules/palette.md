@@ -1,0 +1,3 @@
+## 2024-06-18 - Added Cart Clear Confirmation Modal
+**Learning:** Destructive actions in this app (like clearing a cart) need strict confirmation dialogs using existing UI elements (like \`showShadDialog\` and \`ShadButton.destructive\`) to prevent frustrating accidental data loss, which aligns with the minimalist but accessible aesthetic. Tooltips handle hover states, but modal confirmation handles interaction bounds.
+**Action:** Always wrap high-stakes destructive actions (clear, delete, remove) with a \`showShadDialog\` confirmation modal containing clearly localized texts and explicit destructive styling.

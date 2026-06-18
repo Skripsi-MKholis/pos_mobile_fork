@@ -9,6 +9,14 @@ class AppLocalizationsId extends AppLocalizations {
   AppLocalizationsId([String locale = 'id']) : super(locale);
 
   @override
+  String get clearCartConfirm =>
+      'Apakah Anda yakin ingin mengosongkan keranjang?';
+
+  @override
+  String get clearCartDesc =>
+      'Semua barang di keranjang akan dihapus. Tindakan ini tidak dapat dibatalkan.';
+
+  @override
   String get menu => 'Menu';
 
   @override
