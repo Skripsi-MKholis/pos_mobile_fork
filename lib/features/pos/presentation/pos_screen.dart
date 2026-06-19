@@ -465,20 +465,20 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
-                  var filteredProducts = products
-                      .where(
-                        (p) =>
-                            (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ||
-                                (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ) ??
-                                    false)) &&
-                            (_selectedCategoryId == null ||
-                                p.categoryId == _selectedCategoryId),
-                      )
-                      .toList();
+                  // ⚡ Bolt: Hoisted invariant string conversions and implemented fast-path
+                  // Reduces O(N) memory allocations and skips expensive operations when possible.
+                  final lowerQuery = _searchQuery.toLowerCase();
+                  final isQueryEmpty = lowerQuery.isEmpty;
+
+                  var filteredProducts = products.where((p) {
+                    final matchesCategory = _selectedCategoryId == null ||
+                        p.categoryId == _selectedCategoryId;
+                    if (!matchesCategory) return false;
+                    if (isQueryEmpty) return true;
+
+                    return p.name.toLowerCase().contains(lowerQuery) ||
+                        (p.sku?.toLowerCase().contains(lowerQuery) ?? false);
+                  }).toList();
 
                   // Apply sorting
                   switch (_sortOption) {
