@@ -344,6 +344,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalBelanja => 'Total Items Price';
 
   @override
+  String get clearCartConfirmTitle => 'Clear Cart?';
+
+  @override
+  String get clearCartConfirmDesc =>
+      'Are you sure you want to remove all items from the cart?';
+
+  @override
+  String get yesClear => 'Yes, Clear';
+
+  @override
   String get clearCart => 'Clear Cart';
 
   @override
