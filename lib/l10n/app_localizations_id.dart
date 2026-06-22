@@ -978,4 +978,13 @@ class AppLocalizationsId extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registrasi Gagal: $error';
   }
+
+  @override
+  String get removeVoucher => 'Hapus Voucher';
+
+  @override
+  String get toggleFlashlight => 'Nyalakan/Matikan Senter';
+
+  @override
+  String get closeScanner => 'Tutup Pemindai';
 }
