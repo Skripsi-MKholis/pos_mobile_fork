@@ -11,7 +11,7 @@ Dokumen ini menyajikan rancangan **Activity Diagram (Diagram Aktivitas)** untuk 
 Dalam dokumen ini, diagram aktivitas dibagi menjadi tiga alur kerja utama yang paling representatif terhadap kecanggihan arsitektur sistem:
 1.  **Alur Kerja Transaksi Kasir (POS Checkout Workflow)**: Menggambarkan langkah pelayanan kasir dari input barang hingga pencetakan struk.
 2.  **Alur Kerja Sinkronisasi Data Latar Belakang (Offline-First Sync Engine)**: Menjelaskan logika deteksi luring/daring dan sinkronisasi otomatis.
-3.  **Alur Kerja Kalibrasi AI Smart Analytics**: Menguraikan alur validasi transaksi, enkripsi/masking PII, pemanggilan Gemini API, hingga visualisasi hasil proyeksi.
+3.  **Alur Kerja Kalibrasi AI Smart Analytics**: Menguraikan alur validasi transaksi, enkripsi/masking PII, pemanggilan Model LSTM di Hugging Face, hingga visualisasi hasil proyeksi.
 
 ---
 
@@ -126,7 +126,7 @@ flowchart TD
 
 ---
 
-## 3. Activity Diagram: Proses Kalibrasi AI Smart Analytics (Gemini AI)
+## 3. Activity Diagram: Proses Kalibrasi AI Smart Analytics (Hugging Face LSTM)
 
 Diagram aktivitas ini menggambarkan alur permohonan analisis bisnis cerdas oleh Owner, proses penyaringan keamanan privasi data pelanggan, pemanggilan model AI, hingga hasil analisis divisualisasikan.
 
@@ -162,8 +162,8 @@ flowchart TD
     ForkAI --> PushSummaryToCloud[Unggah Payload Agregat Terenkripsi ke Supabase Edge Function]
     ForkAI --> LocalAggregation[Lakukan Agregasi Tren Lokal]
     
-    PushSummaryToCloud --> CallGeminiAPI[Edge Function Panggil API Google Gemini Pro]
-    CallGeminiAPI --> GenerateRecommendations[Gemini Hasilkan Insight Peramalan Omzet & Smart Pricing]
+    PushSummaryToCloud --> CallLstmAPI[Edge Function Panggil Model LSTM di Hugging Face]
+    CallLstmAPI --> GenerateRecommendations[Model LSTM Hasilkan Insight Peramalan Omzet & Smart Pricing]
     GenerateRecommendations --> ReturnResponse[Kirim Hasil Respons JSON ke Aplikasi Flutter]
     
     LocalAggregation & ReturnResponse --> JoinAI[Join & Gabungkan Data Insight]
@@ -181,7 +181,7 @@ flowchart TD
     style AskConsent fill:#fff8e7,stroke:#ffb700,stroke-width:2px
     style CheckMinTx fill:#fff8e7,stroke:#ffb700,stroke-width:2px
     style MaskPIIData fill:#e2f0d9,stroke:#385723,stroke-width:2px
-    style CallGeminiAPI fill:#e8f8f5,stroke:#1abc9c,stroke-width:2px
+    style CallLstmAPI fill:#e8f8f5,stroke:#1abc9c,stroke-width:2px
 ```
 
 ---

@@ -33,7 +33,7 @@ Berdasarkan dokumen perencanaan analitik (`Planning/Plan Penerapan Analitik.md`)
 
 ---
 
-## 2. Modul AI Smart Analytics (Gemini API Integration)
+## 2. Modul AI Smart Analytics (Hugging Face LSTM Integration)
 
 ### Deskripsi Status
 *   **Status Aktual**: 🟡 **Setengah Selesai (UI High-Fidelity & Simulasi Selesai, Integrasi Backend Belum Ada)**
@@ -43,13 +43,13 @@ Berdasarkan dokumen perencanaan analitik (`Planning/Plan Penerapan Analitik.md`)
 Antarmuka pengguna pada modul ini sangat premium, memanfaatkan bento-grid, grafik dari `fl_chart`, karusel rekomendasi harga (*smart pricing*), serta animasi *shimmer*. Namun, fungsionalitas kecerdasan buatannya berjalan di bawah sistem **simulasi client-side**:
 *   **Kunci Akses Global (Locked Screen)**: Pada `smart_analytics_screen.dart` baris 32, variabel `static const bool _isLocked` disetel ke `true`. Ini mengunci seluruh layar di balik filter blur (`BackdropFilter` sigma 12) dengan pop-up bertuliskan *"Coming Soon - AI Pro Feature"*.
 *   **Data Proyeksi & Kalibrasi AI Disimulasikan**:
-    *   Fungsi kalibrasi AI (`_startCalibration`) hanya menjalankan perulangan timer `Future.delayed` selama 1,2 detik per tahap untuk mengubah progres bar secara visual (0% -> 100%) dan menampilkan teks log seolah-olah sistem sedang berinteraksi dengan API Gemini.
+    *   Fungsi kalibrasi AI (`_startCalibration`) hanya menjalankan perulangan timer `Future.delayed` selama 1,2 detik per tahap untuk mengubah progres bar secara visual (0% -> 100%) dan menampilkan teks log seolah-olah sistem sedang berinteraksi dengan API Model LSTM Hugging Face.
     *   Tombol `+ Simulasikan +5` ditambahkan langsung di UI untuk memicu pertambahan data transaksi simulasi secara instan guna memenuhi batas minimum latihan (20 transaksi).
     *   Peramalan omzet harian/mingguan/bulanan, jam ramai pelanggan (*traffic forecast*), serta produk terlaris menggunakan nilai statis keras (*hardcoded*) di dalam struktur `switch-case` di tingkat widget.
 *   **Ketiadaan Model Caching Lokal (`AiInsightLocal`)**:
     *   Dalam `Plan Fitur AI.md`, direncanakan adanya skema lokal `AiInsightLocal` di database Isar untuk menghemat pemanggilan token API. Namun, model ini **tidak ditemukan** di folder `lib/core/models/` dan tidak teregistrasi dalam instance Isar.
 *   **Tidak Ada Integrasi Supabase Edge Function**:
-    *   Tidak ada pemanggilan RPC atau serverless function ke Supabase yang bertugas meneruskan data ringkasan ke Google Gemini Pro API.
+    *   Tidak ada pemanggilan RPC atau serverless function ke Supabase yang bertugas meneruskan data ringkasan ke API Model LSTM di Hugging Face.
     *   Modul `analytics_provider.dart` saat ini hanya mengumpulkan data kalkulasi agregat penjualan mentah (omzet riil lokal dan remote) tanpa keterlibatan model analitik prediktif.
 
 ---
@@ -94,7 +94,7 @@ Untuk menyempurnakan aplikasi **Parzello POS Mobile** menuju kesiapan rilis kome
 ```mermaid
 graph TD
     A[Mulai Pembenahan] --> B[Prioritas 1: KDS & Analitiknya]
-    B --> C[Prioritas 2: Hubungkan Gemini AI & Buka Kunci Layar]
+    B --> C[Prioritas 2: Hubungkan Model LSTM Hugging Face & Buka Kunci Layar]
     C --> D[Prioritas 3: Aktifkan Fitur Manajemen Meja]
     D --> E[Prioritas 4: UI Resolusi Konflik Offline]
     E --> F[Aplikasi POS Premium Siap Produksi]
@@ -106,10 +106,10 @@ graph TD
     *   Buat tabel database `kitchen_orders` di Supabase dan Isar DB.
     *   Buat real-time channel listener menggunakan Supabase Realtime agar status pesanan yang masuk ke dapur langsung ter-update di tablet juru masak secara instan.
     *   Pasang event Firebase Analytics (`kds_start_cooking`, dll.) untuk melacak durasi waktu memasak rata-rata toko.
-2.  **Langkah 2: Integrasi AI Gemini Pro Melalui Edge Function**
+2.  **Langkah 2: Integrasi Model LSTM Hugging Face Melalui Edge Function**
     *   Ubah flag `_isLocked` menjadi `false` di `smart_analytics_screen.dart`.
     *   Buat file model `lib/core/models/ai_insight_local.dart` dan daftarkan di basis data Isar.
-    *   Tulis Supabase Edge Function dalam bahasa TypeScript/Deno yang menggunakan `@google/genai` library untuk memanggil model `gemini-2.5-flash` dengan aman menggunakan API Key terenkripsi di server (menghindari kebocoran API Key di sisi client Flutter).
+    *   Tulis Supabase Edge Function dalam bahasa TypeScript/Deno yang memanggil model LSTM yang dihost di Hugging Face dengan aman menggunakan API token Hugging Face terenkripsi di server (menghindari kebocoran token di sisi client Flutter).
 3.  **Langkah 3: Aktivasi Manajemen Meja (Untuk Pasar F&B Dine-In)**
     *   Buka kunci menu di `dashboard_screen.dart` dengan mengubah `hasTables` menjadi dinamis (misal, berdasarkan tipe bisnis toko yang dipilih saat onboarding: Ritel vs F&B).
     *   Tautkan navigasi pengaturan meja ke `settings_screen.dart` agar owner dapat mengonfigurasi tata letak meja mereka.

@@ -1,6 +1,6 @@
 # PRODUCT REQUIREMENT DOCUMENT (PRD)
 ## PARZELLO POS MOBILE (ZELLOPOS)
-**Sistem Aplikasi Kasir Offline-First Pintar Berbasis Flutter, Supabase, Isar DB, & AI Smart Analytics**
+**Sistem Aplikasi Kasir Offline-First Pintar Berbasis Flutter, Supabase, Isar DB, & AI Smart Analytics (LSTM)**
 
 ---
 
@@ -9,12 +9,12 @@
 ### 1.1 Latar Belakang & Visi Produk
 **Parzello POS** (juga dikenal sebagai **ZelloPOS**) adalah aplikasi Point of Sale (POS) mobile premium yang dirancang khusus untuk memenuhi kebutuhan operasional merchant Usaha Mikro, Kecil, dan Menengah (UMKM) di sektor Ritel dan F&B (Food and Beverage). 
 
-Visi utama dari Parzello POS adalah menghadirkan sistem kasir yang **sangat responsif, andal dalam segala kondisi jaringan (Offline-First), modern secara visual (Premium UX), serta cerdas dalam memberikan rekomendasi bisnis (AI-Powered)**. Aplikasi ini dibangun menggunakan Flutter untuk performa cross-platform maksimal dengan backend Supabase, database lokal Isar DB untuk ketahanan offline, dan Google Gemini Pro API untuk analisis prediktif bisnis.
+Visi utama dari Parzello POS adalah menghadirkan sistem kasir yang **sangat responsif, andal dalam segala kondisi jaringan (Offline-First), modern secara visual (Premium UX), serta cerdas dalam memberikan rekomendasi bisnis (AI-Powered)**. Aplikasi ini dibangun menggunakan Flutter untuk performa cross-platform maksimal dengan backend Supabase, database lokal Isar DB untuk ketahanan offline, dan Model LSTM Kustom yang dihost di Hugging Face untuk analisis prediktif bisnis.
 
 ### 1.2 Proposisi Nilai Utama (Key Value Propositions)
 1. **Offline-First & Auto-Sync Engine**: Menjamin operasional kasir tetap berjalan 100% tanpa hambatan saat koneksi internet terputus. Seluruh transaksi disimpan secara lokal di Isar DB dan disinkronisasikan ke Supabase secara otomatis saat koneksi kembali online.
 2. **Premium Bento-Grid & Visual UX**: Antarmuka modern yang terstandarisasi menggunakan *Shadcn UI* dengan skema warna *Vibrant Lime* (`#9AE600`), tata letak bento-grid yang elegan, *floating rounded AppBars*, *bouncing physics*, serta getaran haptik (*haptic feedback*) untuk interaksi pengguna yang memuaskan.
-3. **AI Smart Analytics (Gemini Powered)**: Fitur ramalan penjualan (*sales forecasting*), estimasi kunjungan pelanggan (*traffic prediction*), manajemen penentuan harga cerdas (*smart pricing*), serta prediksi produk terlaris berdasarkan cuaca dan tren historis.
+3. **AI Smart Analytics (LSTM Powered)**: Fitur ramalan penjualan (*sales forecasting*), estimasi kunjungan pelanggan (*traffic prediction*), manajemen penentuan harga cerdas (*smart pricing*), serta prediksi produk terlaris berdasarkan cuaca dan tren historis.
 4. **Real-Time Notification Hub**: Notifikasi otomatis di tingkat sistem maupun *broadcast* dari cloud (Firebase Cloud Messaging) yang terintegrasi dengan database trigger untuk mengawasi kondisi kritis toko (seperti stok menipis atau pembatalan transaksi).
 5. **Multi-Store & Role-Based Access Control (RBAC)**: Kemampuan mengelola banyak outlet sekaligus dan pembatasan hak akses yang ketat antara Pemilik (*Owner/Admin*) dan Karyawan (*Cashier/Staff*).
 6. **Seamless Hardware Integration**: Integrasi pencetakan struk belanja secara instan melalui printer thermal Bluetooth/USB (ukuran kertas 58mm/80mm) disertai kustomisasi *header/footer* struk secara dinamis.
@@ -49,7 +49,7 @@ graph TD
     end
 
     subgraph External_APIs [External Services]
-        Gemini[Google Gemini Pro API]
+        LSTM[Hugging Face Hosted LSTM Model]
         Weather[OpenWeatherMap API]
     end
 
@@ -72,8 +72,8 @@ graph TD
     App -->|10. Request Analisis| EF
     EF -->|11. Query Data Historis| DB
     EF -->|12. Fetch Cuaca Terkini| Weather
-    EF -->|13. Prompting Context| Gemini
-    Gemini -->|14. JSON Insights| EF
+    EF -->|13. Send Time-Series Data| LSTM
+    LSTM -->|14. JSON Forecast Insights| EF
     EF -->|15. Save Response Cache| DB
     EF -->|16. Send Format JSON| App
 ```
@@ -278,7 +278,7 @@ Aplikasi Parzello POS menerapkan pembatasan hak akses yang ketat berdasarkan per
   - Setiap log mencatat: nama produk, jumlah perubahan (+/-), stok lama, stok baru, nama kasir/owner pelaku penyesuaian, waktu transaksi, dan tipe mutasi (`sale`, `manual_addition`, dll.) untuk audit inventaris yang transparan.
 
 ### 5.5 F-05: Smart Analytics (AI Powered)
-Modul dashboard analitik premium yang menggabungkan kecerdasan buatan Google Gemini Pro dan OpenWeatherMap API untuk memberikan wawasan operasional tingkat lanjut kepada pemilik toko.
+Modul dashboard analitik premium yang menggabungkan Model LSTM Kustom yang dihost di Hugging Face dan OpenWeatherMap API untuk memberikan wawasan operasional tingkat lanjut kepada pemilik toko.
 * **Sales Forecasting (Ramalan Penjualan)**: 
   - Menampilkan estimasi nominal omzet harian, mingguan, atau bulanan berikutnya.
   - Visualisasi menggunakan **Grafik Garis (`fl_chart`)**: Garis tebal solid merepresentasikan data penjualan riil historis, sedangkan garis putus-putus (*dotted line*) berwarna neon melambangkan proyeksi masa depan dari AI.
@@ -331,7 +331,7 @@ Sistem notifikasi 3-tingkat untuk menjamin kelancaran komunikasi operasional tok
 
 ### 6.3 Keamanan Data & Privasi (Security & Privacy)
 * **Supabase Row Level Security (RLS)**: Seluruh tabel di Supabase wajib dilengkapi kebijakan RLS ketat. Pengguna hanya diizinkan membaca, menambah, atau memodifikasi data yang memiliki keterkaitan dengan `store_id` tempat mereka terdaftar sebagai member.
-* **Proteksi Data Pribadi (PII)**: Untuk fitur AI Smart Analytics, payload transaksi yang dikirimkan ke Google Gemini API **sama sekali tidak boleh** mengandung informasi identitas pelanggan (seperti nama, nomor telepon, kartu kredit). AI hanya menerima kuantitas produk, kategori, total harga, jam transaksi, dan parameter eksternal seperti cuaca.
+* **Proteksi Data Pribadi (PII)**: Untuk fitur AI Smart Analytics, payload transaksi yang dikirimkan ke API Model LSTM **sama sekali tidak boleh** mengandung informasi identitas pelanggan (seperti nama, nomor telepon, kartu kredit). AI hanya menerima kuantitas produk, kategori, total harga, jam transaksi, dan parameter eksternal seperti cuaca.
 * **Session Token Verification**: Aplikasi melakukan validasi token sesi Supabase secara berkala sebelum melakukan sinkronisasi untuk mencegah injeksi data dari sesi kedaluwarsa.
 
 ### 6.4 Usabilitas & Estetika (Usability & Premium UX)

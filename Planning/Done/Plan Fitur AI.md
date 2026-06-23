@@ -6,7 +6,7 @@ Dokumen ini merinci perencanaan, arsitektur, skema data, dan peta jalan (roadmap
 
 ## 1. Arsitektur & Alur Integrasi AI
 
-Sistem AI dirancang untuk meminimalkan beban komputasi di sisi klien (mobile device) dengan memindahkan logika analisis berat ke server menggunakan **Supabase Edge Functions** dan **Google Gemini Pro API**. Hasil analisis akan disimpan di database untuk efisiensi biaya API (caching) dan disinkronisasikan ke local cache **Isar DB** agar dapat diakses secara instan serta mendukung mode offline.
+Sistem AI dirancang untuk meminimalkan beban komputasi di sisi klien (mobile device) dengan memindahkan logika analisis berat ke server menggunakan **Supabase Edge Functions** dan **Model LSTM Kustom yang dihost di Hugging Face**. Hasil analisis akan disimpan di database untuk efisiensi biaya API (caching) dan disinkronisasikan ke local cache **Isar DB** agar dapat diakses secara instan serta mendukung mode offline.
 
 ### Diagram Alur Komunikasi AI
 ```mermaid
@@ -15,7 +15,7 @@ sequenceDiagram
     participant Isar as Local Isar DB
     participant EF as Supabase Edge Function (ai-analytics)
     participant DB as Supabase DB
-    participant Gemini as Google Gemini Pro API
+    participant LSTM as Hugging Face Hosted LSTM
     participant Weather as OpenWeatherMap API
 
     App->>Isar: Cek Cache Prediksi Lokal
@@ -25,8 +25,8 @@ sequenceDiagram
         App->>EF: Request Analisis Baru (Store ID, Range, Lokasi)
         EF->>DB: Query Histori Transaksi (3-6 bulan terakhir)
         EF->>Weather: Fetch Data Cuaca & Prakiraan Cuaca Terkini
-        EF->>Gemini: Kirim Data Transaksi, Cuaca, Kalender Libur (Prompt Terstruktur)
-        Gemini-->>EF: Kembalikan JSON Prediksi & Rekomendasi
+        EF->>LSTM: Kirim Data Transaksi, Cuaca, Kalender Libur (Payload Runtun Waktu)
+        LSTM-->>EF: Kembalikan JSON Prediksi & Rekomendasi
         EF->>DB: Simpan Hasil Prediksi ke Tabel 'ai_insights' (Cache Server)
         EF-->>App: Kirim Response JSON Prediksi Terformat
         App->>Isar: Tulis/Update Hasil Prediksi Baru ke Cache Isar
@@ -63,7 +63,7 @@ Untuk menghasilkan akurasi prediksi yang tinggi dan rekomendasi yang aplikatif b
 ## 3. Desain Skema Database & Caching
 
 ### A. Server-Side Cache (Supabase Table)
-Untuk mencegah eksploitasi API Gemini yang berlebihan (cost control), kita membuat tabel `ai_insights` di Supabase untuk menyimpan hasil prediksi selama 24 jam.
+Untuk mencegah eksploitasi API Hugging Face yang berlebihan (cost control), kita membuat tabel `ai_insights` di Supabase untuk menyimpan hasil prediksi selama 24 jam.
 
 ```sql
 CREATE TABLE public.ai_insights (
@@ -122,7 +122,7 @@ class AiInsightLocal {
 
 ## 4. Struktur Data & Model Dart
 
-Model terstruktur untuk memetakan response JSON dari AI Gemini ke dalam objek Dart yang aman:
+Model terstruktur untuk memetakan response JSON dari Model LSTM Hugging Face ke dalam objek Dart yang aman:
 
 ```dart
 // lib/features/reports/models/ai_insight_model.dart
@@ -270,12 +270,12 @@ Desain antarmuka dirancang dengan **Rich Aesthetics** dan **Premium Elements** m
 
 ## 6. Peta Jalan Implementasi (Milestone)
 
-### 📋 MILESTONE 1: Supabase Edge Function & Integrasi Gemini
+### 📋 MILESTONE 1: Supabase Edge Function & Integrasi LSTM Hugging Face
 - [ ] Buat folder Supabase Edge Function `supabase/functions/ai-analytics/`.
-- [ ] Implementasikan integrasi **Gemini Pro API (atau Vertex AI)** dengan Deno runtime di Edge Function.
-- [ ] Konfigurasikan prompt terstruktur (system instructions) agar Gemini mengembalikan respons valid berformat JSON sesuai dengan schema model Dart.
+- [ ] Implementasikan integrasi **Model LSTM Kustom di Hugging Face** dengan Deno runtime di Edge Function.
+- [ ] Konfigurasikan payload runtun waktu (time-series payload) agar model LSTM mengembalikan respons valid berformat JSON sesuai dengan schema model Dart.
 - [ ] Sambungkan integrasi API Cuaca gratis (misal: OpenWeatherMap) di dalam Deno runtime untuk menggabungkan data perkiraan cuaca lokal ke dalam prompt AI.
-- [ ] Daftarkan variabel lingkungan `GEMINI_API_KEY` dan `WEATHER_API_KEY` di dashboard Supabase.
+- [ ] Daftarkan variabel lingkungan `HUGGINGFACE_API_TOKEN` dan `WEATHER_API_KEY` di dashboard Supabase.
 
 ### 📋 MILESTONE 2: Skema Database & Caching (Server & Client)
 - [ ] Jalankan migrasi SQL untuk membuat tabel `public.ai_insights` di Supabase Database dan aktifkan RLS.
@@ -305,7 +305,7 @@ Desain antarmuka dirancang dengan **Rich Aesthetics** dan **Premium Elements** m
 ---
 
 > [!IMPORTANT]
-> **Privasi Data Pelanggan**: Data transaksi yang dikirim ke Gemini API hanya berupa agregasi angka kuantitas, nama produk, kategori, dan waktu transaksi. **SAMA SEKALI TIDAK BOLEH** mengirimkan informasi pribadi (PII) seperti nama pelanggan, nomor telepon, atau data pembayaran kartu kredit ke pihak ketiga API.
+> **Privasi Data Pelanggan**: Data transaksi yang dikirim ke API Model LSTM di Hugging Face hanya berupa agregasi angka kuantitas, nama produk, kategori, dan waktu transaksi. **SAMA SEKALI TIDAK BOLEH** mengirimkan informasi pribadi (PII) seperti nama pelanggan, nomor telepon, atau data pembayaran kartu kredit ke API eksternal.
 
 > [!TIP]
 > Untuk meningkatkan akurasi *Smart Pricing*, AI akan menghitung margin kotor produk dengan membandingkan `price` (harga jual) dengan `modalPrice` (harga pokok penjualan/modal) agar rekomendasi diskon tidak merugikan keuntungan bersih toko.

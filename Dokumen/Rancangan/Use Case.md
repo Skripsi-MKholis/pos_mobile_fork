@@ -127,7 +127,7 @@ Daftar berikut merinci fungsi dari masing-masing *use case* yang digambarkan pad
 | **UC-09** | Mengelola Kategori | Owner | Mengatur pengelompokan menu katalog produk toko. |
 | **UC-10** | Mengaudit Riwayat Stok | Owner | Melihat log keluar-masuk mutasi barang untuk mencegah fraud. |
 | **UC-11** | Melihat Dashboard | Owner, Kasir | Memantau performa keuangan (Kasir dibatasi khusus hari ini). |
-| **UC-12** | Melihat AI Analytics | Owner | Melihat proyeksi omzet cerdas berbasis Gemini AI (*simulated*). |
+| **UC-12** | Melihat AI Analytics | Owner | Melihat proyeksi omzet cerdas berbasis Model LSTM di Hugging Face (*simulated*). |
 | **UC-13** | Kirim Broadcast Notif | Owner | Mengirim pesan push pemberitahuan real-time ke semua kasir. |
 | **UC-14** | Sinkronisasi Data | Owner, Kasir | Menyinkronkan antrean transaksi offline lokal ke cloud Supabase. |
 | **UC-15** | Mengelola Karyawan | Owner | Mendaftarkan, menangguhkan, atau mengubah peran staf kasir. |
@@ -160,13 +160,13 @@ Berikut adalah skenario alur kejadian (*flow of events*) rinci untuk tiga fungsi
 ### Skenario 2: Kalibrasi & Latihan AI Smart Analytics (UC-12)
 *   **Aktor Utama**: Owner
 *   **Kondisi Awal**: Owner berada di halaman laporan keuangan dan data transaksi toko memiliki minimal 20 entri riwayat penjualan baru.
-*   **Kondisi Akhir**: Model forecasting Gemini AI terkalibrasi secara cloud dan grafik peramalan omzet terbaru tersaji secara lokal.
+*   **Kondisi Akhir**: Model forecasting LSTM Hugging Face terkalibrasi secara cloud dan grafik peramalan omzet terbaru tersaji secara lokal.
 
 | Alur Utama (Normal Flow) - Aksi Aktor | Reaksi Sistem |
 | :--- | :--- |
 | 1. Owner menekan menu "Smart Analytics". | 2. Sistem mendeteksi halaman terkunci (*Locked Backdrop Blur*), lalu menampilkan pop-up persetujuan privasi data latihan AI (*Agreement Dialog*). |
 | 3. Owner menekan tombol "Setuju & Mulai Latihan". | 4. Sistem menampilkan proses bar kalibrasi AI. |
-| | 5. Sistem memproses data tren secara lokal, mengaburkan informasi pribadi pelanggan (PII), mengunggah rangkuman histori transaksi terenkripsi ke API cloud, memicu model Gemini Pro, menyimpan cache proyeksi di penyimpanan lokal, dan menampilkan status "Kalibrasi Sukses!". |
+| | 5. Sistem memproses data tren secara lokal, mengaburkan informasi pribadi pelanggan (PII), mengunggah rangkuman histori transaksi terenkripsi ke API cloud, memicu model LSTM Hugging Face, menyimpan cache proyeksi di penyimpanan lokal, dan menampilkan status "Kalibrasi Sukses!". |
 | | 6. Sistem menyajikan visualisasi grafik fluktuasi peramalan omzet harian/mingguan/bulanan, jam sibuk pelanggan, rekomendasi harga dinamis (*smart pricing*), dan estimasi menu terlaris. |
 
 ---
