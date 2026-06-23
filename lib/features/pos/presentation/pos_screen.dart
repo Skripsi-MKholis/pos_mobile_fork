@@ -465,18 +465,18 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt: Hoist invariant query case conversion outside loop to save O(N) allocations.
+                  final query = _searchQuery.toLowerCase();
                   var filteredProducts = products
                       .where(
-                        (p) =>
-                            (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ||
-                                (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ) ??
-                                    false)) &&
-                            (_selectedCategoryId == null ||
-                                p.categoryId == _selectedCategoryId),
+                        (p) {
+                          // ⚡ Bolt: Fast-path for cheap O(1) checks before expensive string operations
+                          if (_selectedCategoryId != null && p.categoryId != _selectedCategoryId) return false;
+                          if (query.isEmpty) return true;
+
+                          return p.name.toLowerCase().contains(query) ||
+                                (p.sku?.toLowerCase().contains(query) ?? false);
+                        }
                       )
                       .toList();
 
