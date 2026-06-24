@@ -549,4 +549,8 @@
       }
     }
   }
+,
+  "removeVoucher": "Remove Voucher",
+  "toggleFlashlight": "Toggle Flashlight",
+  "closeScanner": "Close Scanner"
 }

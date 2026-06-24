@@ -549,4 +549,8 @@
       }
     }
   }
+,
+  "removeVoucher": "Hapus Voucher",
+  "toggleFlashlight": "Nyalakan/Matikan Senter",
+  "closeScanner": "Tutup Pemindai"
 }

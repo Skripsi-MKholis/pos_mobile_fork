@@ -412,6 +412,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                           ),
                         ),
                         IconButton(
+                          tooltip: l10n.removeVoucher,
                           onPressed: () => ref
                               .read(cartNotifierProvider.notifier)
                               .removeVoucher(),
