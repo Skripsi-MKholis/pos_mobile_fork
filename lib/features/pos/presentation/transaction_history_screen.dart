@@ -140,20 +140,19 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                // ⚡ Bolt: Hoist invariant values out of the loop and short-circuit early.
+                // Reordered conditions to check fast exact matches before expensive string operations.
+                final queryLower = _searchQuery.toLowerCase();
+                final now = DateTime.now();
+                final yesterday = now.subtract(const Duration(days: 1));
+
                 final filtered = transactions.where((tx) {
-                  final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
-                      tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
-                  final matchesStatus =
-                      _filterStatus == 'Semua' || tx['status'] == _filterStatus;
+                  if (_filterStatus != 'Semua' && tx['status'] != _filterStatus) {
+                    return false;
+                  }
 
                   final txDate = DateTime.parse(tx['created_at']).toLocal();
                   bool matchesDate = true;
-                  final now = DateTime.now();
 
                   if (_dateFilter == 'Hari Ini') {
                     matchesDate =
@@ -161,7 +160,6 @@ class _TransactionHistoryScreenState
                         txDate.month == now.month &&
                         txDate.day == now.day;
                   } else if (_dateFilter == 'Kemarin') {
-                    final yesterday = now.subtract(const Duration(days: 1));
                     matchesDate =
                         txDate.year == yesterday.year &&
                         txDate.month == yesterday.month &&
@@ -173,7 +171,12 @@ class _TransactionHistoryScreenState
                         txDate.day == _customDate!.day;
                   }
 
-                  return matchesSearch && matchesStatus && matchesDate;
+                  if (!matchesDate) return false;
+
+                  if (queryLower.isEmpty) return true;
+
+                  return tx['id'].toString().toLowerCase().contains(queryLower) ||
+                      tx['payment_method'].toString().toLowerCase().contains(queryLower);
                 }).toList();
 
                 if (filtered.isEmpty && !state.isLoadingMore) {
@@ -316,15 +319,18 @@ class _TransactionHistoryScreenState
   ) {
     return historyAsync.when(
       data: (state) {
+        // ⚡ Bolt: Hoist DateTime evaluations out of the loop
+        final now = DateTime.now();
+        final yesterday = now.subtract(const Duration(days: 1));
+
         final filtered = state.transactions.where((tx) {
           final txDate = DateTime.parse(tx['created_at']).toLocal();
-          final now = DateTime.now();
+
           if (_dateFilter == 'Hari Ini') {
             return txDate.year == now.year &&
                 txDate.month == now.month &&
                 txDate.day == now.day;
           } else if (_dateFilter == 'Kemarin') {
-            final yesterday = now.subtract(const Duration(days: 1));
             return txDate.year == yesterday.year &&
                 txDate.month == yesterday.month &&
                 txDate.day == yesterday.day;
