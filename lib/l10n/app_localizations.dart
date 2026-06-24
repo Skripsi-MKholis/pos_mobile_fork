@@ -746,6 +746,24 @@ abstract class AppLocalizations {
   /// **'Total Items Price'**
   String get totalBelanja;
 
+  /// No description provided for @clearCartConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Cart?'**
+  String get clearCartConfirmTitle;
+
+  /// No description provided for @clearCartConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove all items from the cart?'**
+  String get clearCartConfirmDesc;
+
+  /// No description provided for @yesClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, Clear'**
+  String get yesClear;
+
   /// No description provided for @clearCart.
   ///
   /// In en, this message translates to:

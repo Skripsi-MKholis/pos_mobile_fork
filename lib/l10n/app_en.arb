@@ -136,6 +136,10 @@
   "stockLow": "Low Stock",
   "outOfStock": "Out of Stock",
   "totalBelanja": "Total Items Price",
+  "clearCartConfirmTitle": "Clear Cart?",
+  "clearCartConfirmDesc": "Are you sure you want to remove all items from the cart?",
+  "yesClear": "Yes, Clear",
+
   "clearCart": "Clear Cart",
   "viewDetails": "View Details",
   "noProductsYet": "No products yet",
