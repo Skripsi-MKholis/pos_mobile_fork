@@ -92,12 +92,16 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         // Log to Firebase Analytics
         try {
           final categories = ref.read(categoryNotifierProvider).value;
-          final categoryName = categories?.firstWhere(
-              (c) => c.supabaseId == product.categoryId,
-              orElse: () => Category()..name = 'Tanpa Kategori',
-            ).name ?? 'Tanpa Kategori';
+          final categoryName = categories
+                  ?.firstWhere(
+                    (c) => c.supabaseId == product.categoryId,
+                    orElse: () => Category()..name = 'Tanpa Kategori',
+                  )
+                  .name ??
+              'Tanpa Kategori';
 
-          await AnalyticsService.instance.logProductDeletion(categoryName: categoryName);
+          await AnalyticsService.instance
+              .logProductDeletion(categoryName: categoryName);
         } catch (_) {}
 
         if (mounted) {
@@ -270,8 +274,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             label: Text(l10n.all),
                             selected: _selectedCategory == null,
                             selectedColor: Warna.primary,
-                            backgroundColor: theme.colorScheme.muted
-                                .withOpacity(0.3),
+                            backgroundColor:
+                                theme.colorScheme.muted.withOpacity(0.3),
                             labelStyle: TextStyle(
                               color: _selectedCategory == null
                                   ? Colors.black
@@ -299,8 +303,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 label: Text(c.name),
                                 selected: isSelected,
                                 selectedColor: Warna.primary,
-                                backgroundColor: theme.colorScheme.muted
-                                    .withOpacity(0.3),
+                                backgroundColor:
+                                    theme.colorScheme.muted.withOpacity(0.3),
                                 labelStyle: TextStyle(
                                   color: isSelected
                                       ? Colors.black
@@ -320,9 +324,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 ),
                                 onSelected: (selected) {
                                   setState(() {
-                                    _selectedCategory = selected
-                                        ? c.supabaseId
-                                        : null;
+                                    _selectedCategory =
+                                        selected ? c.supabaseId : null;
                                   });
                                 },
                               ),
@@ -342,19 +345,17 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Expanded(
                 child: productsAsync.when(
                   data: (products) {
+                    // ⚡ Bolt: Hoisted lowercase string conversion and query emptiness check outside the loop to prevent O(N) redundant computations. Reordered conditions to evaluate cheap category ID check before expensive string contains().
+                    final queryLower = _searchQuery.toLowerCase();
+                    final isQueryEmpty = queryLower.isEmpty;
+
                     final filteredProducts = products.where((p) {
-                      final matchesSearch =
-                          p.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
-                          ) ||
-                          (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase(),
-                              ) ??
-                              false);
-                      final matchesCategory =
-                          _selectedCategory == null ||
-                          p.categoryId == _selectedCategory;
-                      return matchesSearch && matchesCategory;
+                      if (_selectedCategory != null &&
+                          p.categoryId != _selectedCategory) return false;
+                      if (isQueryEmpty) return true;
+
+                      return p.name.toLowerCase().contains(queryLower) ||
+                          (p.sku?.toLowerCase().contains(queryLower) ?? false);
                     }).toList();
 
                     final categoryMap = categoriesAsync.maybeWhen(
@@ -392,7 +393,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           final product = filteredProducts[index];
                           final categoryName =
                               categoryMap[product.categoryId] ??
-                              'Tanpa Kategori';
+                                  'Tanpa Kategori';
                           return _buildProductCard(
                             context,
                             product,
@@ -508,11 +509,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: double.infinity,
-                        maxHeightDiskCache: 150, // Resizes and caches optimized low-res image
+                        maxHeightDiskCache:
+                            150, // Resizes and caches optimized low-res image
                         maxWidthDiskCache: 150,
                         placeholder: (context, url) => Shimmer.fromColors(
                           baseColor: theme.colorScheme.muted.withOpacity(0.5),
-                          highlightColor: theme.colorScheme.muted.withOpacity(0.2),
+                          highlightColor:
+                              theme.colorScheme.muted.withOpacity(0.2),
                           child: Container(
                             color: Colors.white,
                           ),
@@ -566,7 +569,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         Padding(
                           padding: const EdgeInsets.only(left: 6),
                           child: Tooltip(
-                            message: AppLocalizations.of(context)!.waitingForSync,
+                            message:
+                                AppLocalizations.of(context)!.waitingForSync,
                             child: const Icon(
                               TablerIcons.cloud_off,
                               size: 14,
@@ -789,9 +793,8 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       // Small delay to allow the repaint boundary to layout fully
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final boundary =
-          _globalKey.currentContext?.findRenderObject()
-              as RenderRepaintBoundary?;
+      final boundary = _globalKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
       if (boundary == null) return;
 
       final image = await boundary.toImage(pixelRatio: 3.0);
@@ -809,7 +812,9 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
       final l10n = AppLocalizations.of(context)!;
       await Share.shareXFiles([
         XFile(file.path),
-      ], text: l10n.barcodeShareText(widget.product.name, widget.product.sku ?? ''));
+      ],
+          text: l10n.barcodeShareText(
+              widget.product.name, widget.product.sku ?? ''));
     } catch (e) {
       if (mounted) {
         mySnackBar(
@@ -869,7 +874,8 @@ class _BarcodeViewerSheetState extends State<_BarcodeViewerSheet> {
                 children: [
                   Text(
                     AppLocalizations.of(context)!.productBarcode,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 18),
                   ),
                   IconButton(
                     icon: const Icon(TablerIcons.x),
