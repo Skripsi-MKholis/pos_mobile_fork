@@ -17,6 +17,7 @@ import 'package:pos_mobile/core/utils/supabase_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  Env.validate();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   try {
