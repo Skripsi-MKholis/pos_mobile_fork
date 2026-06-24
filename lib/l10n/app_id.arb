@@ -137,6 +137,8 @@
   "outOfStock": "Stok 0",
   "totalBelanja": "Total Belanja",
   "clearCart": "Kosongkan Keranjang",
+  "clearCartConfirm": "Kosongkan Keranjang?",
+  "clearCartDesc": "Apakah Anda yakin ingin mengosongkan semua item dari keranjang? Tindakan ini tidak dapat dibatalkan.",
   "viewDetails": "Cek Detail",
   "noProductsYet": "Belum ada produk",
   "noProductsYetDesc": "Tambahkan produk pertama Anda untuk mulai berjualan.",
