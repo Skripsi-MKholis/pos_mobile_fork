@@ -5,3 +5,6 @@
 ## 2024-05-20 - [Add Debouncer to ShadInput Review]
 **Learning:** When creating a Debouncer for search inputs with a 'clear' button, the debouncer timer must be cancelled in the clear button's 'onPressed' callback, otherwise the delayed input will overwrite the cleared state. Adding comments is explicitly part of the required guidelines.
 **Action:** Always document optimizations in comments in code. Remember to handle timer cancellation on clear UI actions to prevent state race conditions.
+## 2024-05-20 - [Optimize POS Screen Filtering]
+**Learning:** Found a common performance anti-pattern where invariant string conversions (`toLowerCase()`) and empty checks were happening inside a `.where()` loop across lists, resulting in O(N) redundant memory allocations and slow-downs on large datasets.
+**Action:** Always hoist invariants out of filter loops and prioritize checking cheaper conditions (like ID checks) first. Add fast-path early returns to bypass `.contains()` entirely when search queries are empty.
