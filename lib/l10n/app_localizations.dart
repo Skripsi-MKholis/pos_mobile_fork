@@ -752,6 +752,12 @@ abstract class AppLocalizations {
   /// **'Clear Cart'**
   String get clearCart;
 
+  /// No description provided for @clearCartConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the cart?'**
+  String get clearCartConfirm;
+
   /// No description provided for @viewDetails.
   ///
   /// In en, this message translates to:
