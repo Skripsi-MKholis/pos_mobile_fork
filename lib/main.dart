@@ -17,6 +17,10 @@ import 'package:pos_mobile/core/utils/supabase_helper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  if (Env.supabaseUrl.isEmpty || Env.supabaseAnonKey.isEmpty) {
+    throw Exception('Supabase credentials are not set. Please provide SUPABASE_URL and SUPABASE_ANON_KEY via --dart-define.');
+  }
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey);
   try {
