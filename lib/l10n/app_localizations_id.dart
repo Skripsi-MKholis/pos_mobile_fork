@@ -978,4 +978,13 @@ class AppLocalizationsId extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registrasi Gagal: $error';
   }
+
+  @override
+  String get decreaseQuantity => 'Kurangi kuantitas';
+
+  @override
+  String get increaseQuantity => 'Tambah kuantitas';
+
+  @override
+  String get back => 'Kembali';
 }

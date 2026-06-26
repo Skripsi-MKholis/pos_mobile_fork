@@ -976,4 +976,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String registrationFailed(String error) {
     return 'Registration Failed: $error';
   }
+
+  @override
+  String get decreaseQuantity => 'Decrease quantity';
+
+  @override
+  String get increaseQuantity => 'Increase quantity';
+
+  @override
+  String get back => 'Back';
 }

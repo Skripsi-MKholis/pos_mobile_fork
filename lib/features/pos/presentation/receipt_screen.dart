@@ -158,11 +158,13 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           leading: IconButton(
+            tooltip: l10n.back,
             icon: const Icon(TablerIcons.chevron_left),
             onPressed: () => context.go('/transactions'),
           ),
           actions: [
             IconButton(
+              tooltip: l10n.printerConnection,
               icon: const Icon(TablerIcons.printer),
               onPressed: () => context.push('/printer-settings'),
             ),

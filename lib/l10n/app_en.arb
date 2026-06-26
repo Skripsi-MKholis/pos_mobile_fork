@@ -549,4 +549,7 @@
       }
     }
   }
+  ,"decreaseQuantity": "Decrease quantity",
+  "increaseQuantity": "Increase quantity",
+  "back": "Back"
 }
