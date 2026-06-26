@@ -549,4 +549,7 @@
       }
     }
   }
+  ,"decreaseQuantity": "Kurangi kuantitas",
+  "increaseQuantity": "Tambah kuantitas",
+  "back": "Kembali"
 }

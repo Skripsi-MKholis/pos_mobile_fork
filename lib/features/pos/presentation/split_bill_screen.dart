@@ -64,6 +64,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
           style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
+          tooltip: l10n.back,
           icon: const Icon(TablerIcons.chevron_left),
           onPressed: () => context.pop(),
         ),
@@ -111,6 +112,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
                       Row(
                         children: [
                           IconButton(
+                            tooltip: l10n.decreaseQuantity,
                             icon: const Icon(TablerIcons.minus, size: 20),
                             onPressed: currentQty > 0
                                 ? () => setState(() => _selectedQuantities[productId] = currentQty - 1)
@@ -125,6 +127,7 @@ class _SplitBillScreenState extends ConsumerState<SplitBillScreen> {
                             ),
                           ),
                           IconButton(
+                            tooltip: l10n.increaseQuantity,
                             icon: const Icon(TablerIcons.plus, size: 20),
                             onPressed: currentQty < maxQty
                                 ? () => setState(() => _selectedQuantities[productId] = currentQty + 1)
