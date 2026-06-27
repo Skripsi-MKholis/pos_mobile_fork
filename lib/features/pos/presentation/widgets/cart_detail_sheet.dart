@@ -50,8 +50,13 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
         final subtotal = ref.read(cartNotifierProvider).subtotal;
         if (subtotal < voucher.minPurchase) {
           setState(() {
-            _voucherError =
-                l10n.minPurchase(NumberFormat.currency(locale: currentLocale, symbol: "Rp ", decimalDigits: 0).format(voucher.minPurchase));
+            _voucherError = l10n.minPurchase(
+              NumberFormat.currency(
+                locale: currentLocale,
+                symbol: "Rp ",
+                decimalDigits: 0,
+              ).format(voucher.minPurchase),
+            );
           });
         } else {
           ref.read(cartNotifierProvider.notifier).applyVoucher(voucher);
@@ -146,7 +151,9 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              l10n.tableWithColon(cartState.selectedTable!.name),
+                              l10n.tableWithColon(
+                                cartState.selectedTable!.name,
+                              ),
                               style: TextStyle(
                                 color: theme.colorScheme.mutedForeground,
                                 fontWeight: FontWeight.w500,
@@ -184,10 +191,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      l10n.cartIsEmpty,
-                      style: theme.textTheme.muted,
-                    ),
+                    Text(l10n.cartIsEmpty, style: theme.textTheme.muted),
                   ],
                 ),
               )
@@ -395,13 +399,17 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.voucherWithColon(cartState.appliedVoucher!.code),
+                                l10n.voucherWithColon(
+                                  cartState.appliedVoucher!.code,
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w900,
                                 ),
                               ),
                               Text(
-                                l10n.savedAmount(format.format(cartState.discountAmount)),
+                                l10n.savedAmount(
+                                  format.format(cartState.discountAmount),
+                                ),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade700,
@@ -412,6 +420,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                           ),
                         ),
                         IconButton(
+                          tooltip: l10n.removeVoucher,
                           onPressed: () => ref
                               .read(cartNotifierProvider.notifier)
                               .removeVoucher(),
