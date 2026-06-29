@@ -465,19 +465,22 @@ class _POSScreenState extends ConsumerState<POSScreen> {
               backgroundColor: Colors.white,
               child: productsAsync.when(
                 data: (products) {
+                  // ⚡ Bolt: Hoist invariant string conversion and reorder conditions
+                  // to evaluate computationally cheap ID matches before expensive string operations.
+                  final queryLower = _searchQuery.toLowerCase();
+                  final isQueryEmpty = queryLower.isEmpty;
+
                   var filteredProducts = products
-                      .where(
-                        (p) =>
-                            (p.name.toLowerCase().contains(
-                                  _searchQuery.toLowerCase(),
-                                ) ||
-                                (p.sku?.toLowerCase().contains(
-                                      _searchQuery.toLowerCase(),
-                                    ) ??
-                                    false)) &&
-                            (_selectedCategoryId == null ||
-                                p.categoryId == _selectedCategoryId),
-                      )
+                      .where((p) {
+                        final matchesCategory = _selectedCategoryId == null ||
+                            p.categoryId == _selectedCategoryId;
+
+                        if (!matchesCategory) return false;
+                        if (isQueryEmpty) return true;
+
+                        return p.name.toLowerCase().contains(queryLower) ||
+                            (p.sku?.toLowerCase().contains(queryLower) ?? false);
+                      })
                       .toList();
 
                   // Apply sorting

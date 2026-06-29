@@ -342,19 +342,21 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               Expanded(
                 child: productsAsync.when(
                   data: (products) {
+                    // ⚡ Bolt: Hoist invariant string conversion and reorder conditions
+                    // to evaluate computationally cheap ID matches before expensive string operations.
+                    final queryLower = _searchQuery.toLowerCase();
+                    final isQueryEmpty = queryLower.isEmpty;
+
                     final filteredProducts = products.where((p) {
-                      final matchesSearch =
-                          p.name.toLowerCase().contains(
-                            _searchQuery.toLowerCase(),
-                          ) ||
-                          (p.sku?.toLowerCase().contains(
-                                _searchQuery.toLowerCase(),
-                              ) ??
-                              false);
                       final matchesCategory =
                           _selectedCategory == null ||
                           p.categoryId == _selectedCategory;
-                      return matchesSearch && matchesCategory;
+
+                      if (!matchesCategory) return false;
+                      if (isQueryEmpty) return true;
+
+                      return p.name.toLowerCase().contains(queryLower) ||
+                          (p.sku?.toLowerCase().contains(queryLower) ?? false);
                     }).toList();
 
                     final categoryMap = categoriesAsync.maybeWhen(
