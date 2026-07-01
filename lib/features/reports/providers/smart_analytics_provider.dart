@@ -154,12 +154,35 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
     decimalDigits: 0,
   );
 
-  String getLstmBaseUrl() {
-    if (kIsWeb) {
-      return 'http://localhost:5000';
-    }
+  // ================================================================
+  // KONFIGURASI SERVER LSTM — DUAL-SERVER STRATEGY
+  //
+  // [PRIMARY] HuggingFace Space: selalu tersedia tanpa server lokal
+  //   → /api/predict/daily, /api/recommendations/stock, /api/recommendations/target
+  //
+  // [SECONDARY] Server lokal: untuk kalibrasi LSTM per-toko
+  //   → /api/calibrate (tidak tersedia di HuggingFace)
+  //   Emulator Android : tidak perlu diubah (10.0.2.2 otomatis)
+  //   HP fisik Android : ganti _localServerPhysicalIp dengan IP komputer Anda
+  //                      Cara cek IP: ipconfig (Windows) / ip addr (Linux/Mac)
+  // ================================================================
+  static const String _hfSpaceBaseUrl =
+      'https://itsprzvl-ModelLSTM.hf.space';
+
+  static const String _localServerPhysicalIp = 'http://192.168.1.100:5000';
+
+  /// URL server utama — HuggingFace Space (cloud, tidak perlu server lokal).
+  String getLstmBaseUrl() => _hfSpaceBaseUrl;
+
+  /// URL server lokal — dipakai khusus untuk /api/calibrate.
+  /// Untuk HP fisik Android: set [usePhysicalDevice] = true dan isi
+  /// [_localServerPhysicalIp] dengan IP komputer di jaringan yang sama.
+  String getLocalServerUrl({bool usePhysicalDevice = false}) {
+    if (kIsWeb) return 'http://localhost:5000';
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000';
+      return usePhysicalDevice
+          ? _localServerPhysicalIp
+          : 'http://10.0.2.2:5000';
     }
     return 'http://localhost:5000';
   }
@@ -476,6 +499,27 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       Map<String, dynamic>? targetRecommendationData;
       String apiConnectionWarning = "";
 
+      // Jika forceCalibrate, panggil /api/calibrate ke server LOKAL
+      // (HuggingFace Space tidak menyediakan endpoint ini)
+      if (forceCalibrate) {
+        try {
+          final calibrateUrl = Uri.parse('${getLocalServerUrl()}/api/calibrate');
+          await http.post(
+            calibrateUrl,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'store_id': storeId.toString(),
+              'history': history,
+              'lookback': 14,
+              'epochs': 30,
+            }),
+          ).timeout(const Duration(seconds: 60));
+          debugPrint('DEBUG: LSTM calibration API called for store $storeId');
+        } catch (e) {
+          debugPrint('DEBUG: Calibration API call failed: $e');
+        }
+      }
+
       try {
         // 1. POST /api/predict/daily (Forecast 30 days ahead)
         final dailyUrl = Uri.parse('$baseUrl/api/predict/daily');
@@ -483,12 +527,13 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           dailyUrl,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
+            'store_id': storeId.toString(),
             'n_days': 30,
             'open_on_weekends': true,
             'closed_months': [],
             'history': history,
           }),
-        ).timeout(const Duration(seconds: 5));
+        ).timeout(const Duration(seconds: 10));
 
         if (dailyResponse.statusCode == 200) {
           dailyForecastData = jsonDecode(dailyResponse.body) as Map<String, dynamic>;
@@ -513,7 +558,7 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             'top_products': topProducts,
             'history': history,
           }),
-        ).timeout(const Duration(seconds: 5));
+        ).timeout(const Duration(seconds: 10));
 
         if (stockResponse.statusCode == 200) {
           stockRecommendationData = jsonDecode(stockResponse.body) as Map<String, dynamic>;
@@ -526,10 +571,11 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             targetUrl,
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
+              'store_id': storeId.toString(),
               'factor': 1.10,
               'history': history,
             }),
-          ).timeout(const Duration(seconds: 5));
+          ).timeout(const Duration(seconds: 10));
 
           if (targetResponse.statusCode == 200) {
             targetRecommendationData = jsonDecode(targetResponse.body) as Map<String, dynamic>;
@@ -538,12 +584,14 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
 
         if (dailyForecastData != null && stockRecommendationData != null) {
           isApiSuccess = true;
+          final modelUsed = dailyForecastData['model'] ?? 'unknown';
+          debugPrint('DEBUG: API success — model=$modelUsed');
         } else {
           apiConnectionWarning = "Server LSTM mengembalikan status non-200. Menggunakan fallback lokal.";
         }
       } catch (e) {
         debugPrint("DEBUG: Failed to connect to Python LSTM Server: $e");
-        apiConnectionWarning = "Gagal terhubung ke Python Server ($baseUrl). Menggunakan simulasi lokal.";
+        apiConnectionWarning = "Gagal terhubung ke Python Server ($baseUrl). Pastikan api_server.py sudah berjalan (python api_server.py).";
       }
 
       // Helper function to resolve predictions

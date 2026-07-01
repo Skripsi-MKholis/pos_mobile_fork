@@ -62,47 +62,60 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
       _calibrationStepText = "Mempersiapkan data transaksi...";
     });
 
-    final steps = [
-      const MapEntry(
-        0.2,
-        "Menyeleksi & membersihkan data transaksi harian khusus toko...",
-      ),
-      const MapEntry(
-        0.45,
-        "Mengompresi & mengunggah data transaksional ke Python Server...",
-      ),
-      const MapEntry(
-        0.7,
-        "Melatih model LSTM terpisah khusus Toko (Isolated Model)...",
-      ),
-      const MapEntry(
-        0.88,
-        "Menyimpan file model terkompresi (.h5) ke Cloud Storage Registry...",
-      ),
-      const MapEntry(
-        1.0,
-        "Menyelesaikan kalibrasi & memuat model untuk proyeksi 30 hari...",
-      ),
-    ];
+    // Step 1 & 2 — animasi lokal sebelum network call dimulai
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (!mounted) return;
+    setState(() {
+      _calibrationProgress = 0.2;
+      _calibrationStepText =
+          "Menyeleksi & membersihkan data transaksi harian khusus toko...";
+    });
 
-    for (var step in steps) {
-      await Future.delayed(const Duration(milliseconds: 1200));
-      if (!mounted) return;
-      setState(() {
-        _calibrationProgress = step.key;
-        _calibrationStepText = step.value;
-      });
-    }
+    await Future.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    setState(() {
+      _calibrationProgress = 0.35;
+      _calibrationStepText =
+          "Mengompresi & mengunggah data transaksional ke Python Server...";
+    });
 
+    // Mulai kalibrasi nyata: fetch Supabase + latih LSTM di server Python
+    // Future ini berjalan bersamaan dengan animasi step berikutnya
+    final calibrationFuture =
+        ref.read(smartAnalyticsProvider.notifier).calibrateModel();
+
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted) return;
+    setState(() {
+      _calibrationProgress = 0.55;
+      _calibrationStepText =
+          "Melatih model LSTM terpisah khusus Toko (Isolated Model)...";
+    });
+
+    // Tunggu sampai pelatihan LSTM di server benar-benar selesai
+    await calibrationFuture;
+    if (!mounted) return;
+
+    // Step 4-5 — animasi penutup setelah kalibrasi selesai
+    setState(() {
+      _calibrationProgress = 0.88;
+      _calibrationStepText =
+          "Menyimpan file model terkompresi (.h5) ke Cloud Storage Registry...";
+    });
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    await ref.read(smartAnalyticsProvider.notifier).calibrateModel();
+    setState(() {
+      _calibrationProgress = 1.0;
+      _calibrationStepText =
+          "Menyelesaikan kalibrasi & memuat model untuk proyeksi 30 hari...";
+    });
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
 
     setState(() {
       _isCalibrating = false;
-      _newTransactionCount =
-          0; // Reset counter menjadi terkunci/terlindungi dari spam
+      _newTransactionCount = 0;
     });
 
     mySnackBar(
