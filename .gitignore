@@ -48,3 +48,6 @@ app.*.map.json
 android/key.properties
 android/*.jks
 android/*.keystore
+
+# Local env overrides for --dart-define-from-file (see env.example.json)
+env.json

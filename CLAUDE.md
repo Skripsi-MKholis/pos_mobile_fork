@@ -70,6 +70,8 @@ The `/customer/*` route tree is a separate unauthenticated shell for end-custome
 
 Supabase URL and anon key are hardcoded in `lib/core/env/env.dart`. Firebase config is in `android/app/google-services.json` and `lib/firebase_options.dart`.
 
+The Smart Analitik LSTM/prediction endpoint (`lib/core/env/env.dart` — `lstmHfUrl`, `lstmLocalPhysicalUrl`) is overridable at build/run time via `--dart-define`, e.g. `flutter run --dart-define=LSTM_HF_URL=https://xxx.hf.space`, or in bulk via `--dart-define-from-file=env.json` (copy `env.example.json`, gitignored). Falls back to the hardcoded defaults if not provided.
+
 ### Localization
 
 Uses Flutter's `flutter_localizations` + generated `AppLocalizations`. ARB files live in `lib/l10n/`. Run `flutter gen-l10n` (configured in `l10n.yaml`) to regenerate after editing ARB files.

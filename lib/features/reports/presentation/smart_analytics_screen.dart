@@ -36,13 +36,6 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
   ForecastTab _selectedTab = ForecastTab.daily;
   bool _isLoading = false;
 
-  // AI Calibration States
-  bool _hasAgreed = false;
-  bool _isCalibrating = false;
-  double _calibrationProgress = 0.0;
-  String _calibrationStepText = "Menunggu...";
-  int _newTransactionCount = 8; // Memulai simulasi dengan 8 data transaksi baru
-
   @override
   void initState() {
     super.initState();
@@ -51,187 +44,31 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
     });
   }
 
-  Future<void> _startCalibration() async {
+  // Menyegarkan analisis: mengambil ulang forecast terbaru dari model.
+  // Model produksi bersifat stateless (baseline statistik), jadi ini murni
+  // memuat ulang data — tidak ada training model per toko.
+  Future<void> _refreshAnalytics() async {
     final activeStore = ref.read(activeStoreProvider).value;
     final storeId = activeStore?['id']?.toString() ?? 'unknown';
     await AnalyticsService.instance.logAICalibration(storeId: storeId);
 
     setState(() {
-      _isCalibrating = true;
-      _calibrationProgress = 0.0;
-      _calibrationStepText = "Mempersiapkan data transaksi...";
+      _isLoading = true;
     });
 
-    // Step 1 & 2 — animasi lokal sebelum network call dimulai
-    await Future.delayed(const Duration(milliseconds: 800));
+    await ref
+        .read(smartAnalyticsProvider.notifier)
+        .refreshAnalytics(_selectedTab);
+
     if (!mounted) return;
     setState(() {
-      _calibrationProgress = 0.2;
-      _calibrationStepText =
-          "Menyeleksi & membersihkan data transaksi harian khusus toko...";
-    });
-
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    setState(() {
-      _calibrationProgress = 0.35;
-      _calibrationStepText =
-          "Mengompresi & mengunggah data transaksional ke Python Server...";
-    });
-
-    // Mulai kalibrasi nyata: fetch Supabase + latih LSTM di server Python
-    // Future ini berjalan bersamaan dengan animasi step berikutnya
-    final calibrationFuture =
-        ref.read(smartAnalyticsProvider.notifier).calibrateModel();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    setState(() {
-      _calibrationProgress = 0.55;
-      _calibrationStepText =
-          "Melatih model LSTM terpisah khusus Toko (Isolated Model)...";
-    });
-
-    // Tunggu sampai pelatihan LSTM di server benar-benar selesai
-    await calibrationFuture;
-    if (!mounted) return;
-
-    // Step 4-5 — animasi penutup setelah kalibrasi selesai
-    setState(() {
-      _calibrationProgress = 0.88;
-      _calibrationStepText =
-          "Menyimpan file model terkompresi (.h5) ke Cloud Storage Registry...";
-    });
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (!mounted) return;
-
-    setState(() {
-      _calibrationProgress = 1.0;
-      _calibrationStepText =
-          "Menyelesaikan kalibrasi & memuat model untuk proyeksi 30 hari...";
-    });
-    await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) return;
-
-    setState(() {
-      _isCalibrating = false;
-      _newTransactionCount = 0;
+      _isLoading = false;
     });
 
     mySnackBar(
       context: context,
-      text:
-          'Kalibrasi AI Selesai! Model LSTM telah disesuaikan dengan pola penjualan unik toko Anda.',
+      text: 'Analisis diperbarui dengan perkiraan terbaru dari model.',
       status: ToastStatus.success,
-    );
-  }
-
-  void _showAgreementDialog() {
-    showShadDialog(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF6B4EFF).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                TablerIcons.brain,
-                color: Color(0xFF6B4EFF),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text('Persetujuan Latihan AI'),
-          ],
-        ),
-        description: const Text(
-          'Untuk menyelaraskan AI dengan karakteristik unik toko Anda, sistem memerlukan persetujuan pemrosesan data historis.',
-          style: TextStyle(fontSize: 12),
-        ),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildDialogBullet(
-                TablerIcons.shield_lock,
-                'Privasi Terjamin & Terenkripsi',
-                'Data pribadi pelanggan dan detail nomor pembayaran sama sekali tidak diunggah atau disimpan.',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogBullet(
-                TablerIcons.server,
-                'Model LSTM Terisolasi (Per Toko)',
-                'Server Python melatih model LSTM terpisah secara mandiri untuk toko Anda untuk menjaga privasi data antar owner.',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogBullet(
-                TablerIcons.chart_dots_3,
-                'Penyimpanan Model & Inferensi',
-                'Model spesifik toko (.h5) disimpan di Cloud Registry. Prediksi dihitung real-time dari 14 hari transaksi terakhir (lookback).',
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          ShadButton.outline(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          ShadButton(
-            backgroundColor: const Color(0xFF6B4EFF),
-            hoverBackgroundColor: const Color(0xFF523BFF),
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _hasAgreed = true;
-              });
-              _startCalibration();
-            },
-            child: const Text('Setuju & Mulai Latihan'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDialogBullet(IconData icon, String title, String desc) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: const Color(0xFF6B4EFF)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                desc,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.grey.shade600,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -534,8 +371,8 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
 
   Widget _buildCalibrationCard(ShadThemeData theme) {
     final state = ref.watch(smartAnalyticsProvider);
-    final hasTrained = state.isCalibrated;
-    final isLocked = hasTrained && _newTransactionCount < 20;
+    final hasRefreshed = state.isCalibrated;
+    final isBusy = state.isLoading || _isLoading;
 
     return Container(
       width: double.infinity,
@@ -544,9 +381,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _isCalibrating
-              ? const Color(0xFF6B4EFF).withOpacity(0.4)
-              : const Color(0xFF6B4EFF).withOpacity(0.15),
+          color: const Color(0xFF6B4EFF).withOpacity(0.15),
           width: 1,
         ),
       ),
@@ -555,30 +390,22 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                _isCalibrating
-                    ? TablerIcons.brain
-                    : isLocked
-                    ? TablerIcons.circle_check
-                    : TablerIcons.sparkles,
-                color: isLocked ? Warna.success : const Color(0xFF6B4EFF),
+              const Icon(
+                TablerIcons.sparkles,
+                color: Color(0xFF6B4EFF),
                 size: 18,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _isCalibrating
-                      ? 'Mengkalibrasi Model AI...'
-                      : hasTrained
-                      ? 'Model AI Terkalibrasi Aktif'
-                      : 'Model AI Belum Dikalibrasi',
+                  'Analisis Cerdas Penjualan',
                   style: theme.textTheme.large.copyWith(
                     fontWeight: FontWeight.bold,
                     fontSize: 12.5,
                   ),
                 ),
               ),
-              if (hasTrained && !_isCalibrating && state.lastCalibrationTime != null)
+              if (hasRefreshed && state.lastCalibrationTime != null)
                 Text(
                   'Terakhir: ${DateFormat('dd/MM HH:mm').format(state.lastCalibrationTime!)}',
                   style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
@@ -586,135 +413,127 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-
-          if (_isCalibrating) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    _calibrationStepText,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                      color: Color(0xFF6B4EFF),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          Text(
+            'Perkiraan penjualan dihitung dari riwayat transaksi toko Anda. Segarkan untuk memuat perkiraan terbaru.',
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+          ),
+          const SizedBox(height: 12),
+          // Status koneksi API server
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: state.apiOnline ? Warna.success : Colors.grey.shade400,
+                  shape: BoxShape.circle,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '${(_calibrationProgress * 100).toInt()}%',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF6B4EFF),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: _calibrationProgress,
-                backgroundColor: const Color(0xFF6B4EFF).withOpacity(0.1),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFF6B4EFF),
-                ),
-                minHeight: 4,
               ),
-            ),
-          ] else ...[
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    isLocked
-                        ? 'Simulasi data baru: $_newTransactionCount / 20'
-                        : 'Latih model dengan transaksi terbaru agar estimasi optimal.',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isLocked
-                          ? Colors.grey.shade600
-                          : Colors.grey.shade700,
-                    ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  state.apiOnline
+                      ? 'Terhubung • ${state.apiServerLabel}'
+                      : 'Terputus • ${state.apiServerLabel} (pakai estimasi lokal)',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: state.apiOnline
+                        ? Warna.success
+                        : Colors.grey.shade600,
                   ),
-                ),
-                const SizedBox(width: 8),
-                if (isLocked)
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _newTransactionCount += 5;
-                      });
-                      mySnackBar(
-                        context: context,
-                        text: '+5 Transaksi baru disimulasikan ke toko.',
-                        status: ToastStatus.success,
-                      );
-                    },
-                    child: const Text(
-                      '+ Simulasikan +5',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF6B4EFF),
-                        fontWeight: FontWeight.w900,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            if (isLocked) ...[
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(2),
-                child: LinearProgressIndicator(
-                  value: (_newTransactionCount / 20).clamp(0.0, 1.0),
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Warna.success.withOpacity(0.8),
-                  ),
-                  minHeight: 3,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
             ],
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 32,
-              child: ShadButton(
-                width: double.infinity,
-                backgroundColor: isLocked
-                    ? Colors.grey.shade100
-                    : const Color(0xFF6B4EFF),
-                hoverBackgroundColor: isLocked
-                    ? Colors.grey.shade100
-                    : const Color(0xFF523BFF),
-                foregroundColor: isLocked ? Colors.grey.shade400 : Colors.white,
-                onPressed: isLocked
-                    ? null
-                    : () {
-                        if (!_hasAgreed) {
-                          _showAgreementDialog();
-                        } else {
-                          _startCalibration();
-                        }
-                      },
-                child: Text(
-                  hasTrained
-                      ? 'Latih Ulang Model AI'
-                      : 'Mulai Latih & Kalibrasi AI',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
+          ),
+          const SizedBox(height: 8),
+          // Pemilihan server: Cloud (HuggingFace) atau Lokal
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                _buildServerChip(
+                  'Cloud (HF)',
+                  !state.isLocalServer,
+                  isBusy
+                      ? null
+                      : () => ref
+                          .read(smartAnalyticsProvider.notifier)
+                          .setServerMode(false, _selectedTab),
+                ),
+                _buildServerChip(
+                  'Lokal',
+                  state.isLocalServer,
+                  isBusy
+                      ? null
+                      : () => ref
+                          .read(smartAnalyticsProvider.notifier)
+                          .setServerMode(true, _selectedTab),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 32,
+            child: ShadButton(
+              width: double.infinity,
+              backgroundColor: const Color(0xFF6B4EFF),
+              hoverBackgroundColor: const Color(0xFF523BFF),
+              foregroundColor: Colors.white,
+              onPressed: isBusy ? null : _refreshAnalytics,
+              leading: const Icon(TablerIcons.refresh, size: 14),
+              child: Text(
+                isBusy ? 'Memperbarui...' : 'Segarkan Analisis',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
                 ),
               ),
             ),
-          ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildServerChip(String label, bool selected, VoidCallback? onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: selected
+                  ? const Color(0xFF6B4EFF)
+                  : Colors.grey.shade500,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -834,7 +653,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               child: _buildKPICard(
                 'Estimasi Traffic',
                 state.trafficText,
-                state.trafficPeak,
+                null,
                 TablerIcons.users,
                 const Color(0xFF4285F4),
                 theme,
@@ -846,7 +665,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         _buildKPICardWide(
           'Prediksi Produk Terlaris Utama',
           state.bestSellingName,
-          state.bestSellingEst,
+          null,
           TablerIcons.crown,
           const Color(0xFFFF9E00),
           theme,
@@ -858,7 +677,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
   Widget _buildKPICard(
     String title,
     String value,
-    String subtitle,
+    String? subtitle,
     IconData icon,
     Color accentColor,
     ShadThemeData theme,
@@ -902,25 +721,27 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               color: Colors.black,
             ),
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(TablerIcons.trending_up, size: 10, color: Warna.success),
-              const SizedBox(width: 3),
-              Expanded(
-                child: Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w500,
+          if (subtitle != null && subtitle.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(TablerIcons.trending_up, size: 10, color: Warna.success),
+                const SizedBox(width: 3),
+                Expanded(
+                  child: Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -929,7 +750,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
   Widget _buildKPICardWide(
     String title,
     String value,
-    String subtitle,
+    String? subtitle,
     IconData icon,
     Color accentColor,
     ShadThemeData theme,
@@ -989,32 +810,34 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: accentColor.withOpacity(0.1)),
-            ),
-            child: Row(
-              children: [
-                Icon(TablerIcons.sparkles, size: 14, color: accentColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade700,
+          if (subtitle != null && subtitle.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: accentColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: accentColor.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  Icon(TablerIcons.sparkles, size: 14, color: accentColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1263,6 +1086,8 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
     final state = ref.watch(smartAnalyticsProvider);
     final recs = state.pricingRecommendations;
 
+    if (recs.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1470,181 +1295,91 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: products.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 10),
-          itemBuilder: (context, index) {
-            final p = products[index];
-            final scorePercent = ((p['confidence'] as double) * 100).toInt();
-            return Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade100, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.005),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: (p['trendColor'] as Color).withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      p['icon'] as IconData,
-                      color: p['trendColor'] as Color,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              p['name'] as String,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 1.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: (p['trendColor'] as Color).withOpacity(
-                                  0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                p['trend'] as String,
-                                style: TextStyle(
-                                  fontSize: 7,
-                                  fontWeight: FontWeight.w900,
-                                  color: p['trendColor'] as Color,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              'Est: ${p['quantity']} unit terjual',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '|',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$scorePercent% Keyakinan AI',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.purple,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        // Mini Progress bar
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: p['confidence'] as double,
-                            backgroundColor: Colors.grey.shade100,
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Colors.purple,
-                            ),
-                            minHeight: 4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 24),
-        _buildSeasonalAlertCard(theme),
-      ],
-    );
-  }
-
-  Widget _buildSeasonalAlertCard(ShadThemeData theme) {
-    final state = ref.watch(smartAnalyticsProvider);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            const Color(0xFF4285F4).withOpacity(0.08),
-            Colors.purple.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF4285F4).withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(TablerIcons.sun, color: Colors.orange, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Seasonal & Weather Insight',
-                style: theme.textTheme.large.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: Colors.blue.shade900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            state.weatherInsight,
-            style: const TextStyle(
-              fontSize: 10.5,
-              height: 1.4,
-              color: Colors.black87,
+        if (products.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.shade100, width: 1.5),
             ),
+            child: Text(
+              'Belum ada data produk yang cukup untuk proyeksi.',
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: products.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 10),
+            itemBuilder: (context, index) {
+              final p = products[index];
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.shade100, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.005),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6B4EFF).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '#${index + 1}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: Color(0xFF6B4EFF),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            p['name'] as String,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Est: ${p['quantity']} unit terjual',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-        ],
-      ),
+      ],
     );
   }
 

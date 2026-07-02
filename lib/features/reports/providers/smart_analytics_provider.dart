@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/core/env/env.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
@@ -10,15 +11,17 @@ import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
 import 'package:isar/isar.dart';
 import 'dart:convert';
-import 'dart:math' as math;
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+
+/// Pilihan server prediksi yang dipakai fitur Smart Analitik.
+enum ApiServerMode { huggingface, local }
 
 class SmartAnalyticsState {
   final bool isLoading;
@@ -32,9 +35,7 @@ class SmartAnalyticsState {
   final String revenueText;
   final String revenueDiff;
   final String trafficText;
-  final String trafficPeak;
   final String bestSellingName;
-  final String bestSellingEst;
 
   // Chart Spots & Labels
   final List<FlSpot> actualSpots;
@@ -47,8 +48,12 @@ class SmartAnalyticsState {
   final List<Map<String, dynamic>> pricingRecommendations;
 
   // Insights
-  final String weatherInsight;
   final String coldStartWarning;
+
+  // Status koneksi API
+  final bool apiOnline; // true jika endpoint prediksi berhasil dipanggil
+  final bool isLocalServer; // true = server lokal, false = HuggingFace Space
+  final String apiServerLabel; // label server aktif untuk ditampilkan
 
   SmartAnalyticsState({
     required this.isLoading,
@@ -60,40 +65,37 @@ class SmartAnalyticsState {
     required this.revenueText,
     required this.revenueDiff,
     required this.trafficText,
-    required this.trafficPeak,
     required this.bestSellingName,
-    required this.bestSellingEst,
     required this.actualSpots,
     required this.forecastSpots,
     required this.xLabels,
     required this.maxY,
     required this.projectedBestSellers,
     required this.pricingRecommendations,
-    required this.weatherInsight,
     this.coldStartWarning = "",
+    this.apiOnline = false,
+    this.isLocalServer = false,
+    this.apiServerLabel = "HuggingFace Space",
   });
 
   factory SmartAnalyticsState.initial() => SmartAnalyticsState(
-        isLoading: false,
-        isCalibrated: false,
-        businessType: "Retail",
-        storeName: "Toko POS",
-        totalRevenue: 0,
-        revenueText: "Rp 0",
-        revenueDiff: "0% vs rerata",
-        trafficText: "0 Pelanggan",
-        trafficPeak: "Belum ada data",
-        bestSellingName: "Belum ada produk",
-        bestSellingEst: "0 unit terjual",
-        actualSpots: [],
-        forecastSpots: [],
-        xLabels: [],
-        maxY: 1000000,
-        projectedBestSellers: [],
-        pricingRecommendations: [],
-        weatherInsight: "Data cuaca belum tersedia.",
-        coldStartWarning: "",
-      );
+    isLoading: false,
+    isCalibrated: false,
+    businessType: "Retail",
+    storeName: "Toko POS",
+    totalRevenue: 0,
+    revenueText: "Rp 0",
+    revenueDiff: "0% vs rerata",
+    trafficText: "0 Pelanggan",
+    bestSellingName: "Belum ada produk",
+    actualSpots: [],
+    forecastSpots: [],
+    xLabels: [],
+    maxY: 1000000,
+    projectedBestSellers: [],
+    pricingRecommendations: [],
+    coldStartWarning: "",
+  );
 
   SmartAnalyticsState copyWith({
     bool? isLoading,
@@ -105,17 +107,17 @@ class SmartAnalyticsState {
     String? revenueText,
     String? revenueDiff,
     String? trafficText,
-    String? trafficPeak,
     String? bestSellingName,
-    String? bestSellingEst,
     List<FlSpot>? actualSpots,
     List<FlSpot>? forecastSpots,
     List<String>? xLabels,
     double? maxY,
     List<Map<String, dynamic>>? projectedBestSellers,
     List<Map<String, dynamic>>? pricingRecommendations,
-    String? weatherInsight,
     String? coldStartWarning,
+    bool? apiOnline,
+    bool? isLocalServer,
+    String? apiServerLabel,
   }) {
     return SmartAnalyticsState(
       isLoading: isLoading ?? this.isLoading,
@@ -127,17 +129,18 @@ class SmartAnalyticsState {
       revenueText: revenueText ?? this.revenueText,
       revenueDiff: revenueDiff ?? this.revenueDiff,
       trafficText: trafficText ?? this.trafficText,
-      trafficPeak: trafficPeak ?? this.trafficPeak,
       bestSellingName: bestSellingName ?? this.bestSellingName,
-      bestSellingEst: bestSellingEst ?? this.bestSellingEst,
       actualSpots: actualSpots ?? this.actualSpots,
       forecastSpots: forecastSpots ?? this.forecastSpots,
       xLabels: xLabels ?? this.xLabels,
       maxY: maxY ?? this.maxY,
       projectedBestSellers: projectedBestSellers ?? this.projectedBestSellers,
-      pricingRecommendations: pricingRecommendations ?? this.pricingRecommendations,
-      weatherInsight: weatherInsight ?? this.weatherInsight,
+      pricingRecommendations:
+          pricingRecommendations ?? this.pricingRecommendations,
       coldStartWarning: coldStartWarning ?? this.coldStartWarning,
+      apiOnline: apiOnline ?? this.apiOnline,
+      isLocalServer: isLocalServer ?? this.isLocalServer,
+      apiServerLabel: apiServerLabel ?? this.apiServerLabel,
     );
   }
 }
@@ -155,50 +158,96 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
   );
 
   // ================================================================
-  // KONFIGURASI SERVER LSTM — DUAL-SERVER STRATEGY
+  // KONFIGURASI SERVER PREDIKSI — bisa dipilih (Cloud / Lokal)
   //
-  // [PRIMARY] HuggingFace Space: selalu tersedia tanpa server lokal
-  //   → /api/predict/daily, /api/recommendations/stock, /api/recommendations/target
+  // Endpoint yang dipakai (semua stateless, baseline statistik):
+  //   → POST /api/predict/daily
+  //   → POST /api/recommendations/stock
+  //   → POST /api/recommendations/target
   //
-  // [SECONDARY] Server lokal: untuk kalibrasi LSTM per-toko
-  //   → /api/calibrate (tidak tersedia di HuggingFace)
-  //   Emulator Android : tidak perlu diubah (10.0.2.2 otomatis)
-  //   HP fisik Android : ganti _localServerPhysicalIp dengan IP komputer Anda
-  //                      Cara cek IP: ipconfig (Windows) / ip addr (Linux/Mac)
+  // [Cloud]  HuggingFace Space — selalu tersedia tanpa server lokal.
+  //          URL diatur via Env.lstmHfUrl (override: --dart-define=LSTM_HF_URL=...).
+  // [Lokal]  python app_public.py di komputer (port 5000).
+  //   Emulator Android : 10.0.2.2 (otomatis).
+  //   HP fisik Android : Env.lstmLocalPhysicalUrl — ganti dengan IP komputer
+  //                      di jaringan yang sama (cek: ipconfig / ip addr) via
+  //                      --dart-define=LSTM_LOCAL_PHYSICAL_URL=http://<ip>:5000
   // ================================================================
-  static const String _hfSpaceBaseUrl =
-      'https://itsprzvl-ModelLSTM.hf.space';
+  static const String _prefsServerModeKey = 'smart_api_server_mode';
 
-  static const String _localServerPhysicalIp = 'http://192.168.1.100:5000';
+  ApiServerMode _serverMode = ApiServerMode.huggingface;
 
-  /// URL server utama — HuggingFace Space (cloud, tidak perlu server lokal).
-  String getLstmBaseUrl() => _hfSpaceBaseUrl;
-
-  /// URL server lokal — dipakai khusus untuk /api/calibrate.
-  /// Untuk HP fisik Android: set [usePhysicalDevice] = true dan isi
-  /// [_localServerPhysicalIp] dengan IP komputer di jaringan yang sama.
-  String getLocalServerUrl({bool usePhysicalDevice = false}) {
+  /// URL server lokal sesuai platform.
+  String _localBaseUrl({bool usePhysicalDevice = false}) {
     if (kIsWeb) return 'http://localhost:5000';
     if (Platform.isAndroid) {
       return usePhysicalDevice
-          ? _localServerPhysicalIp
-          : 'http://10.0.2.2:5000';
+          ? Env.lstmLocalPhysicalUrl
+          : 'http://10.140.135.148:5000';
     }
     return 'http://localhost:5000';
   }
 
-  Future<void> loadSmartAnalytics(ForecastTab tab, {bool forceCalibrate = false}) async {
+  /// URL server prediksi aktif sesuai [_serverMode].
+  String getLstmBaseUrl() =>
+      _serverMode == ApiServerMode.local ? _localBaseUrl() : Env.lstmHfUrl;
+
+  /// Label server aktif untuk ditampilkan di UI.
+  String get _serverLabel =>
+      _serverMode == ApiServerMode.local ? "Server Lokal" : "HuggingFace Space";
+
+  /// Baca pilihan server yang tersimpan (dipanggil di awal load).
+  Future<void> _loadServerMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_prefsServerModeKey);
+    _serverMode = saved == 'local'
+        ? ApiServerMode.local
+        : ApiServerMode.huggingface;
+  }
+
+  /// Ganti server prediksi (Cloud/Lokal), simpan pilihan, lalu muat ulang.
+  Future<void> setServerMode(bool useLocal, ForecastTab tab) async {
+    _serverMode = useLocal ? ApiServerMode.local : ApiServerMode.huggingface;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsServerModeKey, useLocal ? 'local' : 'hf');
+    state = state.copyWith(
+      isLocalServer: useLocal,
+      apiServerLabel: _serverLabel,
+    );
+    await loadSmartAnalytics(tab);
+  }
+
+  Future<void> loadSmartAnalytics(
+    ForecastTab tab, {
+    bool forceCalibrate = false,
+  }) async {
     final activeStore = _ref.read(activeStoreProvider).value;
     final storeId = activeStore?['id'];
     final storeName = activeStore?['name'] ?? "Toko POS";
     final businessType = activeStore?['business_type'] ?? "Retail";
+
+    // Profil operasional toko — dapat dikonfigurasi via settings.operational.
+    // Dipakai untuk menyelaraskan generasi hari-aktif di API model
+    // (skip weekend / bulan tutup). Default: buka 7 hari, tanpa bulan tutup.
+    final operational =
+        (activeStore?['settings']?['operational'] as Map?) ?? const {};
+    final openOnWeekends = operational['open_on_weekends'] as bool? ?? true;
+    final closedMonths =
+        (operational['closed_months'] as List?)?.cast<int>() ?? const <int>[];
 
     if (storeId == null) {
       state = SmartAnalyticsState.initial();
       return;
     }
 
-    state = state.copyWith(isLoading: true, storeName: storeName, businessType: businessType);
+    // Pakai pilihan server (Cloud/Lokal) yang tersimpan.
+    await _loadServerMode();
+
+    state = state.copyWith(
+      isLoading: true,
+      storeName: storeName,
+      businessType: businessType,
+    );
 
     try {
       final now = DateTime.now();
@@ -206,7 +255,9 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       final startDate = now.subtract(const Duration(days: 45));
       final dateStr = DateFormat('yyyy-MM-dd').format(startDate);
 
-      final isOnline = _ref.read(connectivityNotifierProvider).value == ConnectivityStatus.online;
+      final isOnline =
+          _ref.read(connectivityNotifierProvider).value ==
+          ConnectivityStatus.online;
       final isar = IsarService.instance;
       List<dynamic> data = [];
 
@@ -225,26 +276,34 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           // Sync local database cache
           await isar.writeTxn(() async {
             for (var tx in remoteData) {
-              final voucherInfoStr = tx['voucher_info'] != null ? jsonEncode(tx['voucher_info']) : null;
+              final voucherInfoStr = tx['voucher_info'] != null
+                  ? jsonEncode(tx['voucher_info'])
+                  : null;
               final txLocal = TransactionLocal(
                 supabaseId: tx['id'].toString(),
                 storeId: tx['store_id'].toString(),
                 cashierId: tx['cashier_id']?.toString() ?? '',
                 totalAmount: (tx['total_amount'] as num).toDouble(),
                 paymentMethod: tx['payment_method']?.toString() ?? 'Tunai',
-                cashPaid: (tx['cash_paid'] as num?)?.toDouble() ?? (tx['total_amount'] as num).toDouble(),
+                cashPaid:
+                    (tx['cash_paid'] as num?)?.toDouble() ??
+                    (tx['total_amount'] as num).toDouble(),
                 changeAmount: (tx['change_amount'] as num?)?.toDouble() ?? 0.0,
                 status: tx['status']?.toString() ?? 'Berhasil',
                 tableId: tx['table_id']?.toString(),
-                discountTotal: (tx['discount_total'] as num?)?.toDouble() ?? 0.0,
+                discountTotal:
+                    (tx['discount_total'] as num?)?.toDouble() ?? 0.0,
                 voucherInfo: voucherInfoStr,
                 createdAt: DateTime.parse(tx['created_at']).toLocal(),
                 isSynced: true,
               );
 
-              await isar.collection<TransactionLocal>().putBySupabaseId(txLocal);
+              await isar.collection<TransactionLocal>().putBySupabaseId(
+                txLocal,
+              );
 
-              await isar.collection<TransactionItemLocal>()
+              await isar
+                  .collection<TransactionItemLocal>()
                   .filter()
                   .transactionSupabaseIdEqualTo(txLocal.supabaseId)
                   .deleteAll();
@@ -269,30 +328,39 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       }
 
       if (data.isEmpty) {
-        final localTxs = await isar.collection<TransactionLocal>()
+        final localTxs = await isar
+            .collection<TransactionLocal>()
             .filter()
             .storeIdEqualTo(storeId)
-            .createdAtGreaterThan(startDate.subtract(const Duration(milliseconds: 1)), include: false)
+            .createdAtGreaterThan(
+              startDate.subtract(const Duration(milliseconds: 1)),
+              include: false,
+            )
             .findAll();
 
         final List<dynamic> localDataList = [];
         for (var tx in localTxs) {
-          final items = await isar.collection<TransactionItemLocal>()
+          final items = await isar
+              .collection<TransactionItemLocal>()
               .filter()
               .transactionSupabaseIdEqualTo(tx.supabaseId)
               .findAll();
-          
+
           localDataList.add({
             'id': tx.supabaseId,
             'total_amount': tx.totalAmount,
             'created_at': tx.createdAt.toIso8601String(),
-            'transaction_items': items.map((item) => {
-              'product_id': item.productId,
-              'product_name': item.productName,
-              'unit_price': item.unitPrice,
-              'quantity': item.quantity,
-              'subtotal': item.subtotal,
-            }).toList(),
+            'transaction_items': items
+                .map(
+                  (item) => {
+                    'product_id': item.productId,
+                    'product_name': item.productName,
+                    'unit_price': item.unitPrice,
+                    'quantity': item.quantity,
+                    'subtotal': item.subtotal,
+                  },
+                )
+                .toList(),
           });
         }
         data = localDataList;
@@ -300,19 +368,27 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
 
       // Check if we have enough historical data for proper LSTM (30 days or at least 14 days)
       final uniqueDaysWithTransactions = data
-          .map((tx) => DateFormat('yyyy-MM-dd').format(DateTime.parse(tx['created_at']).toLocal()))
+          .map(
+            (tx) => DateFormat(
+              'yyyy-MM-dd',
+            ).format(DateTime.parse(tx['created_at']).toLocal()),
+          )
           .toSet()
           .length;
 
       String warningStr = "";
       if (uniqueDaysWithTransactions < 14) {
-        warningStr = "Cold Start: Toko baru memiliki $uniqueDaysWithTransactions hari data transaksi. Model LSTM memerlukan minimal 14 hari transaksi teratur. Saat ini menggunakan estimasi pola bisnis retail/kafe umum.";
+        warningStr =
+            "Cold Start: Toko baru memiliki $uniqueDaysWithTransactions hari data transaksi. Model LSTM memerlukan minimal 14 hari transaksi teratur. Saat ini menggunakan estimasi pola bisnis retail/kafe umum.";
       }
 
       // Aggregate sales by date
-      final Map<String, double> salesByDate = {}; // Format: yyyy-MM-dd -> Revenue
-      final Map<String, int> trafficByDate = {}; // Format: yyyy-MM-dd -> Customer count
-      final Map<String, int> productsSoldQty = {}; // Format: Product Name -> Qty
+      final Map<String, double> salesByDate =
+          {}; // Format: yyyy-MM-dd -> Revenue
+      final Map<String, int> trafficByDate =
+          {}; // Format: yyyy-MM-dd -> Customer count
+      final Map<String, int> productsSoldQty =
+          {}; // Format: Product Name -> Qty
 
       for (var tx in data) {
         final date = DateTime.parse(tx['created_at']).toLocal();
@@ -333,20 +409,23 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       // 1. Get Top Products (Local calculation for simple references)
       final sortedProducts = productsSoldQty.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      
-      final String bestSellerProduct = sortedProducts.isNotEmpty ? sortedProducts[0].key : "Kopi Susu Aren";
-      final int bestSellerQty = sortedProducts.isNotEmpty ? sortedProducts[0].value : 85;
-      final String worstSellerProduct = sortedProducts.length > 1 ? sortedProducts.last.key : "Es Matcha Latte";
+
+      final String bestSellerProduct = sortedProducts.isNotEmpty
+          ? sortedProducts[0].key
+          : "Belum ada produk";
 
       // 2. Base averages for Mock LSTM (Extremely realistic simulation derived from real averages)
       double avgDailySales = 1200000;
       double avgDailyTraffic = 15;
-      
+
       if (salesByDate.isNotEmpty) {
-        avgDailySales = salesByDate.values.reduce((a, b) => a + b) / salesByDate.length;
+        avgDailySales =
+            salesByDate.values.reduce((a, b) => a + b) / salesByDate.length;
       }
       if (trafficByDate.isNotEmpty) {
-        avgDailyTraffic = trafficByDate.values.reduce((a, b) => a + b).toDouble() / trafficByDate.length;
+        avgDailyTraffic =
+            trafficByDate.values.reduce((a, b) => a + b).toDouble() /
+            trafficByDate.length;
       }
 
       // Simple trend calculation (slope of daily sales)
@@ -376,16 +455,21 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       double predictForDay(DateTime date) {
         // Seasonality Multiplier based on Business Type
         double multiplier = 1.0;
-        final isWeekend = date.weekday == DateTime.saturday || date.weekday == DateTime.sunday;
+        final isWeekend =
+            date.weekday == DateTime.saturday ||
+            date.weekday == DateTime.sunday;
         if (businessType == "Restaurant" || businessType == "Cafe") {
           multiplier = isWeekend ? 1.45 : 0.85;
-        } else { // Retail / Others
+        } else {
+          // Retail / Others
           multiplier = isWeekend ? 1.2 : 0.95;
         }
 
         // Add temperature / noise factor to mock deep learning prediction variance
-        final randFactor = 0.93 + (math.Random(date.day).nextDouble() * 0.14); // 0.93 to 1.07
-        final baseProjection = avgDailySales + (slope * 5); // project forward slightly
+        final randFactor =
+            0.93 + (math.Random(date.day).nextDouble() * 0.14); // 0.93 to 1.07
+        final baseProjection =
+            avgDailySales + (slope * 5); // project forward slightly
 
         return baseProjection * multiplier * randFactor;
       }
@@ -395,16 +479,21 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       // ==========================================
       final baseUrl = getLstmBaseUrl();
       final List<Map<String, dynamic>> history = salesByDate.entries
-          .map((e) => {
-                'date': e.key,
-                'revenue': e.value,
-              })
+          .map((e) => {'date': e.key, 'revenue': e.value})
           .toList();
       history.sort((a, b) => a['date'].compareTo(b['date']));
 
       // Load products & categories from Isar for stock allocations
-      final products = await isar.collection<Product>().filter().storeIdEqualTo(storeId).findAll();
-      final categories = await isar.collection<Category>().filter().storeIdEqualTo(storeId).findAll();
+      final products = await isar
+          .collection<Product>()
+          .filter()
+          .storeIdEqualTo(storeId)
+          .findAll();
+      final categories = await isar
+          .collection<Category>()
+          .filter()
+          .storeIdEqualTo(storeId)
+          .findAll();
 
       final Map<String, String> categoryMap = {};
       for (var cat in categories) {
@@ -434,11 +523,17 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           final pId = item['product_id']?.toString() ?? '';
           final qty = (item['quantity'] as num?)?.toInt() ?? 1;
           final subtotal = (item['subtotal'] as num?)?.toDouble() ?? 0.0;
-          final price = (item['unit_price'] as num?)?.toDouble() ?? (qty > 0 ? subtotal / qty : 0.0);
+          final price =
+              (item['unit_price'] as num?)?.toDouble() ??
+              (qty > 0 ? subtotal / qty : 0.0);
 
-          final catName = productCategoryMapById[pId] ?? productCategoryMapByName[pName] ?? "Lain-lain";
-          
-          categoryRevenues[catName] = (categoryRevenues[catName] ?? 0.0) + subtotal;
+          final catName =
+              productCategoryMapById[pId] ??
+              productCategoryMapByName[pName] ??
+              "Lain-lain";
+
+          categoryRevenues[catName] =
+              (categoryRevenues[catName] ?? 0.0) + subtotal;
           totalItemRevenue += subtotal;
 
           productQuantities[pName] = (productQuantities[pName] ?? 0) + qty;
@@ -457,7 +552,9 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
         categoryShares["Lain-lain"] = 0.2;
       }
 
-      final totalQty = productQuantities.values.isEmpty ? 0 : productQuantities.values.reduce((a, b) => a + b);
+      final totalQty = productQuantities.values.isEmpty
+          ? 0
+          : productQuantities.values.reduce((a, b) => a + b);
       final sortedProductEntries = productQuantities.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
 
@@ -499,99 +596,94 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       Map<String, dynamic>? targetRecommendationData;
       String apiConnectionWarning = "";
 
-      // Jika forceCalibrate, panggil /api/calibrate ke server LOKAL
-      // (HuggingFace Space tidak menyediakan endpoint ini)
-      if (forceCalibrate) {
-        try {
-          final calibrateUrl = Uri.parse('${getLocalServerUrl()}/api/calibrate');
-          await http.post(
-            calibrateUrl,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'store_id': storeId.toString(),
-              'history': history,
-              'lookback': 14,
-              'epochs': 30,
-            }),
-          ).timeout(const Duration(seconds: 60));
-          debugPrint('DEBUG: LSTM calibration API called for store $storeId');
-        } catch (e) {
-          debugPrint('DEBUG: Calibration API call failed: $e');
-        }
-      }
-
       try {
         // 1. POST /api/predict/daily (Forecast 30 days ahead)
+        // Model (app_public.py) bersifat stateless — tidak memakai store_id.
+        // Kirim profil operasional agar generasi hari-aktif konsisten.
         final dailyUrl = Uri.parse('$baseUrl/api/predict/daily');
-        final dailyResponse = await http.post(
-          dailyUrl,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'store_id': storeId.toString(),
-            'n_days': 30,
-            'open_on_weekends': true,
-            'closed_months': [],
-            'history': history,
-          }),
-        ).timeout(const Duration(seconds: 10));
+        final dailyResponse = await http
+            .post(
+              dailyUrl,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'n_days': 30,
+                'k': 4,
+                'open_on_weekends': openOnWeekends,
+                'closed_months': closedMonths,
+                'history': history,
+              }),
+            )
+            .timeout(const Duration(seconds: 10));
 
         if (dailyResponse.statusCode == 200) {
-          dailyForecastData = jsonDecode(dailyResponse.body) as Map<String, dynamic>;
+          dailyForecastData =
+              jsonDecode(dailyResponse.body) as Map<String, dynamic>;
         }
 
         // 2. POST /api/recommendations/stock
         double? firstDayForecastRevenue;
-        if (dailyForecastData != null && dailyForecastData['predictions'] != null) {
+        if (dailyForecastData != null &&
+            dailyForecastData['predictions'] != null) {
           final preds = dailyForecastData['predictions'] as List<dynamic>;
           if (preds.isNotEmpty) {
-            firstDayForecastRevenue = (preds.first['predicted_revenue_seasonal_naive'] as num).toDouble();
+            firstDayForecastRevenue =
+                (preds.first['predicted_revenue_seasonal_naive'] as num)
+                    .toDouble();
           }
         }
 
         final stockUrl = Uri.parse('$baseUrl/api/recommendations/stock');
-        final stockResponse = await http.post(
-          stockUrl,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            if (firstDayForecastRevenue != null) 'predicted_revenue': firstDayForecastRevenue,
-            'category_shares': categoryShares,
-            'top_products': topProducts,
-            'history': history,
-          }),
-        ).timeout(const Duration(seconds: 10));
+        final stockResponse = await http
+            .post(
+              stockUrl,
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                if (firstDayForecastRevenue != null)
+                  'predicted_revenue': firstDayForecastRevenue,
+                'open_on_weekends': openOnWeekends,
+                'closed_months': closedMonths,
+                'category_shares': categoryShares,
+                'top_products': topProducts,
+                'history': history,
+              }),
+            )
+            .timeout(const Duration(seconds: 10));
 
         if (stockResponse.statusCode == 200) {
-          stockRecommendationData = jsonDecode(stockResponse.body) as Map<String, dynamic>;
+          stockRecommendationData =
+              jsonDecode(stockResponse.body) as Map<String, dynamic>;
         }
 
         // 3. POST /api/recommendations/target
         if (history.length >= 15) {
           final targetUrl = Uri.parse('$baseUrl/api/recommendations/target');
-          final targetResponse = await http.post(
-            targetUrl,
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'store_id': storeId.toString(),
-              'factor': 1.10,
-              'history': history,
-            }),
-          ).timeout(const Duration(seconds: 10));
+          final targetResponse = await http
+              .post(
+                targetUrl,
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({'factor': 1.10, 'history': history}),
+              )
+              .timeout(const Duration(seconds: 10));
 
           if (targetResponse.statusCode == 200) {
-            targetRecommendationData = jsonDecode(targetResponse.body) as Map<String, dynamic>;
+            targetRecommendationData =
+                jsonDecode(targetResponse.body) as Map<String, dynamic>;
           }
         }
 
         if (dailyForecastData != null && stockRecommendationData != null) {
           isApiSuccess = true;
-          final modelUsed = dailyForecastData['model'] ?? 'unknown';
+          final modelUsed =
+              dailyForecastData['metadata']?['model_used'] ?? 'unknown';
           debugPrint('DEBUG: API success — model=$modelUsed');
         } else {
-          apiConnectionWarning = "Server LSTM mengembalikan status non-200. Menggunakan fallback lokal.";
+          apiConnectionWarning =
+              "Server prediksi mengembalikan status non-200. Menggunakan estimasi lokal sementara.";
         }
       } catch (e) {
-        debugPrint("DEBUG: Failed to connect to Python LSTM Server: $e");
-        apiConnectionWarning = "Gagal terhubung ke Python Server ($baseUrl). Pastikan api_server.py sudah berjalan (python api_server.py).";
+        debugPrint("DEBUG: Failed to connect to forecasting server: $e");
+        apiConnectionWarning =
+            "Gagal terhubung ke server prediksi ($baseUrl). Periksa koneksi internet Anda; sementara menggunakan estimasi lokal.";
       }
 
       // Helper function to resolve predictions
@@ -605,7 +697,8 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             }
           }
           if (preds.isNotEmpty) {
-            return (preds.last['predicted_revenue_seasonal_naive'] as num).toDouble();
+            return (preds.last['predicted_revenue_seasonal_naive'] as num)
+                .toDouble();
           }
         }
         return predictForDay(targetDate);
@@ -616,9 +709,7 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       String revenueText = "";
       String revenueDiff = "";
       String trafficText = "";
-      String trafficPeak = "";
       String bestSellingName = bestSellerProduct;
-      String bestSellingEst = "";
       List<FlSpot> actualSpots = [];
       List<FlSpot> forecastSpots = [];
       List<String> xLabels = [];
@@ -632,7 +723,8 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           for (int i = 4; i >= 0; i--) {
             final targetDate = now.subtract(Duration(days: i));
             final dateKey = DateFormat('yyyy-MM-dd').format(targetDate);
-            final val = salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.9;
+            final val =
+                salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.9;
             actualSpots.add(FlSpot((4 - i).toDouble(), val));
             xLabels.add(indonesianDays[targetDate.weekday % 7]);
           }
@@ -647,28 +739,37 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             xLabels.add("${indonesianDays[targetDate.weekday % 7]}*");
           }
 
-          final totalForecasted = forecastSpots.skip(1).map((s) => s.y).reduce((a, b) => a + b);
+          final totalForecasted = forecastSpots
+              .skip(1)
+              .map((s) => s.y)
+              .reduce((a, b) => a + b);
           totalRevenue = totalForecasted;
           revenueText = currencyFormat.format(totalForecasted);
 
           if (isApiSuccess && targetRecommendationData != null) {
-            final avg = (targetRecommendationData!['historical_basis_15_active_days']['average_revenue'] as num).toDouble();
+            final avg =
+                (targetRecommendationData!['historical_basis_15_active_days']['average_revenue']
+                        as num)
+                    .toDouble();
             if (avg > 0) {
               final diffPercent = ((totalRevenue / 2) - avg) / avg * 100;
-              revenueDiff = "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
+              revenueDiff =
+                  "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
             } else {
-              revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100).toStringAsFixed(1)}% vs rerata";
+              revenueDiff =
+                  "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100).toStringAsFixed(1)}% vs rerata";
             }
           } else {
-            revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100).toStringAsFixed(1)}% vs rerata";
+            revenueDiff =
+                "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100).toStringAsFixed(1)}% vs rerata";
           }
-          
-          final estTraffic = (avgDailyTraffic * (getForecastValue(now.add(const Duration(days: 1))) / avgDailySales)).round();
+
+          final estTraffic =
+              (avgDailyTraffic *
+                      (getForecastValue(now.add(const Duration(days: 1))) /
+                          avgDailySales))
+                  .round();
           trafficText = "$estTraffic Pelanggan";
-          trafficPeak = businessType == "Cafe" || businessType == "Restaurant" 
-              ? "Jam ramai: 18.00 - 21.00" 
-              : "Jam ramai: 12.00 - 15.00";
-          bestSellingEst = "Est. ${(bestSellerQty / 10).round() + 5} unit terjual";
           break;
 
         case ForecastTab.weekly:
@@ -678,7 +779,8 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             for (int d = 0; d < 7; d++) {
               final targetDate = now.subtract(Duration(days: (w * 7) + d));
               final dateKey = DateFormat('yyyy-MM-dd').format(targetDate);
-              weekSum += salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.9;
+              weekSum +=
+                  salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.9;
             }
             actualSpots.add(FlSpot((2 - w).toDouble(), weekSum));
             xLabels.add("Minggu ${3 - w}");
@@ -696,36 +798,58 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           revenueText = currencyFormat.format(nextWeekSum);
 
           if (isApiSuccess && targetRecommendationData != null) {
-            final avg = (targetRecommendationData!['historical_basis_15_active_days']['average_revenue'] as num).toDouble();
+            final avg =
+                (targetRecommendationData!['historical_basis_15_active_days']['average_revenue']
+                        as num)
+                    .toDouble();
             if (avg > 0) {
               final diffPercent = ((nextWeekSum / 7) - avg) / avg * 100;
-              revenueDiff = "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
+              revenueDiff =
+                  "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
             } else {
-              revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 7).toStringAsFixed(1)}% vs rerata";
+              revenueDiff =
+                  "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 7).toStringAsFixed(1)}% vs rerata";
             }
           } else {
-            revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 7).toStringAsFixed(1)}% vs rerata";
+            revenueDiff =
+                "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 7).toStringAsFixed(1)}% vs rerata";
           }
-          
+
           final weeklyTraffic = (avgDailyTraffic * 7).round();
           trafficText = "$weeklyTraffic Pelanggan";
-          trafficPeak = "Hari ramai: Sabtu - Minggu";
-          bestSellingEst = "Est. ${bestSellerQty * 2} unit terjual";
           break;
 
         case ForecastTab.monthly:
           // Monthly Forecast: Show 5 months actual, 1 month forecast
-          final indonesianMonths = ['Des', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov'];
-          
+          final indonesianMonths = [
+            'Des',
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'Mei',
+            'Jun',
+            'Jul',
+            'Agu',
+            'Sep',
+            'Okt',
+            'Nov',
+          ];
+
           for (int m = 4; m >= 0; m--) {
             final targetMonth = DateTime(now.year, now.month - m, 1);
             double monthSum = 0;
-            final daysInMonth = DateTime(targetMonth.year, targetMonth.month + 1, 0).day;
-            
+            final daysInMonth = DateTime(
+              targetMonth.year,
+              targetMonth.month + 1,
+              0,
+            ).day;
+
             for (int d = 0; d < daysInMonth; d++) {
               final targetDate = targetMonth.add(Duration(days: d));
               final dateKey = DateFormat('yyyy-MM-dd').format(targetDate);
-              monthSum += salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.85;
+              monthSum +=
+                  salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.85;
             }
             actualSpots.add(FlSpot((4 - m).toDouble(), monthSum));
             xLabels.add(indonesianMonths[(targetMonth.month - 1) % 12]);
@@ -733,7 +857,11 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
 
           forecastSpots.add(FlSpot(4, actualSpots.last.y));
           final nextMonth = DateTime(now.year, now.month + 1, 1);
-          final daysInNextMonth = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
+          final daysInNextMonth = DateTime(
+            nextMonth.year,
+            nextMonth.month + 1,
+            0,
+          ).day;
           double nextMonthSum = 0;
           for (int d = 0; d < daysInNextMonth; d++) {
             nextMonthSum += getForecastValue(now.add(Duration(days: d + 1)));
@@ -745,21 +873,26 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           revenueText = currencyFormat.format(nextMonthSum);
 
           if (isApiSuccess && targetRecommendationData != null) {
-            final avg = (targetRecommendationData!['historical_basis_15_active_days']['average_revenue'] as num).toDouble();
+            final avg =
+                (targetRecommendationData!['historical_basis_15_active_days']['average_revenue']
+                        as num)
+                    .toDouble();
             if (avg > 0) {
-              final diffPercent = ((nextMonthSum / daysInNextMonth) - avg) / avg * 100;
-              revenueDiff = "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
+              final diffPercent =
+                  ((nextMonthSum / daysInNextMonth) - avg) / avg * 100;
+              revenueDiff =
+                  "${diffPercent >= 0 ? '+' : ''}${diffPercent.toStringAsFixed(1)}% vs rerata";
             } else {
-              revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 30).toStringAsFixed(1)}% vs rerata";
+              revenueDiff =
+                  "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 30).toStringAsFixed(1)}% vs rerata";
             }
           } else {
-            revenueDiff = "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 30).toStringAsFixed(1)}% vs rerata";
+            revenueDiff =
+                "${slope >= 0 ? '+' : ''}${(slope / avgDailySales * 100 * 30).toStringAsFixed(1)}% vs rerata";
           }
-          
+
           final monthlyTraffic = (avgDailyTraffic * daysInNextMonth).round();
           trafficText = "$monthlyTraffic Pelanggan";
-          trafficPeak = "Minggu ramai: Minggu ke-1 & ke-3";
-          bestSellingEst = "Est. ${bestSellerQty * 8} unit terjual";
           break;
 
         case ForecastTab.custom:
@@ -767,7 +900,8 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
           for (int i = 2; i >= 0; i--) {
             final targetDate = now.subtract(Duration(days: i));
             final dateKey = DateFormat('yyyy-MM-dd').format(targetDate);
-            final val = salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.95;
+            final val =
+                salesByDate[dateKey] ?? getForecastValue(targetDate) * 0.95;
             actualSpots.add(FlSpot((2 - i).toDouble(), val));
             xLabels.add(i == 0 ? "Hari Ini" : "H-$i");
           }
@@ -780,15 +914,16 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
             xLabels.add(i == 1 ? "Besok*" : "H+$i*");
           }
 
-          final customForecasted = forecastSpots.skip(1).map((s) => s.y).reduce((a, b) => a + b);
+          final customForecasted = forecastSpots
+              .skip(1)
+              .map((s) => s.y)
+              .reduce((a, b) => a + b);
           totalRevenue = customForecasted;
           revenueText = currencyFormat.format(customForecasted);
           revenueDiff = "Proyeksi 3 hari ke depan";
-          
+
           final customTraffic = (avgDailyTraffic * 3).round();
           trafficText = "$customTraffic Pelanggan";
-          trafficPeak = "Est. cuaca sebagian berawan";
-          bestSellingEst = "Rekomendasi paket bundling";
           break;
       }
 
@@ -799,163 +934,58 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
 
       // 3. Projected Best Sellers (dynamically using stock recommendations)
       final List<Map<String, dynamic>> projectedBestSellers = [];
-      if (isApiSuccess && stockRecommendationData != null && stockRecommendationData['product_recommendations'] != null) {
-        final recs = stockRecommendationData['product_recommendations'] as List<dynamic>;
+      if (isApiSuccess &&
+          stockRecommendationData != null &&
+          stockRecommendationData['product_recommendations'] != null) {
+        final recs =
+            stockRecommendationData['product_recommendations'] as List<dynamic>;
         for (int i = 0; i < math.min(3, recs.length); i++) {
           final rec = recs[i];
-          final name = rec['product_name'] as String;
-          final category = rec['category'] as String;
-          final qty = rec['recommended_stock_with_safety_buffer'] as int;
-          final confidence = 0.85 + (math.Random(name.hashCode).nextDouble() * 0.12);
-
-          IconData trendIcon = TablerIcons.flame;
-          Color trendColor = Colors.red;
-          String trendText = "TRENDING 🔥";
-
-          if (i == 1) {
-            trendIcon = TablerIcons.sun;
-            trendColor = Colors.orange;
-            trendText = "CUACA PANAS ☀️";
-          } else if (i == 2) {
-            trendIcon = TablerIcons.trending_up;
-            trendColor = Warna.success;
-            trendText = "KONSISTEN 📈";
-          }
-
           projectedBestSellers.add({
-            'name': name,
-            'category': category,
-            'quantity': qty,
-            'confidence': confidence,
-            'trend': trendText,
-            'trendColor': trendColor,
-            'icon': trendIcon,
+            'name': rec['product_name'] as String,
+            'category': rec['category'] as String,
+            'quantity': rec['recommended_stock_with_safety_buffer'] as int,
           });
         }
       } else {
-        // Local Fallback simulation
+        // Fallback lokal: proyeksi kuantitas dari rata-rata penjualan aktual toko
         for (int i = 0; i < math.min(3, sortedProducts.length); i++) {
           final p = sortedProducts[i];
-          final name = p.key;
-          final actualQty = p.value;
-          final projectedQty = (actualQty / 30 * 1.2).ceil() + 2;
-          
-          IconData trendIcon = TablerIcons.flame;
-          Color trendColor = Colors.red;
-          String trendText = "TRENDING 🔥";
-
-          if (i == 1) {
-            trendIcon = TablerIcons.sun;
-            trendColor = Colors.orange;
-            trendText = "CUACA PANAS ☀️";
-          } else if (i == 2) {
-            trendIcon = TablerIcons.trending_up;
-            trendColor = Warna.success;
-            trendText = "KONSISTEN 📈";
-          }
-
+          final projectedQty = (p.value / 30 * 1.2).ceil() + 2;
           projectedBestSellers.add({
-            'name': name,
-            'category': businessType == "Cafe" || businessType == "Restaurant" ? "Minuman/Makanan" : "Barang Retail",
+            'name': p.key,
+            'category': businessType == "Cafe" || businessType == "Restaurant"
+                ? "Minuman/Makanan"
+                : "Barang Retail",
             'quantity': projectedQty,
-            'confidence': 0.88 + (math.Random(name.hashCode).nextDouble() * 0.08),
-            'trend': trendText,
-            'trendColor': trendColor,
-            'icon': trendIcon,
           });
         }
       }
 
-      if (projectedBestSellers.isEmpty) {
-        projectedBestSellers.add({
-          'name': 'Kopi Susu Aren',
-          'category': 'Minuman Kopi',
-          'quantity': 85,
-          'confidence': 0.94,
-          'trend': 'TRENDING 🔥',
-          'trendColor': Colors.red,
-          'icon': TablerIcons.flame,
-        });
-      }
-      if (projectedBestSellers.length < 2) {
-        projectedBestSellers.add({
-          'name': 'Es Matcha Latte',
-          'category': 'Minuman Non-Kopi',
-          'quantity': 48,
-          'confidence': 0.89,
-          'trend': 'CUACA PANAS ☀️',
-          'trendColor': Colors.orange,
-          'icon': TablerIcons.sun,
-        });
-      }
-      if (projectedBestSellers.length < 3) {
-        projectedBestSellers.add({
-          'name': 'Croissant Cokelat',
-          'category': 'Makanan Ringan',
-          'quantity': 35,
-          'confidence': 0.82,
-          'trend': 'KONSISTEN 📈',
-          'trendColor': Warna.success,
-          'icon': TablerIcons.trending_up,
-        });
-      }
-
-      // 4. Pricing / Marketing Recommendations
+      // 4. Rekomendasi — hanya Target Omzet dari model (bila online).
       final List<Map<String, dynamic>> recommendations = [];
 
-      // Add target dynamic info from LSTM if online
       if (isApiSuccess && targetRecommendationData != null) {
         final targets = targetRecommendationData['targets'];
         final moderat = (targets['moderat_target'] as num).toInt();
         final agresif = (targets['agresif_target'] as num).toInt();
         recommendations.add({
           'title': 'Target Omzet Harian AI',
-          'desc': 'Target Moderat: ${currencyFormat.format(moderat)}. Target Agresif: ${currencyFormat.format(agresif)}.',
+          'desc':
+              'Target Moderat: ${currencyFormat.format(moderat)}. Target Agresif: ${currencyFormat.format(agresif)}.',
           'badge': 'TARGET AI 🎯',
           'color': const Color(0xFF6B4EFF),
-          'rationale': 'Dihitung berdasarkan rata-rata 15 hari terakhir dengan penyesuaian faktor pertumbuhan moderat.',
+          'rationale':
+              'Dihitung berdasarkan rata-rata 15 hari terakhir dengan penyesuaian faktor pertumbuhan moderat.',
           'icon': TablerIcons.target,
         });
       }
 
-      recommendations.add({
-        'title': 'Diskon Happy Hour $bestSellerProduct',
-        'desc': 'Terapkan diskon 15% untuk menu $bestSellerProduct besok jam 14.00 - 16.00.',
-        'badge': 'HAPPY HOUR',
-        'color': const Color(0xFF4285F4),
-        'rationale': 'Traffic hari biasa berpotensi turun. Optimalkan volume penjualan $bestSellerProduct.',
-        'icon': TablerIcons.bolt,
-      });
-      recommendations.add({
-        'title': 'Paket Bundling $bestSellerProduct + Camilan',
-        'desc': 'Buat paket hemat $bestSellerProduct dengan produk makanan pendamping untuk mendongkrak transaksi.',
-        'badge': 'BUNDLING HEMAT',
-        'color': const Color(0xFFFF9E00),
-        'rationale': '45% pelanggan membeli $bestSellerProduct bersamaan dengan menu lainnya.',
-        'icon': TablerIcons.gift,
-      });
-      if (sortedProducts.length > 1) {
-        recommendations.add({
-          'title': 'Diskon Stok Lambat: $worstSellerProduct',
-          'desc': 'Terapkan promosi potongan harga khusus untuk produk $worstSellerProduct selama 3 hari ke depan.',
-          'badge': 'CLEARANCE STOK',
-          'color': Warna.destructive,
-          'rationale': 'Laju penjualan $worstSellerProduct berada di kategori terendah dalam 30 hari terakhir.',
-          'icon': TablerIcons.alert_triangle,
-        });
-      }
-
-      // 5. Weather insight depending on month / season
-      String weatherStr = "Esok hari diprediksi cerah berawan (32°C). Penjualan produk dingin diperkirakan stabil.";
-      if (now.month >= 10 || now.month <= 2) {
-        weatherStr = "Esok hari diprediksi hujan ringan di sore hari (27°C). Disarankan siapkan opsi menu hangat dan tingkatkan promosi layanan pesan antar.";
-      } else if (now.month >= 6 && now.month <= 9) {
-        weatherStr = "Esok hari diprediksi panas terik (34°C). Penjualan minuman dingin diperkirakan melonjak +25%. Siapkan stok bahan baku es batu ekstra.";
-      }
-
       final prefs = await SharedPreferences.getInstance();
       final lastCalTimeStr = prefs.getString("last_calibration_time_$storeId");
-      final lastCalTime = lastCalTimeStr != null ? DateTime.parse(lastCalTimeStr) : null;
+      final lastCalTime = lastCalTimeStr != null
+          ? DateTime.parse(lastCalTimeStr)
+          : null;
 
       // Append API warning to cold start warning if offline/unreachable
       String finalWarning = warningStr;
@@ -977,38 +1007,44 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
         revenueText: revenueText,
         revenueDiff: revenueDiff,
         trafficText: trafficText,
-        trafficPeak: trafficPeak,
         bestSellingName: bestSellingName,
-        bestSellingEst: bestSellingEst,
         actualSpots: actualSpots,
         forecastSpots: forecastSpots,
         xLabels: xLabels,
         maxY: maxY,
         projectedBestSellers: projectedBestSellers,
         pricingRecommendations: recommendations,
-        weatherInsight: weatherStr,
         coldStartWarning: finalWarning,
+        apiOnline: isApiSuccess,
+        isLocalServer: _serverMode == ApiServerMode.local,
+        apiServerLabel: _serverLabel,
       );
-
     } catch (e, st) {
       debugPrint('DEBUG: General exception loading Smart Analytics: $e\n$st');
       state = state.copyWith(isLoading: false);
     }
   }
 
-  Future<void> calibrateModel() async {
+  /// Memuat ulang analisis dengan mengambil forecast terbaru dari model.
+  /// Model produksi bersifat stateless (baseline statistik) — tidak ada
+  /// training per toko, jadi ini murni menyegarkan data.
+  Future<void> refreshAnalytics(ForecastTab tab) async {
     final activeStore = _ref.read(activeStoreProvider).value;
     final storeId = activeStore?['id'];
     if (storeId == null) return;
 
     final now = DateTime.now();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("last_calibration_time_$storeId", now.toIso8601String());
+    await prefs.setString(
+      "last_calibration_time_$storeId",
+      now.toIso8601String(),
+    );
 
-    await loadSmartAnalytics(ForecastTab.daily, forceCalibrate: true);
+    await loadSmartAnalytics(tab, forceCalibrate: true);
   }
 }
 
-final smartAnalyticsProvider = StateNotifierProvider<SmartAnalyticsNotifier, SmartAnalyticsState>((ref) {
-  return SmartAnalyticsNotifier(ref);
-});
+final smartAnalyticsProvider =
+    StateNotifierProvider<SmartAnalyticsNotifier, SmartAnalyticsState>((ref) {
+      return SmartAnalyticsNotifier(ref);
+    });
