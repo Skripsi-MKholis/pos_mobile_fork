@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
@@ -17,7 +18,11 @@ import 'package:pos_mobile/features/reports/providers/smart_analytics_provider.d
 enum ForecastTab { daily, weekly, monthly, custom }
 
 class SmartAnalyticsScreen extends ConsumerStatefulWidget {
-  const SmartAnalyticsScreen({super.key});
+  /// Jika diisi, layar menampilkan satu snapshot riwayat tertentu
+  /// (read-only) alih-alih analisis terbaru toko.
+  final String? snapshotId;
+
+  const SmartAnalyticsScreen({super.key, this.snapshotId});
 
   @override
   ConsumerState<SmartAnalyticsScreen> createState() =>
@@ -40,7 +45,12 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(smartAnalyticsProvider.notifier).loadSmartAnalytics(_selectedTab);
+      final notifier = ref.read(smartAnalyticsProvider.notifier);
+      if (widget.snapshotId != null) {
+        notifier.viewSnapshot(widget.snapshotId!, _selectedTab);
+      } else {
+        notifier.loadSmartAnalytics(_selectedTab);
+      }
     });
   }
 
@@ -78,25 +88,25 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
     decimalDigits: 0,
   );
 
-  // Trigger real database load / mock LSTM reload
-  Future<void> _simulateAiReload() async {
+  // Pull-to-refresh: sinkronkan ulang dari Supabase (snapshot terbaru atau
+  // riwayat yang sedang dilihat). TIDAK memanggil model — cukup murah untuk
+  // dipanggil berulang.
+  Future<void> _syncLatest() async {
     setState(() {
       _isLoading = true;
     });
 
-    await ref.read(smartAnalyticsProvider.notifier).loadSmartAnalytics(_selectedTab);
+    final notifier = ref.read(smartAnalyticsProvider.notifier);
+    if (widget.snapshotId != null) {
+      await notifier.viewSnapshot(widget.snapshotId!, _selectedTab);
+    } else {
+      await notifier.loadSmartAnalytics(_selectedTab);
+    }
 
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-
-      mySnackBar(
-        context: context,
-        text:
-            'AI Berhasil Sinkron! Analisis perkiraan penjualan terbaru telah diperbarui.',
-        status: ToastStatus.success,
-      );
     }
   }
 
@@ -116,27 +126,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         ),
         title: Row(
           children: [
-            ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [
-                      Color(0xFF4285F4),
-                      Color(0xFF9B72CB),
-                      Color(0xFFD96570),
-                    ],
-                  ).createShader(bounds),
-                  child: const Icon(
-                    TablerIcons.brain,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                )
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .scale(
-                  duration: 1.5.seconds,
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.15, 1.15),
-                )
-                .shimmer(delay: 1.seconds, duration: 1.5.seconds),
+            const Icon(TablerIcons.brain, color: Warna.primary, size: 24),
             const SizedBox(width: 10),
             Text(
               AppLocalizations.of(context)!.smartAnalytics,
@@ -148,11 +138,11 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           ],
         ),
         actions: [
-          if (!_isLocked)
+          if (!_isLocked && widget.snapshotId == null)
             IconButton(
-              icon: const Icon(TablerIcons.sparkles, color: Warna.primary),
-              tooltip: 'Picu Analisis AI',
-              onPressed: state.isLoading || _isLoading ? null : _simulateAiReload,
+              icon: const Icon(TablerIcons.history, color: Warna.primary),
+              tooltip: 'Riwayat Analisis',
+              onPressed: () => context.push('/smart-analytics/history'),
             ),
           const SizedBox(width: 8),
         ],
@@ -161,7 +151,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         child: Stack(
           children: [
             RefreshIndicator(
-              onRefresh: _simulateAiReload,
+              onRefresh: _syncLatest,
               color: Warna.primary,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(
@@ -174,30 +164,37 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildCalibrationCard(theme),
+                    if (state.isHistoryView && state.snapshotCreatedAt != null)
+                      _buildHistoryBanner(theme, state.snapshotCreatedAt!)
+                    else
+                      _buildCalibrationCard(theme),
                     if (state.coldStartWarning.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       _buildColdStartWarningBanner(theme, state.coldStartWarning),
                     ],
                     const SizedBox(height: 24),
-                    _buildPeriodTabs(theme),
-                    const SizedBox(height: 20),
-                    state.isLoading || _isLoading
-                        ? _buildShimmerKPIs(theme)
-                        : _buildKPICards(theme),
-                    const SizedBox(height: 20),
-                    state.isLoading || _isLoading
-                        ? _buildShimmerChartCard(theme)
-                        : _buildSalesChartCard(theme),
-                    const SizedBox(height: 24),
-                    state.isLoading || _isLoading
-                        ? _buildShimmerSection(theme, 130)
-                        : _buildSmartPricingCarousel(theme),
-                    const SizedBox(height: 24),
-                    state.isLoading || _isLoading
-                        ? _buildShimmerSection(theme, 240)
-                        : _buildBestSellersAndTrends(theme),
-                    const SizedBox(height: 40),
+                    if (!state.isLoading && !_isLoading && state.isEmpty)
+                      _buildEmptyState(theme)
+                    else ...[
+                      _buildPeriodTabs(theme),
+                      const SizedBox(height: 20),
+                      state.isLoading || _isLoading
+                          ? _buildShimmerKPIs(theme)
+                          : _buildKPICards(theme),
+                      const SizedBox(height: 20),
+                      state.isLoading || _isLoading
+                          ? _buildShimmerChartCard(theme)
+                          : _buildSalesChartCard(theme),
+                      const SizedBox(height: 24),
+                      state.isLoading || _isLoading
+                          ? _buildShimmerSection(theme, 130)
+                          : _buildSmartPricingCarousel(theme),
+                      const SizedBox(height: 24),
+                      state.isLoading || _isLoading
+                          ? _buildShimmerSection(theme, 240)
+                          : _buildBestSellersAndTrends(theme),
+                      const SizedBox(height: 40),
+                    ],
                   ],
                 ),
               ),
@@ -225,9 +222,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF6B4EFF,
-                                        ).withOpacity(0.08),
+                                        color: Warna.primary.withOpacity(0.1),
                                         blurRadius: 30,
                                         offset: const Offset(0, 10),
                                       ),
@@ -236,48 +231,18 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      // Animated Glowing Lock Icon
                                       Container(
-                                            padding: const EdgeInsets.all(18),
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                colors: [
-                                                  Color(0xFF6B4EFF),
-                                                  Color(0xFF8A6BFF),
-                                                ],
-                                                begin: Alignment.topLeft,
-                                                end: Alignment.bottomRight,
-                                              ),
-                                              shape: BoxShape.circle,
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(
-                                                    0xFF6B4EFF,
-                                                  ).withOpacity(0.3),
-                                                  blurRadius: 18,
-                                                  offset: const Offset(0, 8),
-                                                ),
-                                              ],
-                                            ),
-                                            child: const Icon(
-                                              TablerIcons.lock,
-                                              color: Colors.white,
-                                              size: 32,
-                                            ),
-                                          )
-                                          .animate(
-                                            onPlay: (c) =>
-                                                c.repeat(reverse: true),
-                                          )
-                                          .scale(
-                                            duration: 2.seconds,
-                                            begin: const Offset(0.92, 0.92),
-                                            end: const Offset(1.08, 1.08),
-                                          )
-                                          .shimmer(
-                                            delay: 1.seconds,
-                                            duration: 1.5.seconds,
-                                          ),
+                                        padding: const EdgeInsets.all(18),
+                                        decoration: BoxDecoration(
+                                          color: Warna.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          TablerIcons.lock,
+                                          color: Warna.black,
+                                          size: 32,
+                                        ),
+                                      ),
                                       const SizedBox(height: 24),
                                       // "Coming Soon" Title
                                       Text(
@@ -299,16 +264,12 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                           vertical: 4,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: const Color(
-                                            0xFF6B4EFF,
-                                          ).withOpacity(0.1),
+                                          color: Warna.primary.withOpacity(0.12),
                                           borderRadius: BorderRadius.circular(
                                             20,
                                           ),
                                           border: Border.all(
-                                            color: const Color(
-                                              0xFF6B4EFF,
-                                            ).withOpacity(0.2),
+                                            color: Warna.primary.withOpacity(0.25),
                                           ),
                                         ),
                                         child: Row(
@@ -316,7 +277,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                           children: [
                                             const Icon(
                                               TablerIcons.sparkles,
-                                              color: Color(0xFF6B4EFF),
+                                              color: Warna.black,
                                               size: 12,
                                             ),
                                             const SizedBox(width: 4),
@@ -324,10 +285,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                               AppLocalizations.of(
                                                 context,
                                               )!.aiProFeature,
-                                              style: TextStyle(
+                                              style: const TextStyle(
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w900,
-                                                color: const Color(0xFF6B4EFF),
+                                                color: Warna.black,
                                                 letterSpacing: 0.5,
                                               ),
                                             ),
@@ -371,7 +332,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
 
   Widget _buildCalibrationCard(ShadThemeData theme) {
     final state = ref.watch(smartAnalyticsProvider);
-    final hasRefreshed = state.isCalibrated;
+    final hasRefreshed = !state.isEmpty;
     final isBusy = state.isLoading || _isLoading;
 
     return Container(
@@ -380,10 +341,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF6B4EFF).withOpacity(0.15),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.shade100, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +350,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
             children: [
               const Icon(
                 TablerIcons.sparkles,
-                color: Color(0xFF6B4EFF),
+                color: Warna.primary,
                 size: 18,
               ),
               const SizedBox(width: 8),
@@ -405,9 +363,9 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                   ),
                 ),
               ),
-              if (hasRefreshed && state.lastCalibrationTime != null)
+              if (hasRefreshed && state.snapshotCreatedAt != null)
                 Text(
-                  'Terakhir: ${DateFormat('dd/MM HH:mm').format(state.lastCalibrationTime!)}',
+                  'Terakhir: ${DateFormat('dd/MM HH:mm').format(state.snapshotCreatedAt!)}',
                   style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
                 ),
             ],
@@ -484,9 +442,8 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
             height: 32,
             child: ShadButton(
               width: double.infinity,
-              backgroundColor: const Color(0xFF6B4EFF),
-              hoverBackgroundColor: const Color(0xFF523BFF),
-              foregroundColor: Colors.white,
+              backgroundColor: Warna.primary,
+              foregroundColor: Warna.black,
               onPressed: isBusy ? null : _refreshAnalytics,
               leading: const Icon(TablerIcons.refresh, size: 14),
               child: Text(
@@ -495,6 +452,92 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
                 ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Banner ringkas saat menampilkan riwayat (read-only) — menggantikan
+  // kartu kalibrasi/refresh yang tidak relevan untuk snapshot lama.
+  Widget _buildHistoryBanner(ShadThemeData theme, DateTime createdAt) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Warna.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Warna.primary.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(TablerIcons.history, size: 16, color: Warna.black),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Riwayat analisis • ${DateFormat('dd MMM yyyy, HH:mm').format(createdAt)}',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Warna.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Ditampilkan saat toko belum pernah menjalankan Smart Analitik sama
+  // sekali (belum ada snapshot di Supabase).
+  Widget _buildEmptyState(ShadThemeData theme) {
+    final isBusy = _isLoading;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Warna.primary.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              TablerIcons.chart_infographic,
+              size: 32,
+              color: Warna.black,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Belum Ada Analisis',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Toko Anda belum pernah menjalankan Smart Analitik. Jalankan analisis pertama untuk melihat perkiraan penjualan dan rekomendasi.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600, height: 1.4),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: 36,
+            child: ShadButton(
+              backgroundColor: Warna.primary,
+              foregroundColor: Warna.black,
+              onPressed: isBusy ? null : _refreshAnalytics,
+              leading: const Icon(TablerIcons.sparkles, size: 14),
+              child: Text(
+                isBusy ? 'Menganalisis...' : 'Mulai Analisis Pertama',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
               ),
             ),
           ),
@@ -528,9 +571,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: selected
-                  ? const Color(0xFF6B4EFF)
-                  : Colors.grey.shade500,
+              color: selected ? Colors.black : Colors.grey.shade500,
             ),
           ),
         ),
@@ -599,7 +640,12 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           setState(() {
             _selectedTab = tab;
           });
-          ref.read(smartAnalyticsProvider.notifier).loadSmartAnalytics(tab);
+          final notifier = ref.read(smartAnalyticsProvider.notifier);
+          if (widget.snapshotId != null) {
+            notifier.viewSnapshot(widget.snapshotId!, tab);
+          } else {
+            notifier.loadSmartAnalytics(tab);
+          }
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(
@@ -655,7 +701,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                 state.trafficText,
                 null,
                 TablerIcons.users,
-                const Color(0xFF4285F4),
+                theme.colorScheme.mutedForeground,
                 theme,
               ),
             ),
@@ -667,7 +713,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           state.bestSellingName,
           null,
           TablerIcons.crown,
-          const Color(0xFFFF9E00),
+          Warna.primary,
           theme,
         ),
       ],
@@ -873,12 +919,12 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4285F4).withOpacity(0.1),
+                  color: Warna.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   TablerIcons.presentation_analytics,
-                  color: Color(0xFF4285F4),
+                  color: Warna.black,
                   size: 20,
                 ),
               ),
@@ -915,7 +961,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
-                            color: Color(0xFF4285F4),
+                            color: Warna.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -962,9 +1008,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                         return LineTooltipItem(
                           '${isForecast ? "[AI] " : ""}${currencyFormat.format(spot.y)}',
                           TextStyle(
-                            color: isForecast
-                                ? const Color(0xFF9AE600)
-                                : Colors.white,
+                            color: isForecast ? Warna.primary : Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 11,
                           ),
@@ -1040,11 +1084,11 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                     ),
                     belowBarData: BarAreaData(show: false),
                   ),
-                  // Forecasted dotted line (blue)
+                  // Forecasted dotted line (primary/lime — proyeksi AI)
                   LineChartBarData(
                     spots: forecastSpots,
                     isCurved: true,
-                    color: const Color(0xFF4285F4),
+                    color: Warna.primary,
                     barWidth: 4,
                     dashArray: [6, 4],
                     isStrokeCapRound: true,
@@ -1055,15 +1099,15 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                             radius: 3,
                             color: Colors.white,
                             strokeWidth: 2,
-                            strokeColor: const Color(0xFF4285F4),
+                            strokeColor: Warna.primary,
                           ),
                     ),
                     belowBarData: BarAreaData(
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF4285F4).withOpacity(0.15),
-                          const Color(0xFF4285F4).withOpacity(0.0),
+                          Warna.primary.withOpacity(0.2),
+                          Warna.primary.withOpacity(0.0),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -1096,15 +1140,10 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           children: [
             Row(
               children: [
-                ShaderMask(
-                  shaderCallback: (bounds) => const LinearGradient(
-                    colors: [Color(0xFF4285F4), Color(0xFF9B72CB)],
-                  ).createShader(bounds),
-                  child: const Icon(
-                    TablerIcons.trending_up,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                const Icon(
+                  TablerIcons.trending_up,
+                  color: Warna.primary,
+                  size: 22,
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -1119,15 +1158,15 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.purple.shade50,
+                color: Warna.primary.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.purple.shade100),
+                border: Border.all(color: Warna.primary.withOpacity(0.3)),
               ),
               child: const Text(
-                'AI PRO',
+                'AI',
                 style: TextStyle(
                   fontSize: 8,
-                  color: Colors.purple,
+                  color: Warna.black,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1178,26 +1217,26 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.08),
+                  color: badgeColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: badgeColor.withOpacity(0.2)),
+                  border: Border.all(color: badgeColor.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(rec['icon'] as IconData, size: 10, color: badgeColor),
+                    Icon(rec['icon'] as IconData, size: 10, color: Warna.black),
                     const SizedBox(width: 4),
                     Text(
                       rec['badge'] as String,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 8,
                         fontWeight: FontWeight.w900,
-                        color: badgeColor,
+                        color: Warna.black,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(TablerIcons.sparkles, size: 12, color: Colors.purple),
+              const Icon(TablerIcons.sparkles, size: 12, color: Warna.primary),
             ],
           ),
           const SizedBox(height: 8),
@@ -1338,7 +1377,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                       height: 42,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6B4EFF).withOpacity(0.08),
+                        color: Warna.primary.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -1346,7 +1385,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                         style: const TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 15,
-                          color: Color(0xFF6B4EFF),
+                          color: Warna.black,
                         ),
                       ),
                     ),

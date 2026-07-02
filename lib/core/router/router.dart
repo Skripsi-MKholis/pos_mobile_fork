@@ -26,6 +26,7 @@ import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
+import 'package:pos_mobile/features/reports/presentation/smart_analytics_history_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
@@ -436,6 +437,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/smart-analytics',
         builder: (context, state) => const SmartAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/smart-analytics/history',
+        builder: (context, state) => const SmartAnalyticsHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/smart-analytics/history/:id',
+        builder: (context, state) => SmartAnalyticsScreen(
+          snapshotId: state.pathParameters['id'],
+        ),
       ),
       GoRoute(
         path: '/profile',
