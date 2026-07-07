@@ -15,6 +15,7 @@ import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:pos_mobile/core/ads/interstitial_ad_manager.dart';
 
 class ReceiptScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
@@ -43,6 +44,16 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
         _handlePrint();
       }
     });
+  }
+
+  /// Keluar dari layar struk. Sesekali (frequency-capped) menampilkan
+  /// interstitial ad di titik transisi ini agar tidak mengganggu kasir.
+  void _finishAndExit() {
+    InterstitialAdManager.instance.maybeShow(
+      onDone: () {
+        if (mounted) context.go('/transactions');
+      },
+    );
   }
 
   Future<void> _handlePrint() async {
@@ -146,7 +157,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        context.go('/transactions');
+        _finishAndExit();
       },
       child: Scaffold(
         backgroundColor: theme.colorScheme.muted,
@@ -159,7 +170,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
           ),
           leading: IconButton(
             icon: const Icon(TablerIcons.chevron_left),
-            onPressed: () => context.go('/transactions'),
+            onPressed: _finishAndExit,
           ),
           actions: [
             IconButton(

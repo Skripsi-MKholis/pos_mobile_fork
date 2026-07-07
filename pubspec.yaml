@@ -74,6 +74,7 @@ dependencies:
   barcode_widget: ^2.0.4
   in_app_update: ^4.2.5
   http: ^1.2.2
+  google_mobile_ads: ^6.0.0
 
 dev_dependencies:
   flutter_test:

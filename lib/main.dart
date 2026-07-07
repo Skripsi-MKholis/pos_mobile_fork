@@ -13,6 +13,8 @@ import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pos_mobile/core/ads/interstitial_ad_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +27,11 @@ void main() async {
     debugPrint('Error validating session during main initialization: $e');
   }
   await IsarService.init();
+
+  // Inisialisasi Google Mobile Ads (tanpa await agar tidak memblokir startup)
+  MobileAds.instance.initialize().then((_) {
+    InterstitialAdManager.instance.preload();
+  });
 
   try {
     final prefs = await SharedPreferences.getInstance();

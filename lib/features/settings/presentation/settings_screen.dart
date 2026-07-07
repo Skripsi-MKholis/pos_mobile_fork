@@ -12,6 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
+import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -162,6 +163,9 @@ class SettingsScreen extends ConsumerWidget {
                     onPressed: () => _handleLogout(context, ref, l10n),
                     child: Text(l10n.logoutApp),
                   ).animate().fadeIn(delay: 400.ms),
+                  const Center(
+                    child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
+                  ),
                   const SizedBox(height: 16),
                   Center(
                     child: Text(

@@ -10,6 +10,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -92,6 +93,9 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildQuickAccessGrid(context, l10n, theme, ref, isAdmin),
+            const Center(
+              child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
+            ),
             const SizedBox(height: 85),
           ],
         ),

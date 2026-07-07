@@ -13,6 +13,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -55,6 +56,9 @@ class ReportsScreen extends ConsumerWidget {
               ),
               loading: () => _buildLoadingState(theme),
               error: (err, _) => Center(child: Text(l10n.failedToLoad(err.toString()))),
+            ),
+            const Center(
+              child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
             ),
           ],
         ),

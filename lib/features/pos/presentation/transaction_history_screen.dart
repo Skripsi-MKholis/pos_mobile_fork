@@ -9,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 
 class TransactionHistoryScreen extends ConsumerStatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -119,6 +120,9 @@ class _TransactionHistoryScreenState
                     ),
                     const SizedBox(height: 20),
                     _buildSummaryCards(historyAsync, currencyFormat),
+                    const Center(
+                      child: BannerAdWidget(padding: EdgeInsets.only(top: 16)),
+                    ),
                   ],
                 ),
               ),
