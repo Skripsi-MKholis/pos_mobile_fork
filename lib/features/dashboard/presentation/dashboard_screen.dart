@@ -80,7 +80,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             if (isAdmin) ...[
               const SizedBox(height: 24),
-              _buildSalesPerformanceCard(analyticsAsync, l10n, theme),
+              _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
             ],
             const SizedBox(height: 24),
             Text(
@@ -534,6 +534,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildSalesPerformanceCard(
+    BuildContext context,
     AsyncValue<AnalyticsState> analyticsAsync,
     AppLocalizations l10n,
     ShadThemeData theme,
@@ -596,6 +597,36 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                               ))
                       : const SizedBox()),
+          ),
+          const SizedBox(height: 20),
+          // Tombol menuju halaman Performa Penjualan lengkap
+          SizedBox(
+            width: double.infinity,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: () => context.push('/sales-performance'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: Warna.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      l10n.viewDetails,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(TablerIcons.chevron_right, size: 16),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

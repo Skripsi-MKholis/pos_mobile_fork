@@ -542,6 +542,84 @@ abstract class AppLocalizations {
   /// **'All Time'**
   String get allTime;
 
+  /// No description provided for @avgPerTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg / Transaction'**
+  String get avgPerTransaction;
+
+  /// No description provided for @itemsSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Items Sold'**
+  String get itemsSold;
+
+  /// No description provided for @vsPreviousPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'vs previous period'**
+  String get vsPreviousPeriod;
+
+  /// No description provided for @revenueTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue Trend'**
+  String get revenueTrend;
+
+  /// No description provided for @salesByHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by Hour'**
+  String get salesByHour;
+
+  /// No description provided for @salesByDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales by Day'**
+  String get salesByDay;
+
+  /// No description provided for @byQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'By Quantity'**
+  String get byQuantity;
+
+  /// No description provided for @byRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'By Revenue'**
+  String get byRevenue;
+
+  /// No description provided for @busiestHour.
+  ///
+  /// In en, this message translates to:
+  /// **'Busiest Hour'**
+  String get busiestHour;
+
+  /// No description provided for @bestDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Day'**
+  String get bestDay;
+
+  /// No description provided for @insights.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insights;
+
+  /// No description provided for @noDataPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this period yet'**
+  String get noDataPeriod;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetails;
+
   /// No description provided for @revenueAllTime.
   ///
   /// In en, this message translates to:
@@ -769,12 +847,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Cart'**
   String get clearCart;
-
-  /// No description provided for @viewDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'View Details'**
-  String get viewDetails;
 
   /// No description provided for @noProductsYet.
   ///

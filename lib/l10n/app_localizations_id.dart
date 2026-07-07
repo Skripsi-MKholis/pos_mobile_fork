@@ -239,6 +239,45 @@ class AppLocalizationsId extends AppLocalizations {
   String get allTime => 'Semua';
 
   @override
+  String get avgPerTransaction => 'Rata-rata / Transaksi';
+
+  @override
+  String get itemsSold => 'Item Terjual';
+
+  @override
+  String get vsPreviousPeriod => 'vs periode sebelumnya';
+
+  @override
+  String get revenueTrend => 'Tren Omzet';
+
+  @override
+  String get salesByHour => 'Penjualan per Jam';
+
+  @override
+  String get salesByDay => 'Penjualan per Hari';
+
+  @override
+  String get byQuantity => 'Per Jumlah';
+
+  @override
+  String get byRevenue => 'Per Omzet';
+
+  @override
+  String get busiestHour => 'Jam Tersibuk';
+
+  @override
+  String get bestDay => 'Hari Terbaik';
+
+  @override
+  String get insights => 'Insight';
+
+  @override
+  String get noDataPeriod => 'Belum ada data pada periode ini';
+
+  @override
+  String get viewDetails => 'Cek Detail';
+
+  @override
   String get revenueAllTime => 'Omzet Keseluruhan';
 
   @override
@@ -354,9 +393,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get clearCart => 'Kosongkan Keranjang';
-
-  @override
-  String get viewDetails => 'Cek Detail';
 
   @override
   String get noProductsYet => 'Belum ada produk';

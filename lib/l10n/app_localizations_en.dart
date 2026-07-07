@@ -239,6 +239,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allTime => 'All Time';
 
   @override
+  String get avgPerTransaction => 'Avg / Transaction';
+
+  @override
+  String get itemsSold => 'Items Sold';
+
+  @override
+  String get vsPreviousPeriod => 'vs previous period';
+
+  @override
+  String get revenueTrend => 'Revenue Trend';
+
+  @override
+  String get salesByHour => 'Sales by Hour';
+
+  @override
+  String get salesByDay => 'Sales by Day';
+
+  @override
+  String get byQuantity => 'By Quantity';
+
+  @override
+  String get byRevenue => 'By Revenue';
+
+  @override
+  String get busiestHour => 'Busiest Hour';
+
+  @override
+  String get bestDay => 'Best Day';
+
+  @override
+  String get insights => 'Insights';
+
+  @override
+  String get noDataPeriod => 'No data for this period yet';
+
+  @override
+  String get viewDetails => 'View Details';
+
+  @override
   String get revenueAllTime => 'All-Time Revenue';
 
   @override
@@ -354,9 +393,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearCart => 'Clear Cart';
-
-  @override
-  String get viewDetails => 'View Details';
 
   @override
   String get noProductsYet => 'No products yet';

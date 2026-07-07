@@ -26,6 +26,7 @@ import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
+import 'package:pos_mobile/features/reports/presentation/sales_performance_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_history_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
@@ -131,6 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           '/store-info',
           '/broadcast-notification',
           '/smart-analytics',
+          '/sales-performance',
         ];
 
         final isRestricted = restrictedRoutes.any(
@@ -437,6 +439,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/smart-analytics',
         builder: (context, state) => const SmartAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/sales-performance',
+        builder: (context, state) => const SalesPerformanceScreen(),
       ),
       GoRoute(
         path: '/smart-analytics/history',
