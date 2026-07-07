@@ -1,12 +1,12 @@
 ### **Versi Sekarang**
 
-**1.8.0+11**
+**1.9.0+12**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Customer Portal & Smart Analytics Integration**
+**ZelloPOS Server-Side Analytics & Sales Performance**
 
 ---
 
@@ -121,6 +121,19 @@ Ringkasan perubahan pada rilis ini:
 * **Pemilihan Lokasi Toko (Provinsi & Kota/Kabupaten)**: Menambahkan picker lokasi toko yang terintegrasi dengan API wilayah.id pada halaman **Buat Toko** dan **Informasi Toko**. Pengguna kini dapat memilih Provinsi dan Kota/Kabupaten melalui *bottom sheet* dengan fitur pencarian real-time, sehingga data lokasi toko tersimpan terstruktur di database.
 * **Penyesuaian Model Bisnis**: Model bisnis (Restoran, Retail, Cafe) kini berfungsi sebagai **kategori informatif** saja dan tidak lagi mengontrol aktif/tidaknya fitur aplikasi. Seluruh fitur (KDS, Manajemen Meja, Pelanggan, Promosi, Reservasi) diaktifkan secara penuh untuk semua jenis bisnis sejak toko dibuat.
 * **Skema Database Supabase**: Menambahkan kolom `city` (teks, nullable) pada tabel `stores` untuk menyimpan data kota/kabupaten toko.
+
+---
+
+**Versi 1.9.0+12 (Server-Side Analytics & Sales Performance)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Agregasi Analitik di Server (Hemat Usage Supabase)**: Seluruh perhitungan omzet, jumlah transaksi, tren penjualan, dan top produk dipindahkan ke fungsi RPC Postgres (`get_transaction_summary`, `get_analytics`, `get_sales_performance`). Aplikasi kini hanya menerima ringkasan JSON kecil alih-alih mengunduh puluhan ribu baris transaksi — teruji pada toko dengan 56 ribu+ transaksi. Ditambahkan indeks komposit `(store_id, created_at)` dan indeks `transaction_items(transaction_id)` untuk performa query.
+* **Halaman Baru: Performa Penjualan** (`/sales-performance`, khusus Owner): grafik dan insight lengkap — tren omzet, distribusi penjualan per jam dan per hari, breakdown metode pembayaran, top 5 produk (per jumlah/per omzet), rata-rata per transaksi, item terjual, serta persentase pertumbuhan dibanding periode sebelumnya. Insight otomatis: jam tersibuk, hari terbaik, metode pembayaran favorit. Dapat diakses dari kartu "Performa Penjualan" di Dashboard.
+* **Filter Analitik "Semua" (Lifetime)**: Dashboard dan Laporan Analitik kini mendukung rentang waktu seluruh riwayat (agregasi per bulan), melengkapi Hari Ini/Minggu Ini/Bulan Ini.
+* **Riwayat Transaksi Lebih Efisien**: Kartu Omzet & Jumlah Transaksi dihitung via RPC (akurat untuk seluruh data, bukan hanya halaman yang dimuat); filter tanggal dan status kini dijalankan di server sehingga paginasi hanya mengunduh baris yang relevan.
+* **Perbaikan UI**: Kartu statistik di Riwayat Transaksi, Dashboard, dan Laporan tidak lagi overflow untuk nominal besar (auto-scale satu baris); tata letak kartu Katalog Produk dirombak agar SKU panjang tidak merusak nama/kategori/harga; jumlah transaksi memakai pemisah ribuan.
+* **Perbaikan Bug Struk Digital**: Struk tidak lagi crash (`NoSuchMethodError: isNegative`) saat membuka transaksi non-tunai dengan `cash_paid`/`change_amount` kosong — semua nominal kini null-safe dengan fallback yang wajar.
 
 ---
 
