@@ -308,7 +308,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '${item['quantity']} x ${currencyFormat.format(item['unit_price'])}',
+                                        '${item['quantity'] ?? 1} x ${currencyFormat.format(item['unit_price'] ?? 0)}',
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade600,
@@ -318,7 +318,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                   ),
                                 ),
                                 Text(
-                                  currencyFormat.format(item['subtotal']),
+                                  currencyFormat.format(item['subtotal'] ?? 0),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -333,20 +333,24 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         _buildRow(
                           l10n.totalBelanja,
                           currencyFormat.format(
-                            widget.transaction['total_amount'],
+                            widget.transaction['total_amount'] ?? 0,
                           ),
                           isBold: true,
                         ),
                         _buildRow(
                           l10n.paid,
+                          // Bisa null pada data dari server (non-tunai):
+                          // fallback ke total belanja.
                           currencyFormat.format(
-                            widget.transaction['cash_paid'],
+                            widget.transaction['cash_paid'] ??
+                                widget.transaction['total_amount'] ??
+                                0,
                           ),
                         ),
                         _buildRow(
                           l10n.change,
                           currencyFormat.format(
-                            widget.transaction['change_amount'],
+                            widget.transaction['change_amount'] ?? 0,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -564,11 +568,11 @@ ${l10n.transactionNo}: #${widget.transaction['id'].toString().substring(0, 8).to
 ${l10n.date}: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
 ${l10n.method}: ${widget.transaction['payment_method']}
 ${showCashier ? '${l10n.cashier}: ${l10n.parzelloStaff}\n' : ''}---------------------------------
-${widget.items.map((item) => "${item['product_name']}\n${item['quantity']} x ${currencyFormat.format(item['unit_price'])}   ${currencyFormat.format(item['subtotal'])}").join('\n---------------------------------\n')}
+${widget.items.map((item) => "${item['product_name']}\n${item['quantity'] ?? 1} x ${currencyFormat.format(item['unit_price'] ?? 0)}   ${currencyFormat.format(item['subtotal'] ?? 0)}").join('\n---------------------------------\n')}
 ---------------------------------
-${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'])}
-${l10n.paid}: ${currencyFormat.format(widget.transaction['cash_paid'])}
-${l10n.change}: ${currencyFormat.format(widget.transaction['change_amount'])}
+${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'] ?? 0)}
+${l10n.paid}: ${currencyFormat.format(widget.transaction['cash_paid'] ?? widget.transaction['total_amount'] ?? 0)}
+${l10n.change}: ${currencyFormat.format(widget.transaction['change_amount'] ?? 0)}
 ---------------------------------
 ${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
 =================================
