@@ -15,6 +15,8 @@ class TransactionHistoryState {
   final bool isLoadingMore;
   final bool hasMore;
   final int page;
+  final DateTime? filterDate;
+  final String filterStatus;
 
   TransactionHistoryState({
     required this.transactions,
@@ -22,6 +24,8 @@ class TransactionHistoryState {
     this.isLoadingMore = false,
     this.hasMore = true,
     this.page = 0,
+    this.filterDate,
+    this.filterStatus = 'Semua',
   });
 
   TransactionHistoryState copyWith({
@@ -37,8 +41,79 @@ class TransactionHistoryState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMore: hasMore ?? this.hasMore,
       page: page ?? this.page,
+      filterDate: filterDate,
+      filterStatus: filterStatus,
     );
   }
+}
+
+class TransactionSummary {
+  final double totalRevenue;
+  final int transactionCount;
+
+  const TransactionSummary({
+    required this.totalRevenue,
+    required this.transactionCount,
+  });
+}
+
+/// Omzet & jumlah transaksi dihitung di server via RPC `get_transaction_summary`
+/// (agregasi Postgres, hanya 1 baris yang dikirim) — bukan menjumlahkan list
+/// transaksi di client. Fallback ke agregasi cache Isar saat offline.
+@riverpod
+Future<TransactionSummary> transactionSummary(
+  TransactionSummaryRef ref, {
+  DateTime? date,
+}) async {
+  final activeStore = ref.watch(activeStoreProvider).value;
+  final storeId = activeStore?['id'];
+  if (storeId == null) {
+    return const TransactionSummary(totalRevenue: 0, transactionCount: 0);
+  }
+
+  DateTime? start;
+  DateTime? end;
+  if (date != null) {
+    start = DateTime(date.year, date.month, date.day);
+    end = start.add(const Duration(days: 1));
+  }
+
+  final isOnline =
+      ref.watch(connectivityNotifierProvider).value == ConnectivityStatus.online;
+
+  if (isOnline) {
+    try {
+      final response = await Supabase.instance.client.rpc(
+        'get_transaction_summary',
+        params: {
+          'p_store_id': storeId,
+          'p_date_from': start?.toUtc().toIso8601String(),
+          'p_date_to': end?.toUtc().toIso8601String(),
+        },
+      );
+      final row = (response as List).first as Map<String, dynamic>;
+      return TransactionSummary(
+        totalRevenue: (row['total_revenue'] as num?)?.toDouble() ?? 0.0,
+        transactionCount: (row['transaction_count'] as num?)?.toInt() ?? 0,
+      );
+    } catch (e) {
+      // ignore: avoid_print
+      print('DEBUG: Error fetching transaction summary: $e');
+      // Fallback ke cache lokal di bawah
+    }
+  }
+
+  final isar = IsarService.instance;
+  var query = isar
+      .collection<TransactionLocal>()
+      .filter()
+      .storeIdEqualTo(storeId);
+  if (start != null && end != null) {
+    query = query.createdAtBetween(start, end, includeUpper: false);
+  }
+  final count = await query.count();
+  final sum = await query.totalAmountProperty().sum();
+  return TransactionSummary(totalRevenue: sum, transactionCount: count);
 }
 
 @riverpod
@@ -52,7 +127,7 @@ class TransactionHistory extends _$TransactionHistory {
     final storeId = activeStore?['id'];
     if (storeId == null) return TransactionHistoryState(transactions: []);
 
-    final data = await _fetchFromSupabaseAndCache(storeId, 0);
+    final data = await _fetchFromSupabaseAndCache(storeId, 0, null, 'Semua');
     return TransactionHistoryState(
       transactions: data,
       page: 0,
@@ -63,16 +138,36 @@ class TransactionHistory extends _$TransactionHistory {
   Future<List<Map<String, dynamic>>> _fetchFromSupabaseAndCache(
     String storeId,
     int page,
+    DateTime? filterDate,
+    String filterStatus,
   ) async {
     final isOnline = ref.read(connectivityNotifierProvider).value == ConnectivityStatus.online;
     final isar = IsarService.instance;
 
+    DateTime? start;
+    DateTime? end;
+    if (filterDate != null) {
+      start = DateTime(filterDate.year, filterDate.month, filterDate.day);
+      end = start.add(const Duration(days: 1));
+    }
+
     if (isOnline) {
       try {
-        final response = await _supabase
+        // Filter tanggal & status dilakukan di server sehingga paginasi hanya
+        // mengunduh baris yang relevan, bukan seluruh riwayat.
+        var query = _supabase
             .from('transactions')
             .select('*, transaction_items(*)')
-            .eq('store_id', storeId)
+            .eq('store_id', storeId);
+        if (filterStatus != 'Semua') {
+          query = query.eq('status', filterStatus);
+        }
+        if (start != null && end != null) {
+          query = query
+              .gte('created_at', start.toUtc().toIso8601String())
+              .lt('created_at', end.toUtc().toIso8601String());
+        }
+        final response = await query
             .order('created_at', ascending: false)
             .range(page * _pageSize, (page + 1) * _pageSize - 1);
 
@@ -120,6 +215,8 @@ class TransactionHistory extends _$TransactionHistory {
             }
           }
         });
+
+        return remoteData;
       } catch (e) {
         // ignore: avoid_print
         print('DEBUG: Error fetching transactions from Supabase: $e');
@@ -127,18 +224,29 @@ class TransactionHistory extends _$TransactionHistory {
       }
     }
 
-    return _fetchLocalTransactions(storeId, page, _pageSize);
+    return _fetchLocalTransactions(
+        storeId, page, _pageSize, start, end, filterStatus);
   }
 
   Future<List<Map<String, dynamic>>> _fetchLocalTransactions(
     String storeId,
     int page,
     int pageSize,
+    DateTime? start,
+    DateTime? end,
+    String filterStatus,
   ) async {
     final isar = IsarService.instance;
-    final txs = await isar.collection<TransactionLocal>()
+    var query = isar.collection<TransactionLocal>()
         .filter()
-        .storeIdEqualTo(storeId)
+        .storeIdEqualTo(storeId);
+    if (filterStatus != 'Semua') {
+      query = query.statusEqualTo(filterStatus);
+    }
+    if (start != null && end != null) {
+      query = query.createdAtBetween(start, end, includeUpper: false);
+    }
+    final txs = await query
         .sortByCreatedAtDesc()
         .offset(page * pageSize)
         .limit(pageSize)
@@ -150,12 +258,35 @@ class TransactionHistory extends _$TransactionHistory {
           .filter()
           .transactionSupabaseIdEqualTo(tx.supabaseId)
           .findAll();
-      
+
       final txMap = tx.toMap();
       txMap['transaction_items'] = items.map((item) => item.toMap()).toList();
       list.add(txMap);
     }
     return list;
+  }
+
+  /// Ganti filter tanggal/status: reset ke halaman 0 dan query ulang di server.
+  Future<void> applyFilters({DateTime? date, String status = 'Semua'}) async {
+    final activeStore = ref.read(activeStoreProvider).value;
+    final storeId = activeStore?['id'];
+    if (storeId == null) return;
+
+    state = const AsyncLoading();
+    try {
+      final data = await _fetchFromSupabaseAndCache(storeId, 0, date, status);
+      state = AsyncValue.data(
+        TransactionHistoryState(
+          transactions: data,
+          page: 0,
+          hasMore: data.length == _pageSize,
+          filterDate: date,
+          filterStatus: status,
+        ),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<void> fetchMore() async {
@@ -174,7 +305,12 @@ class TransactionHistory extends _$TransactionHistory {
 
     try {
       final nextPage = currentState.page + 1;
-      final newData = await _fetchFromSupabaseAndCache(storeId, nextPage);
+      final newData = await _fetchFromSupabaseAndCache(
+        storeId,
+        nextPage,
+        currentState.filterDate,
+        currentState.filterStatus,
+      );
 
       state = AsyncValue.data(
         currentState.copyWith(
@@ -190,23 +326,10 @@ class TransactionHistory extends _$TransactionHistory {
   }
 
   Future<void> refresh() async {
-    final activeStore = ref.read(activeStoreProvider).value;
-    final storeId = activeStore?['id'];
-    if (storeId == null) return;
-
-    state = const AsyncLoading();
-    try {
-      final data = await _fetchFromSupabaseAndCache(storeId, 0);
-      state = AsyncValue.data(
-        TransactionHistoryState(
-          transactions: data,
-          page: 0,
-          hasMore: data.length == _pageSize,
-        ),
-      );
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    final currentState = state.value;
+    await applyFilters(
+      date: currentState?.filterDate,
+      status: currentState?.filterStatus ?? 'Semua',
+    );
   }
 }
-

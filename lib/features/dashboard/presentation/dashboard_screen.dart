@@ -281,6 +281,10 @@ class DashboardScreen extends ConsumerWidget {
         revenueLabel = l10n.revenueThisMonth;
         txLabel = l10n.transactionsThisMonth;
         break;
+      case AnalyticsTimeRange.lifetime:
+        revenueLabel = l10n.revenueAllTime;
+        txLabel = l10n.transactionsAllTime;
+        break;
     }
 
     return GridView.count(
@@ -383,6 +387,12 @@ class DashboardScreen extends ConsumerWidget {
             AnalyticsTimeRange.month,
             currentRange == AnalyticsTimeRange.month,
           ),
+          _buildFilterChip(
+            ref,
+            l10n.allTime,
+            AnalyticsTimeRange.lifetime,
+            currentRange == AnalyticsTimeRange.lifetime,
+          ),
         ],
       ),
     );
@@ -484,11 +494,18 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 )
               else
-                Text(
-                  value,
-                  style: theme.textTheme.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: accentColor ?? theme.colorScheme.foreground,
+                // FittedBox: nilai besar (mis. Rp 471.200.494) diskalakan
+                // agar tetap satu baris dan tidak overflow di kartu grid.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    style: theme.textTheme.h4.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: accentColor ?? theme.colorScheme.foreground,
+                    ),
                   ),
                 ),
               const SizedBox(height: 4),

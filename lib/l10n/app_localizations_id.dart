@@ -236,6 +236,15 @@ class AppLocalizationsId extends AppLocalizations {
   String get transactionsThisMonth => 'Transaksi Bulan Ini';
 
   @override
+  String get allTime => 'Semua';
+
+  @override
+  String get revenueAllTime => 'Omzet Keseluruhan';
+
+  @override
+  String get transactionsAllTime => 'Transaksi Keseluruhan';
+
+  @override
   String get transactionsCompleted => 'Transaksi Selesai';
 
   @override
@@ -643,6 +652,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get salesTrendThisMonth => 'TREN PENJUALAN (BULAN INI)';
+
+  @override
+  String get salesTrendAllTime => 'TREN PENJUALAN (BULANAN)';
 
   @override
   String get comingSoon => 'Segera Hadir';

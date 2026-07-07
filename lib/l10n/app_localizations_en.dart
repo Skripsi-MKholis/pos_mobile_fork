@@ -236,6 +236,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionsThisMonth => 'This Month\'s Transactions';
 
   @override
+  String get allTime => 'All Time';
+
+  @override
+  String get revenueAllTime => 'All-Time Revenue';
+
+  @override
+  String get transactionsAllTime => 'All-Time Transactions';
+
+  @override
   String get transactionsCompleted => 'Transactions Completed';
 
   @override
@@ -641,6 +650,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salesTrendThisMonth => 'SALES TREND (THIS MONTH)';
+
+  @override
+  String get salesTrendAllTime => 'SALES TREND (MONTHLY)';
 
   @override
   String get comingSoon => 'Coming Soon';

@@ -42,6 +42,28 @@ class _TransactionHistoryScreenState
     });
   }
 
+  /// Tanggal terpilih untuk filter server-side (null = semua tanggal).
+  DateTime? get _selectedDate {
+    final now = DateTime.now();
+    switch (_dateFilter) {
+      case 'Hari Ini':
+        return now;
+      case 'Kemarin':
+        return now.subtract(const Duration(days: 1));
+      case 'Custom':
+        return _customDate;
+      default:
+        return null;
+    }
+  }
+
+  void _applyFilters() {
+    ref.read(transactionHistoryProvider.notifier).applyFilters(
+          date: _selectedDate,
+          status: _filterStatus,
+        );
+  }
+
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.8) {
@@ -77,12 +99,17 @@ class _TransactionHistoryScreenState
 
     // Auto switch to 'Hari Ini' for Kasir if they try to see other dates
     if (!isAdmin && _dateFilter != 'Hari Ini') {
-      Future.microtask(() => setState(() => _dateFilter = 'Hari Ini'));
+      Future.microtask(() {
+        setState(() => _dateFilter = 'Hari Ini');
+        _applyFilters();
+      });
     }
 
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(transactionHistoryProvider.notifier).refresh(),
+      onRefresh: () async {
+        ref.invalidate(transactionSummaryProvider);
+        await ref.read(transactionHistoryProvider.notifier).refresh();
+      },
       color: Warna.primary,
       backgroundColor: Colors.white,
       child: CustomScrollView(
@@ -119,7 +146,7 @@ class _TransactionHistoryScreenState
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildSummaryCards(historyAsync, currencyFormat),
+                    _buildSummaryCards(currencyFormat),
                     const Center(
                       child: BannerAdWidget(padding: EdgeInsets.only(top: 16)),
                     ),
@@ -144,40 +171,13 @@ class _TransactionHistoryScreenState
                       : dateA.compareTo(dateB);
                 });
 
+                // Filter tanggal & status sudah dilakukan di server (provider);
+                // di sini hanya pencarian teks atas halaman yang sudah dimuat.
                 final filtered = transactions.where((tx) {
-                  final matchesSearch =
-                      tx['id'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      ) ||
-                      tx['payment_method'].toString().toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
-                      );
-                  final matchesStatus =
-                      _filterStatus == 'Semua' || tx['status'] == _filterStatus;
-
-                  final txDate = DateTime.parse(tx['created_at']).toLocal();
-                  bool matchesDate = true;
-                  final now = DateTime.now();
-
-                  if (_dateFilter == 'Hari Ini') {
-                    matchesDate =
-                        txDate.year == now.year &&
-                        txDate.month == now.month &&
-                        txDate.day == now.day;
-                  } else if (_dateFilter == 'Kemarin') {
-                    final yesterday = now.subtract(const Duration(days: 1));
-                    matchesDate =
-                        txDate.year == yesterday.year &&
-                        txDate.month == yesterday.month &&
-                        txDate.day == yesterday.day;
-                  } else if (_dateFilter == 'Custom' && _customDate != null) {
-                    matchesDate =
-                        txDate.year == _customDate!.year &&
-                        txDate.month == _customDate!.month &&
-                        txDate.day == _customDate!.day;
-                  }
-
-                  return matchesSearch && matchesStatus && matchesDate;
+                  if (_searchQuery.isEmpty) return true;
+                  final q = _searchQuery.toLowerCase();
+                  return tx['id'].toString().toLowerCase().contains(q) ||
+                      tx['payment_method'].toString().toLowerCase().contains(q);
                 }).toList();
 
                 if (filtered.isEmpty && !state.isLoadingMore) {
@@ -314,43 +314,26 @@ class _TransactionHistoryScreenState
     );
   }
 
-  Widget _buildSummaryCards(
-    AsyncValue<TransactionHistoryState> historyAsync,
-    NumberFormat format,
-  ) {
-    return historyAsync.when(
-      data: (state) {
-        final filtered = state.transactions.where((tx) {
-          final txDate = DateTime.parse(tx['created_at']).toLocal();
-          final now = DateTime.now();
-          if (_dateFilter == 'Hari Ini') {
-            return txDate.year == now.year &&
-                txDate.month == now.month &&
-                txDate.day == now.day;
-          } else if (_dateFilter == 'Kemarin') {
-            final yesterday = now.subtract(const Duration(days: 1));
-            return txDate.year == yesterday.year &&
-                txDate.month == yesterday.month &&
-                txDate.day == yesterday.day;
-          } else if (_dateFilter == 'Custom' && _customDate != null) {
-            return txDate.year == _customDate!.year &&
-                txDate.month == _customDate!.month &&
-                txDate.day == _customDate!.day;
-          }
-          return true;
-        }).toList();
+  Widget _buildSummaryCards(NumberFormat format) {
+    // Omzet & jumlah transaksi diagregasi di server (RPC), bukan dari list
+    // paginasi — akurat untuk seluruh data tanpa mengunduh semua baris.
+    final selectedDate = _selectedDate;
+    final summaryAsync = ref.watch(
+      transactionSummaryProvider(
+        date: selectedDate == null
+            ? null
+            : DateTime(selectedDate.year, selectedDate.month, selectedDate.day),
+      ),
+    );
 
-        final totalRevenue = filtered.fold(
-          0.0,
-          (sum, tx) => sum + (tx['total_amount'] as num).toDouble(),
-        );
-
+    return summaryAsync.when(
+      data: (summary) {
         return Row(
           children: [
             Expanded(
               child: _buildStatCard(
                 AppLocalizations.of(context)!.revenue,
-                format.format(totalRevenue),
+                format.format(summary.totalRevenue),
                 Warna.primary,
               ),
             ),
@@ -358,7 +341,9 @@ class _TransactionHistoryScreenState
             Expanded(
               child: _buildStatCard(
                 AppLocalizations.of(context)!.transaction,
-                filtered.length.toString(),
+                NumberFormat.decimalPattern(
+                  Localizations.localeOf(context).toString(),
+                ).format(summary.transactionCount),
                 Colors.blue,
               ),
             ),
@@ -393,7 +378,8 @@ class _TransactionHistoryScreenState
   Widget _buildStatCard(String label, String value, Color color) {
     final theme = ShadTheme.of(context);
     return Container(
-      padding: const EdgeInsets.all(20),
+      height: 100,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -401,25 +387,34 @@ class _TransactionHistoryScreenState
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            label,
+            label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.small.copyWith(
               color: theme.colorScheme.mutedForeground,
               fontWeight: FontWeight.bold,
               fontSize: 10,
+              letterSpacing: 1,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.h4.copyWith(
-              fontWeight: FontWeight.w900,
-              color: Colors.black,
-              letterSpacing: -0.5,
+          // FittedBox: nilai besar (mis. Rp 471.200.494) diskalakan agar
+          // selalu muat satu baris sehingga kedua kartu tetap sejajar.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: theme.textTheme.h4.copyWith(
+                fontWeight: FontWeight.w900,
+                color: Colors.black,
+                letterSpacing: -0.5,
+              ),
             ),
           ),
-          const SizedBox(height: 12),
           Container(
             height: 4,
             width: 24,
@@ -508,8 +503,10 @@ class _TransactionHistoryScreenState
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: GestureDetector(
-                        onTap: () =>
-                            setState(() => _filterStatus = status['value']!),
+                        onTap: () {
+                          setState(() => _filterStatus = status['value']!);
+                          _applyFilters();
+                        },
                         child: AnimatedContainer(
                           duration: 200.ms,
                           padding: const EdgeInsets.symmetric(
@@ -581,12 +578,14 @@ class _TransactionHistoryScreenState
                 _dateFilter = 'Custom';
                 _customDate = picked;
               });
+              _applyFilters();
             }
           } else {
             setState(() {
               _dateFilter = value;
               if (value != 'Custom') _customDate = null;
             });
+            _applyFilters();
           }
         },
         child: AnimatedContainer(

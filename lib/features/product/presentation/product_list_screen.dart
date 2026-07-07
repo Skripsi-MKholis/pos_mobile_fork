@@ -541,12 +541,13 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             ),
             const SizedBox(width: 14),
 
-            // Middle: Product Info
+            // Product info: disusun per baris memakai lebar penuh agar
+            // SKU panjang tidak menjepit nama/kategori/harga.
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and Sync
+                  // Row 1: nama + sync + aksi edit/hapus
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -574,144 +575,150 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                             ),
                           ),
                         ),
+                      const SizedBox(width: 8),
+                      Tooltip(
+                        message: AppLocalizations.of(context)!.edit,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () =>
+                              context.push('/products/edit', extra: product),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.muted.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              TablerIcons.edit,
+                              size: 16,
+                              color: theme.colorScheme.foreground,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Tooltip(
+                        message: AppLocalizations.of(context)!.deleteProduct,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () => _showDeleteDialog(product),
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              TablerIcons.trash,
+                              size: 16,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
 
-                  // Category tag
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.muted.withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      categoryName,
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.mutedForeground,
+                  // Row 2: kategori + status stok
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.muted.withOpacity(0.5),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            categoryName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      _buildStockIndicator(product.stockQuantity, theme),
+                    ],
                   ),
                   const SizedBox(height: 8),
 
-                  // Price
-                  Text(
-                    format.format(product.price),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: Color(0xFF5B9E00), // Nice dark green
-                    ),
+                  // Row 3: harga + chip SKU (SKU di-ellipsis bila panjang)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          format.format(product.price),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Color(0xFF5B9E00), // Nice dark green
+                          ),
+                        ),
+                      ),
+                      if (product.sku != null && product.sku!.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.lightImpact();
+                              _openBarcodeViewer(context, product, categoryName);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.blue.shade100,
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    TablerIcons.barcode,
+                                    size: 12,
+                                    color: Colors.blue.shade700,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      product.sku!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontFamily: 'monospace',
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade800,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-
-            // Right: SKU action chip + Actions
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                // Interactive SKU action chip
-                if (product.sku != null && product.sku!.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _openBarcodeViewer(context, product, categoryName);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.blue.shade100,
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            TablerIcons.barcode,
-                            size: 12,
-                            color: Colors.blue.shade700,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            product.sku!,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontFamily: 'monospace',
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-
-                // Stock status indicator
-                _buildStockIndicator(product.stockQuantity, theme),
-                const SizedBox(height: 10),
-
-                // Mini Action Row (Edit, Delete)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Tooltip(
-                      message: AppLocalizations.of(context)!.edit,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () =>
-                            context.push('/products/edit', extra: product),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.muted.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            TablerIcons.edit,
-                            size: 16,
-                            color: theme.colorScheme.foreground,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Tooltip(
-                      message: AppLocalizations.of(context)!.deleteProduct,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => _showDeleteDialog(product),
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            TablerIcons.trash,
-                            size: 16,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ),
           ],
         ),

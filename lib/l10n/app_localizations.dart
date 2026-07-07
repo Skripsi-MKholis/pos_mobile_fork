@@ -536,6 +536,24 @@ abstract class AppLocalizations {
   /// **'This Month\'s Transactions'**
   String get transactionsThisMonth;
 
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All Time'**
+  String get allTime;
+
+  /// No description provided for @revenueAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All-Time Revenue'**
+  String get revenueAllTime;
+
+  /// No description provided for @transactionsAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All-Time Transactions'**
+  String get transactionsAllTime;
+
   /// No description provided for @transactionsCompleted.
   ///
   /// In en, this message translates to:
@@ -1285,6 +1303,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'SALES TREND (THIS MONTH)'**
   String get salesTrendThisMonth;
+
+  /// No description provided for @salesTrendAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'SALES TREND (MONTHLY)'**
+  String get salesTrendAllTime;
 
   /// No description provided for @comingSoon.
   ///

@@ -180,6 +180,11 @@ class ReportsScreen extends ConsumerWidget {
         txLabel = l10n.transactionsThisMonth;
         trendLabel = l10n.salesTrendThisMonth;
         break;
+      case AnalyticsTimeRange.lifetime:
+        revenueLabel = l10n.revenueAllTime;
+        txLabel = l10n.transactionsAllTime;
+        trendLabel = l10n.salesTrendAllTime;
+        break;
     }
 
     return Column(
@@ -325,11 +330,18 @@ class ReportsScreen extends ConsumerWidget {
                   ),
                 )
               else
-                Text(
-                  value,
-                  style: theme.textTheme.h4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: accentColor ?? theme.colorScheme.foreground,
+                // FittedBox: nilai besar (mis. Rp 471.200.494) diskalakan
+                // agar tetap satu baris dan tidak overflow di kartu grid.
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    style: theme.textTheme.h4.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: accentColor ?? theme.colorScheme.foreground,
+                    ),
                   ),
                 ),
               const SizedBox(height: 4),
@@ -885,6 +897,12 @@ class ReportsScreen extends ConsumerWidget {
             l10n.thisMonth,
             AnalyticsTimeRange.month,
             currentRange == AnalyticsTimeRange.month,
+          ),
+          _buildFilterChip(
+            ref,
+            l10n.allTime,
+            AnalyticsTimeRange.lifetime,
+            currentRange == AnalyticsTimeRange.lifetime,
           ),
         ],
       ),

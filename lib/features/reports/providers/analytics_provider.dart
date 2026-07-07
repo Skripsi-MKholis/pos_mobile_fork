@@ -6,9 +6,8 @@ import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/transaction_local.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:isar/isar.dart';
-import 'dart:convert';
 
-enum AnalyticsTimeRange { today, week, month }
+enum AnalyticsTimeRange { today, week, month, lifetime }
 
 class AnalyticsState {
   final double totalRevenue;
@@ -68,10 +67,36 @@ class AnalyticsNotifier extends StateNotifier<AsyncValue<AnalyticsState>> {
     fetchAnalytics();
   }
 
+  // Bucket agregasi per rentang: hari ini per jam, minggu/bulan per hari,
+  // lifetime per bulan (agar chart tetap ringkas untuk data bertahun-tahun).
+  String _bucketFor(AnalyticsTimeRange range) {
+    switch (range) {
+      case AnalyticsTimeRange.today:
+        return 'hour';
+      case AnalyticsTimeRange.week:
+      case AnalyticsTimeRange.month:
+        return 'day';
+      case AnalyticsTimeRange.lifetime:
+        return 'month';
+    }
+  }
+
+  String _labelFor(AnalyticsTimeRange range, DateTime bucket) {
+    switch (range) {
+      case AnalyticsTimeRange.today:
+        return DateFormat('HH:00').format(bucket);
+      case AnalyticsTimeRange.week:
+      case AnalyticsTimeRange.month:
+        return DateFormat('dd/MM').format(bucket);
+      case AnalyticsTimeRange.lifetime:
+        return DateFormat('MMM yy').format(bucket);
+    }
+  }
+
   Future<void> fetchAnalytics([AnalyticsTimeRange timeRange = AnalyticsTimeRange.week]) async {
     final activeStore = _ref.read(activeStoreProvider).value;
     final storeId = activeStore?['id'];
-    
+
     if (storeId == null) {
       state = AsyncValue.data(AnalyticsState.initial());
       return;
@@ -80,7 +105,7 @@ class AnalyticsNotifier extends StateNotifier<AsyncValue<AnalyticsState>> {
     state = const AsyncValue.loading();
     try {
       final now = DateTime.now();
-      DateTime startDate;
+      DateTime? startDate;
       int daysToFetch = 7;
 
       switch (timeRange) {
@@ -97,167 +122,149 @@ class AnalyticsNotifier extends StateNotifier<AsyncValue<AnalyticsState>> {
           startDate = DateTime(now.year, now.month, 1);
           daysToFetch = now.day;
           break;
+        case AnalyticsTimeRange.lifetime:
+          startDate = null; // tanpa batas bawah: seluruh riwayat
+          daysToFetch = 0;
+          break;
       }
 
-      final dateStr = DateFormat('yyyy-MM-dd').format(startDate);
       final isOnline = _ref.read(connectivityNotifierProvider).value == ConnectivityStatus.online;
-      final isar = IsarService.instance;
-      List<dynamic> data = [];
 
       if (isOnline) {
         try {
-          // Fetch transactions with full fields to properly cache them in Isar
-          final response = await _client
-              .from('transactions')
-              .select('*, transaction_items(*)')
-              .eq('store_id', storeId)
-              .filter('created_at', 'gte', dateStr)
-              .order('created_at', ascending: true);
+          // Agregasi dilakukan di server via RPC `get_analytics`: hanya hasil
+          // ringkasan (beberapa KB) yang dikirim, bukan seluruh baris
+          // transaksi. Aman dipakai untuk lifetime dengan puluhan ribu data.
+          final response = await _client.rpc('get_analytics', params: {
+            'p_store_id': storeId,
+            'p_date_from': startDate?.toUtc().toIso8601String(),
+            'p_date_to': null,
+            'p_bucket': _bucketFor(timeRange),
+            'p_tz_offset_minutes': now.timeZoneOffset.inMinutes,
+          });
 
-          final remoteData = List<Map<String, dynamic>>.from(response);
-          data = remoteData;
+          final result = Map<String, dynamic>.from(response as Map);
 
-          // Cache remote data in local Isar database
-          await isar.writeTxn(() async {
-            for (var tx in remoteData) {
-              final voucherInfoStr = tx['voucher_info'] != null ? jsonEncode(tx['voucher_info']) : null;
-              final txLocal = TransactionLocal(
-                supabaseId: tx['id'].toString(),
-                storeId: tx['store_id'].toString(),
-                cashierId: tx['cashier_id']?.toString() ?? '',
-                totalAmount: (tx['total_amount'] as num).toDouble(),
-                paymentMethod: tx['payment_method']?.toString() ?? 'Tunai',
-                cashPaid: (tx['cash_paid'] as num?)?.toDouble() ?? (tx['total_amount'] as num).toDouble(),
-                changeAmount: (tx['change_amount'] as num?)?.toDouble() ?? 0.0,
-                status: tx['status']?.toString() ?? 'Berhasil',
-                tableId: tx['table_id']?.toString(),
-                discountTotal: (tx['discount_total'] as num?)?.toDouble() ?? 0.0,
-                voucherInfo: voucherInfoStr,
-                createdAt: DateTime.parse(tx['created_at']).toLocal(),
-                isSynced: true,
-              );
-
-              await isar.collection<TransactionLocal>().putBySupabaseId(txLocal);
-
-              // Clear and re-populate items
-              await isar.collection<TransactionItemLocal>()
-                  .filter()
-                  .transactionSupabaseIdEqualTo(txLocal.supabaseId)
-                  .deleteAll();
-
-              final items = tx['transaction_items'] as List? ?? [];
-              for (var item in items) {
-                final itemLocal = TransactionItemLocal(
-                  transactionSupabaseId: txLocal.supabaseId,
-                  productId: item['product_id']?.toString() ?? '',
-                  productName: item['product_name']?.toString() ?? 'Produk',
-                  unitPrice: (item['unit_price'] as num?)?.toDouble() ?? 0.0,
-                  quantity: (item['quantity'] as num?)?.toInt() ?? 1,
-                  subtotal: (item['subtotal'] as num?)?.toDouble() ?? 0.0,
-                );
-                await isar.collection<TransactionItemLocal>().put(itemLocal);
+          // Bucket dari server sudah digeser ke waktu lokal; format apa
+          // adanya (toUtc) tanpa konversi zona waktu kedua kali.
+          final Map<String, double> dailyMap = {};
+          if (timeRange != AnalyticsTimeRange.lifetime && startDate != null) {
+            if (timeRange == AnalyticsTimeRange.today) {
+              dailyMap[DateFormat('HH:00').format(now)] = 0;
+            } else {
+              for (int i = 0; i < daysToFetch; i++) {
+                dailyMap[DateFormat('dd/MM')
+                    .format(startDate.add(Duration(days: i)))] = 0;
               }
             }
-          });
+          }
+          for (final row in (result['series'] as List? ?? [])) {
+            final bucket = DateTime.parse(row['bucket'] as String).toUtc();
+            final label = _labelFor(timeRange, bucket);
+            dailyMap[label] =
+                (dailyMap[label] ?? 0) + (row['amount'] as num).toDouble();
+          }
+
+          final topProducts = (result['top_products'] as List? ?? [])
+              .map((e) => {
+                    'name': e['name'],
+                    'quantity': (e['quantity'] as num).toInt(),
+                  })
+              .toList();
+
+          state = AsyncValue.data(AnalyticsState(
+            totalRevenue: (result['total_revenue'] as num?)?.toDouble() ?? 0,
+            totalTransactions:
+                (result['total_transactions'] as num?)?.toInt() ?? 0,
+            dailySales: dailyMap.entries
+                .map((e) => {'date': e.key, 'amount': e.value})
+                .toList(),
+            topProducts: topProducts,
+            timeRange: timeRange,
+          ));
+          return;
         } catch (e) {
           // ignore: avoid_print
           print('DEBUG: Error fetching analytics from remote: $e');
-          // Fallback to local Isar data
-          data = [];
+          // Fallback ke agregasi cache lokal di bawah
         }
       }
 
-      // If offline or remote fetch yielded nothing/failed, query from local Isar
-      if (data.isEmpty) {
-        final localTxs = await isar.collection<TransactionLocal>()
-            .filter()
-            .storeIdEqualTo(storeId)
-            .createdAtGreaterThan(startDate.subtract(const Duration(milliseconds: 1)), include: false)
-            .findAll();
-
-        final List<dynamic> localDataList = [];
-        for (var tx in localTxs) {
-          final items = await isar.collection<TransactionItemLocal>()
-              .filter()
-              .transactionSupabaseIdEqualTo(tx.supabaseId)
-              .findAll();
-          
-          localDataList.add({
-            'id': tx.supabaseId,
-            'total_amount': tx.totalAmount,
-            'created_at': tx.createdAt.toIso8601String(),
-            'transaction_items': items.map((item) => {
-              'product_name': item.productName,
-              'quantity': item.quantity,
-              'subtotal': item.subtotal,
-            }).toList(),
-          });
-        }
-        data = localDataList;
-      }
-
-      double totalRevenue = 0;
-      int totalTransactions = data.length;
-      Map<String, double> dailyMap = {};
-      Map<String, int> productMap = {};
-
-      // Initialize dailyMap for the range
-      if (timeRange == AnalyticsTimeRange.today) {
-        final d = DateFormat('HH:00').format(now);
-        dailyMap[d] = 0;
-      } else {
-        for (int i = 0; i < daysToFetch; i++) {
-          final d = DateFormat('dd/MM').format(startDate.add(Duration(days: i)));
-          dailyMap[d] = 0;
-        }
-      }
-
-      for (var tx in data) {
-        totalRevenue += (tx['total_amount'] as num).toDouble();
-        
-        final createdAt = DateTime.parse(tx['created_at']).toLocal();
-        String dayStr;
-        if (timeRange == AnalyticsTimeRange.today) {
-          dayStr = DateFormat('HH:00').format(createdAt);
-        } else {
-          dayStr = DateFormat('dd/MM').format(createdAt);
-        }
-
-        dailyMap[dayStr] = (dailyMap[dayStr] ?? 0) + (tx['total_amount'] as num).toDouble();
-
-        final items = tx['transaction_items'] as List<dynamic>;
-        for (var item in items) {
-          final name = item['product_name'] as String;
-          final qty = (item['quantity'] as num).toInt();
-          productMap[name] = (productMap[name] ?? 0) + qty;
-        }
-      }
-
-      final dailySales = dailyMap.entries
-          .map((e) => {'date': e.key, 'amount': e.value})
-          .toList();
-
-      final topProducts = productMap.entries
-          .map((e) => {'name': e.key, 'quantity': e.value})
-          .toList();
-      topProducts.sort((a, b) => (b['quantity'] as int).compareTo(a['quantity'] as int));
-
-      state = AsyncValue.data(AnalyticsState(
-        totalRevenue: totalRevenue,
-        totalTransactions: totalTransactions,
-        dailySales: dailySales,
-        topProducts: topProducts.take(5).toList(),
-        timeRange: timeRange,
-      ));
+      // Offline / RPC gagal: agregasi dari cache Isar (hanya data yang sudah
+      // pernah di-cache di device).
+      await _fetchFromLocal(storeId, timeRange, startDate, daysToFetch, now);
     } catch (e, stack) {
       // ignore: avoid_print
       print('DEBUG: General exception in fetchAnalytics: $e');
       state = AsyncValue.error(e, stack);
     }
   }
+
+  Future<void> _fetchFromLocal(
+    String storeId,
+    AnalyticsTimeRange timeRange,
+    DateTime? startDate,
+    int daysToFetch,
+    DateTime now,
+  ) async {
+    final isar = IsarService.instance;
+    var query =
+        isar.collection<TransactionLocal>().filter().storeIdEqualTo(storeId);
+    if (startDate != null) {
+      query = query.createdAtGreaterThan(
+        startDate.subtract(const Duration(milliseconds: 1)),
+        include: false,
+      );
+    }
+    // Urutkan agar label bucket pada chart tersusun kronologis
+    final localTxs = await query.sortByCreatedAt().findAll();
+
+    double totalRevenue = 0;
+    final Map<String, double> dailyMap = {};
+    final Map<String, int> productMap = {};
+
+    if (timeRange == AnalyticsTimeRange.today) {
+      dailyMap[DateFormat('HH:00').format(now)] = 0;
+    } else if (timeRange != AnalyticsTimeRange.lifetime && startDate != null) {
+      for (int i = 0; i < daysToFetch; i++) {
+        dailyMap[DateFormat('dd/MM').format(startDate.add(Duration(days: i)))] =
+            0;
+      }
+    }
+
+    for (final tx in localTxs) {
+      totalRevenue += tx.totalAmount;
+      final label = _labelFor(timeRange, tx.createdAt);
+      dailyMap[label] = (dailyMap[label] ?? 0) + tx.totalAmount;
+
+      final items = await isar
+          .collection<TransactionItemLocal>()
+          .filter()
+          .transactionSupabaseIdEqualTo(tx.supabaseId)
+          .findAll();
+      for (final item in items) {
+        productMap[item.productName] =
+            (productMap[item.productName] ?? 0) + item.quantity;
+      }
+    }
+
+    final topProducts = productMap.entries
+        .map((e) => {'name': e.key, 'quantity': e.value})
+        .toList()
+      ..sort((a, b) => (b['quantity'] as int).compareTo(a['quantity'] as int));
+
+    state = AsyncValue.data(AnalyticsState(
+      totalRevenue: totalRevenue,
+      totalTransactions: localTxs.length,
+      dailySales: dailyMap.entries
+          .map((e) => {'date': e.key, 'amount': e.value})
+          .toList(),
+      topProducts: topProducts.take(5).toList(),
+      timeRange: timeRange,
+    ));
+  }
 }
 
 final analyticsProvider = StateNotifierProvider<AnalyticsNotifier, AsyncValue<AnalyticsState>>((ref) {
   return AnalyticsNotifier(ref);
 });
-
