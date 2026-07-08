@@ -5,7 +5,7 @@ import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';

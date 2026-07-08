@@ -6,7 +6,7 @@ import 'package:pos_mobile/core/models/store.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 part 'store_provider.g.dart';
 

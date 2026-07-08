@@ -21,7 +21,7 @@ import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/core/providers/sync_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});

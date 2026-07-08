@@ -10,7 +10,7 @@ import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;

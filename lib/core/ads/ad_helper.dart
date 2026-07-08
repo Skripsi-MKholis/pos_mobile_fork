@@ -9,11 +9,11 @@ import 'package:flutter/foundation.dart';
 class AdHelper {
   AdHelper._();
 
-  // Ganti dengan ad unit ID produksi milikmu.
+  // Ad unit ID produksi (AdMob app: ca-app-pub-6360290376727097).
   static const String _prodBannerAndroid =
-      'ca-app-pub-3940256099942544/6300978111';
+      'ca-app-pub-6360290376727097/6815133434';
   static const String _prodInterstitialAndroid =
-      'ca-app-pub-3940256099942544/1033173712';
+      'ca-app-pub-6360290376727097/4841530617';
 
   // Google test IDs — selalu dipakai di debug mode.
   static const String _testBannerAndroid =

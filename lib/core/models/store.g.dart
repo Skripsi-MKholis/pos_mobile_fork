@@ -103,7 +103,7 @@ const StoreSchema = CollectionSchema(
   getId: _storeGetId,
   getLinks: _storeGetLinks,
   attach: _storeAttach,
-  version: '3.1.0+1',
+  version: '3.2.1',
 );
 
 int _storeEstimateSize(

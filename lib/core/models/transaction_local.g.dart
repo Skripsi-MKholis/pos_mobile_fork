@@ -113,7 +113,7 @@ const TransactionLocalSchema = CollectionSchema(
   getId: _transactionLocalGetId,
   getLinks: _transactionLocalGetLinks,
   attach: _transactionLocalAttach,
-  version: '3.1.0+1',
+  version: '3.2.1',
 );
 
 int _transactionLocalEstimateSize(
@@ -2649,7 +2649,7 @@ const TransactionItemLocalSchema = CollectionSchema(
   getId: _transactionItemLocalGetId,
   getLinks: _transactionItemLocalGetLinks,
   attach: _transactionItemLocalAttach,
-  version: '3.1.0+1',
+  version: '3.2.1',
 );
 
 int _transactionItemLocalEstimateSize(

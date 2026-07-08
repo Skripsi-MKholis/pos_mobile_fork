@@ -108,7 +108,7 @@ const StockHistoryLocalSchema = CollectionSchema(
   getId: _stockHistoryLocalGetId,
   getLinks: _stockHistoryLocalGetLinks,
   attach: _stockHistoryLocalAttach,
-  version: '3.1.0+1',
+  version: '3.2.1',
 );
 
 int _stockHistoryLocalEstimateSize(

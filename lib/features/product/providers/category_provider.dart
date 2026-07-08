@@ -4,7 +4,7 @@ import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
 

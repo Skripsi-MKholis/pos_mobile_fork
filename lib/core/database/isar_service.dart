@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/core/models/product.dart';

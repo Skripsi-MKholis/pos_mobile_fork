@@ -15,7 +15,7 @@ import firebase_core
 import firebase_messaging
 import flutter_local_notifications
 import google_sign_in_ios
-import isar_flutter_libs
+import isar_community_flutter_libs
 import mobile_scanner
 import share_plus
 import shared_preferences_foundation

@@ -107,7 +107,7 @@ const NotificationLocalModelSchema = CollectionSchema(
   getId: _notificationLocalModelGetId,
   getLinks: _notificationLocalModelGetLinks,
   attach: _notificationLocalModelAttach,
-  version: '3.1.0+1',
+  version: '3.2.1',
 );
 
 int _notificationLocalModelEstimateSize(

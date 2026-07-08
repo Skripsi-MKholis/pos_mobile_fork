@@ -46,12 +46,10 @@
                 <data android:scheme="io.supabase.zellopos"/>
             </intent-filter>
         </activity>
-        <!-- Google AdMob Application ID.
-             Saat ini memakai TEST App ID dari Google.
-             Ganti dengan App ID milikmu dari console AdMob sebelum rilis. -->
+        <!-- Google AdMob Application ID (produksi). -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-6360290376727097~2675779110" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

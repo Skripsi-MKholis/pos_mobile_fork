@@ -18,7 +18,7 @@ import 'package:pos_mobile/Configuration/components.dart';
 import 'package:pos_mobile/Configuration/configuration.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 
 class SyncMonitoringScreen extends ConsumerStatefulWidget {
   const SyncMonitoringScreen({super.key});

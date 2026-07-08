@@ -1,4 +1,4 @@
-import 'package:isar/isar.dart';
+import 'package:isar_community/isar.dart';
 import 'dart:convert';
 
 part 'transaction_local.g.dart';
