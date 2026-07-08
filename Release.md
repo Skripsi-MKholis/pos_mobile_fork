@@ -1,16 +1,27 @@
 ### **Versi Sekarang**
 
-**1.9.0+12**
+**1.10.0+14**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Server-Side Analytics & Sales Performance**
+**ZelloPOS AdMob Monetization & 16 KB Compatibility**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.10.0+14 (AdMob Monetization & 16 KB Compatibility)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Integrasi Monetisasi Google AdMob**: Menghubungkan aplikasi ke akun AdMob produksi (`ca-app-pub-6360290376727097~2675779110`) dengan unit iklan **Banner** (`.../6815133434`) dan **Interstitial** (`.../4841530617`). Saat mode debug, aplikasi otomatis memakai test ad unit resmi Google agar aman dari pelanggaran kebijakan; unit produksi hanya aktif pada build release.
+* **Verifikasi app-ads.txt**: Mempublikasikan `app-ads.txt` di domain developer (`https://www.parzello.my.id/app-ads.txt`) berisi entri `google.com, pub-6360290376727097, DIRECT, f08c47fec0942fa0` untuk memverifikasi kepemilikan inventaris iklan sesuai spesifikasi IAB.
+* **Perbaikan Dukungan 16 KB Memory Page Size**: Menyelesaikan error rilis Play Console "Aplikasi tidak mendukung ukuran halaman memori 16 KB" pada Android 15+ agar proses rilis dapat dilanjutkan.
+* **Deklarasi Izin AD_ID**: Memastikan izin `com.google.android.gms.permission.AD_ID` tercantum pada manifes untuk mendukung pelaporan Advertising ID dan mencegah peringatan kehilangan pendapatan iklan.
+
+---
 
 **Versi 1.0.0 (Initial MVP Release)**
 Kami dengan bangga memperkenalkan versi stabil pertama dari ZelloPOS! Rilis ini mencakup seluruh fitur inti untuk mendukung operasional bisnis Anda mulai dari pendaftaran hingga cetak struk.
