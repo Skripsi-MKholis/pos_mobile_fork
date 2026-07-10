@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:pos_mobile/core/theme/app_theme.dart';
 import 'package:bounce_tapper/bounce_tapper.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pos_mobile/kosong_page.dart';
@@ -55,7 +55,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.plusJakartaSans(
+            style: AppFonts.body(
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -96,7 +96,7 @@ class MyDrawer extends StatelessWidget {
                 SizedBox(height: 10),
                 Text(
                   'E-Konsul PNL',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                     color: Warna.primary,
@@ -197,7 +197,7 @@ Widget myDrawerItem(
           Expanded(
             child: Text(
               title,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.body(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -233,7 +233,7 @@ Widget myTextField({
               padding: const EdgeInsets.all(8),
               child: Text(
                 labelText,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -289,7 +289,7 @@ Widget mySelectField({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -318,7 +318,7 @@ Widget mySelectField({
               value: item,
               child: Text(
                 item,
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -344,7 +344,7 @@ Widget myInputFile({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -368,7 +368,7 @@ Widget myInputFile({
               Expanded(
                 child: Text(
                   fileName ?? 'Pilih file...',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: AppFonts.body(
                     fontSize: 14,
                     color: fileName == null ? Colors.grey : Colors.black87,
                   ),
@@ -395,7 +395,7 @@ Widget mySelectDate({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -418,7 +418,7 @@ Widget mySelectDate({
               const SizedBox(width: 10),
               Text(
                 selectedDate ?? 'Pilih tanggal',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 14,
                   color: selectedDate == null ? Colors.grey : Colors.black87,
                 ),
@@ -443,7 +443,7 @@ Widget mySelectTime({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: GoogleFonts.plusJakartaSans(
+          style: AppFonts.body(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -466,7 +466,7 @@ Widget mySelectTime({
               const SizedBox(width: 10),
               Text(
                 selectedTime ?? 'Pilih waktu',
-                style: GoogleFonts.plusJakartaSans(
+                style: AppFonts.body(
                   fontSize: 14,
                   color: selectedTime == null ? Colors.grey : Colors.black87,
                 ),
@@ -652,7 +652,7 @@ void mySnackBar({
       leading: Icon(icon ?? defaultIcon, size: 28, color: textColor),
       title: Text(
         text,
-        style: GoogleFonts.plusJakartaSans(
+        style: AppFonts.body(
           fontWeight: FontWeight.w700,
           fontSize: 14,
           color: textColor,

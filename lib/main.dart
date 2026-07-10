@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pos_mobile/core/ads/interstitial_ad_manager.dart';
+import 'package:pos_mobile/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -120,7 +121,7 @@ class MyApp extends ConsumerWidget {
       theme: ShadThemeData(
         brightness: Brightness.light,
         colorScheme: colorScheme,
-
+        textTheme: ShadTextTheme(family: AppFonts.bodyFamily),
       ),
     );
   }
