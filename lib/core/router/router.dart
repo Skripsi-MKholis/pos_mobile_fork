@@ -45,7 +45,6 @@ import 'package:pos_mobile/features/onboarding/presentation/onboarding_screen.da
 import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
 import 'package:pos_mobile/features/dashboard/presentation/notification_center_screen.dart';
 import 'package:pos_mobile/features/dashboard/presentation/broadcast_notification_screen.dart';
-import 'package:pos_mobile/features/kds/presentation/kds_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_shell_screen.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_screens.dart';
 import 'package:pos_mobile/features/customer/presentation/customer_store_detail_screen.dart';
@@ -435,7 +434,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      GoRoute(path: '/kds', builder: (context, state) => const KDSScreen()),
       GoRoute(
         path: '/smart-analytics',
         builder: (context, state) => const SmartAnalyticsScreen(),

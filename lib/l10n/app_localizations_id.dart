@@ -317,12 +317,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupTableLayout => 'Atur layout meja';
 
   @override
-  String get kitchenMonitor => 'Monitor Dapur';
-
-  @override
-  String get kdsDisplay => 'KDS Display';
-
-  @override
   String get performanceAnalysis => 'Analisis performa';
 
   @override

@@ -110,13 +110,7 @@ class DashboardScreen extends ConsumerWidget {
     WidgetRef ref,
     bool isAdmin,
   ) {
-    final activeStoreAsync = ref.watch(activeStoreProvider);
-    final activeStore = activeStoreAsync.value;
-    final settings = activeStore?['settings'] as Map<String, dynamic>?;
-    final features = settings?['features'] as Map<String, dynamic>?;
-
     const hasTables = false; // Sembunyikan untuk sementara waktu
-    final hasKds = features?['kds'] == true;
 
     return GridView.count(
       shrinkWrap: true,
@@ -149,14 +143,6 @@ class DashboardScreen extends ConsumerWidget {
             l10n.tableManagement,
             l10n.setupTableLayout,
             onTap: () => context.push('/tables'),
-          ),
-        if (hasKds)
-          _buildAccessCard(
-            theme,
-            TablerIcons.device_desktop,
-            l10n.kitchenMonitor,
-            l10n.kdsDisplay,
-            onTap: () => context.push('/kds'),
           ),
         if (isAdmin) ...[
           _buildAccessCard(

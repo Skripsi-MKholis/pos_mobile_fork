@@ -121,8 +121,6 @@
   "product": "Product",
   "manageProductStock": "Manage product stock",
   "setupTableLayout": "Set up table layout",
-  "kitchenMonitor": "Kitchen Monitor",
-  "kdsDisplay": "KDS Display",
   "performanceAnalysis": "Performance analysis",
   "appConfiguration": "App configuration",
   "productAddedToCart": "{name} has been added to cart.",

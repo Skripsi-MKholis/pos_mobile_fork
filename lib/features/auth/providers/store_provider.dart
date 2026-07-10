@@ -110,7 +110,6 @@ class ActiveStore extends _$ActiveStore {
       'owner_id': user.id,
       'settings': {
         'features': {
-          'kds': true,
           'tables': true,
           'customers': true,
           'promotions': true,

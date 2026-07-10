@@ -317,12 +317,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupTableLayout => 'Set up table layout';
 
   @override
-  String get kitchenMonitor => 'Kitchen Monitor';
-
-  @override
-  String get kdsDisplay => 'KDS Display';
-
-  @override
   String get performanceAnalysis => 'Performance analysis';
 
   @override

@@ -698,18 +698,6 @@ abstract class AppLocalizations {
   /// **'Set up table layout'**
   String get setupTableLayout;
 
-  /// No description provided for @kitchenMonitor.
-  ///
-  /// In en, this message translates to:
-  /// **'Kitchen Monitor'**
-  String get kitchenMonitor;
-
-  /// No description provided for @kdsDisplay.
-  ///
-  /// In en, this message translates to:
-  /// **'KDS Display'**
-  String get kdsDisplay;
-
   /// No description provided for @performanceAnalysis.
   ///
   /// In en, this message translates to:
