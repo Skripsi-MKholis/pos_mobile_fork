@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/onboarding/providers/onboarding_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});

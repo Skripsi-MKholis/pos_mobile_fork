@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/core/services/wilayah_service.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 class CreateStoreScreen extends ConsumerStatefulWidget {

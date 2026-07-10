@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/env/env.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';

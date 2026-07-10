@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,7 +16,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:pos_mobile/Configuration/components.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';

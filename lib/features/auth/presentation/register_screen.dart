@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
-import 'package:pos_mobile/configuration/configuration.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});

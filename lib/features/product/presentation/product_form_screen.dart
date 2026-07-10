@@ -13,7 +13,7 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:barcode_widget/barcode_widget.dart' as bc;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';

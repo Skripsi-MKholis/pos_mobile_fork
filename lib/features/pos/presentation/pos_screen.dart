@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
@@ -9,7 +10,6 @@ import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.d
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';

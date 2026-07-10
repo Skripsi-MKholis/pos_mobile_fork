@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pos_mobile/configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/core/widgets/pill_app_bar.dart';

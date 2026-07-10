@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pos_mobile/configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/customer/models/customer_cart_item.dart';
 import 'package:pos_mobile/features/customer/providers/customer_cart_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';

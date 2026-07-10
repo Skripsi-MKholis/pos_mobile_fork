@@ -1,5 +1,11 @@
+// Moved out of lib/Configuration/components.dart on 2026-07-11.
+// These symbols had zero references anywhere else in lib/ at the time of
+// the directory cleanup (MyAppBar was only used by the also-dead
+// lib/kosong_page.dart, itself unrouted campus-template leftover).
+// Kept here verbatim for review before deletion.
+
 import 'package:flutter/material.dart';
-import 'package:pos_mobile/core/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:bounce_tapper/bounce_tapper.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:pos_mobile/kosong_page.dart';
@@ -7,10 +13,7 @@ import 'package:pos_mobile/kosong_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/configuration/configuration.dart';
-export 'package:bounce_tapper/bounce_tapper.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
-import 'package:delightful_toast/delight_toast.dart';
-import 'package:delightful_toast/toast/components/toast_card.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -55,7 +58,7 @@ class MyAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Text(
             title,
-            style: AppFonts.body(
+            style: GoogleFonts.plusJakartaSans(
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -96,7 +99,7 @@ class MyDrawer extends StatelessWidget {
                 SizedBox(height: 10),
                 Text(
                   'E-Konsul PNL',
-                  style: AppFonts.body(
+                  style: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                     color: Warna.primary,
@@ -197,7 +200,7 @@ Widget myDrawerItem(
           Expanded(
             child: Text(
               title,
-              style: AppFonts.body(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
@@ -233,7 +236,7 @@ Widget myTextField({
               padding: const EdgeInsets.all(8),
               child: Text(
                 labelText,
-                style: AppFonts.body(
+                style: GoogleFonts.plusJakartaSans(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -289,7 +292,7 @@ Widget mySelectField({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: AppFonts.body(
+          style: GoogleFonts.plusJakartaSans(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -318,7 +321,7 @@ Widget mySelectField({
               value: item,
               child: Text(
                 item,
-                style: AppFonts.body(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -344,7 +347,7 @@ Widget myInputFile({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: AppFonts.body(
+          style: GoogleFonts.plusJakartaSans(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -368,7 +371,7 @@ Widget myInputFile({
               Expanded(
                 child: Text(
                   fileName ?? 'Pilih file...',
-                  style: AppFonts.body(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: fileName == null ? Colors.grey : Colors.black87,
                   ),
@@ -395,7 +398,7 @@ Widget mySelectDate({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: AppFonts.body(
+          style: GoogleFonts.plusJakartaSans(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -418,7 +421,7 @@ Widget mySelectDate({
               const SizedBox(width: 10),
               Text(
                 selectedDate ?? 'Pilih tanggal',
-                style: AppFonts.body(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   color: selectedDate == null ? Colors.grey : Colors.black87,
                 ),
@@ -443,7 +446,7 @@ Widget mySelectTime({
         padding: const EdgeInsets.all(8),
         child: Text(
           labelText,
-          style: AppFonts.body(
+          style: GoogleFonts.plusJakartaSans(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 12,
@@ -466,7 +469,7 @@ Widget mySelectTime({
               const SizedBox(width: 10),
               Text(
                 selectedTime ?? 'Pilih waktu',
-                style: AppFonts.body(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   color: selectedTime == null ? Colors.grey : Colors.black87,
                 ),
@@ -477,70 +480,6 @@ Widget mySelectTime({
       ),
     ],
   );
-}
-
-ButtonStyle myButtonStyle({
-  Color backgroundColor = Colors.white,
-  Color foregroundColor = Colors.black,
-  double radius = 16.0,
-  final bool isOutlined = false,
-}) {
-  return ElevatedButton.styleFrom(
-    backgroundColor: isOutlined ? Colors.white : backgroundColor,
-    foregroundColor: isOutlined ? backgroundColor : foregroundColor,
-
-    elevation: 0,
-    shadowColor: Colors.black.withValues(alpha: 0.5),
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(radius),
-      side: BorderSide(color: backgroundColor, width: isOutlined ? 1.5 : 0),
-    ),
-  );
-}
-
-class MyButtonPrimary extends StatelessWidget {
-  final VoidCallback? onPressed;
-  final Color backgroundColor;
-  final Color foregroundColor;
-  final Widget? child;
-  final double? width;
-  final double radius;
-  final bool isOutlined;
-
-  const MyButtonPrimary({
-    super.key,
-    this.onPressed,
-    this.backgroundColor = const Color(0xffD4D4D8),
-    this.foregroundColor = Colors.black,
-    this.child,
-    this.width = double.infinity,
-    this.radius = 16.0,
-    this.isOutlined = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
-      child: BounceTapper(
-        highlightColor: Colors.transparent,
-        child: SizedBox(
-          width: width,
-          child: ElevatedButton(
-            style: myButtonStyle(
-              backgroundColor: backgroundColor,
-              foregroundColor: foregroundColor,
-              radius: radius,
-              isOutlined: isOutlined,
-            ),
-            onPressed: onPressed,
-            child: child,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class MyButtonSecondary extends StatelessWidget {
@@ -600,69 +539,6 @@ class MyLoading extends StatelessWidget {
 }
 
 /* LOADING */
-
-/* SNACKBAR */
-enum ToastStatus { success, send, error, info, warning }
-
-void mySnackBar({
-  required BuildContext context,
-  required String text,
-  ToastStatus status = ToastStatus.info,
-  IconData? icon,
-  Duration duration = const Duration(seconds: 2),
-}) {
-  // Tentukan warna dan ikon berdasarkan status
-  Color bgColor;
-  Color textColor;
-  IconData defaultIcon;
-
-  switch (status) {
-    case ToastStatus.success:
-      bgColor = const Color(0xFFE8FAF0); // green-100
-      textColor = const Color(0xff1AC966);
-      defaultIcon = TablerIcons.circle_check;
-      break;
-    case ToastStatus.send:
-      bgColor = const Color(0xFFE8FAF0); // green-100
-      textColor = const Color(0xff1AC966);
-      defaultIcon = TablerIcons.send;
-      break;
-    case ToastStatus.error:
-      bgColor = const Color(0xFFFEE2E2); // red-100
-      textColor = Colors.red[400]!;
-      defaultIcon = TablerIcons.circle_x;
-      break;
-    case ToastStatus.warning:
-      bgColor = const Color(0xFFFFF7CD); // yellow-100
-      textColor = const Color(0xffC4841D);
-      defaultIcon = TablerIcons.alert_circle;
-      break;
-    case ToastStatus.info:
-      bgColor = const Color(0xFFE6F1FE); // yellow-100
-      textColor = const Color(0xff005BC4);
-      defaultIcon = TablerIcons.info_circle;
-      break;
-  }
-
-  DelightToastBar(
-    autoDismiss: true,
-    snackbarDuration: duration,
-    builder: (context) => ToastCard(
-      color: bgColor,
-      leading: Icon(icon ?? defaultIcon, size: 28, color: textColor),
-      title: Text(
-        text,
-        style: AppFonts.body(
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-          color: textColor,
-        ),
-      ),
-    ),
-  ).show(context);
-}
-
-/* SNACKBAR */
 
 class MyDivider extends StatelessWidget {
   const MyDivider({

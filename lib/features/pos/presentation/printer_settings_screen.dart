@@ -4,7 +4,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
 

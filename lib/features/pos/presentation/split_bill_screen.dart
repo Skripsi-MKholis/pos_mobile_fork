@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';

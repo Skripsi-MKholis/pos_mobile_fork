@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
-import 'package:pos_mobile/Configuration/components.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 
 class BroadcastNotificationScreen extends ConsumerStatefulWidget {
   const BroadcastNotificationScreen({super.key});

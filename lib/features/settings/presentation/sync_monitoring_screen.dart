@@ -14,8 +14,8 @@ import 'package:pos_mobile/features/product/providers/stock_history_provider.dar
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
-import 'package:pos_mobile/Configuration/components.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:isar_community/isar.dart';

@@ -8,8 +8,8 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/Configuration/components.dart';
-import 'package:pos_mobile/Configuration/configuration.dart';
+import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 
