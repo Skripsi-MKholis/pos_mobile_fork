@@ -235,9 +235,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           actions: [
             Consumer(
               builder: (context, ref, child) {
-                final status = ref.watch(
-                  connectivityNotifierProvider,
-                );
+                final status = ref.watch(connectivityNotifierProvider);
                 return status.when(
                   data: (s) {
                     if (s == ConnectivityStatus.online) {
@@ -254,14 +252,10 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(
-                            alpha: 0.1,
-                          ),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: Colors.orange.withValues(
-                              alpha: 0.2,
-                            ),
+                            color: Colors.orange.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Row(
@@ -343,73 +337,83 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           ],
         ),
         body: widget.navigationShell,
-        bottomNavigationBar: Container(
-          height: 100, // Extra height to allow floating
-          color: Colors.transparent,
-          child: Stack(
-            children: [
-              Positioned(
-                left: 20,
-                right: 20,
-                bottom: 24,
-                child: Container(
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(
-                      alpha: 0.9,
-                    ), // Modern opacity
-                    borderRadius: BorderRadius.circular(32),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 20,
-                        color: Colors.black.withValues(alpha: .2),
-                        offset: const Offset(0, 10),
+        bottomNavigationBar: Builder(
+          builder: (context) {
+            // Jarak aman dari tombol navigasi/gestur bawaan Android (home/back)
+            // agar navbar mengambang tidak tertutup.
+            final systemNavInset = MediaQuery.of(context).padding.bottom;
+            final floatingOffset = 24 + systemNavInset;
+            return Container(
+              height: 76 + floatingOffset, // Extra height to allow floating
+              color: Colors.transparent,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 20,
+                    right: 20,
+                    bottom: floatingOffset,
+                    child: Container(
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(
+                          alpha: 0.9,
+                        ), // Modern opacity
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 20,
+                            color: Colors.black.withValues(alpha: .2),
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: GNav(
-                      rippleColor: Colors.white10,
-                      hoverColor: Colors.white10,
-                      gap: 4,
-                      activeColor: Warna.black,
-                      iconSize: 20,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 10,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: GNav(
+                          rippleColor: Colors.white10,
+                          hoverColor: Colors.white10,
+                          gap: 4,
+                          activeColor: Warna.black,
+                          iconSize: 20,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 10,
+                          ),
+                          duration: const Duration(milliseconds: 300),
+                          tabBackgroundColor: Warna.primary,
+                          color: Colors.white54,
+                          tabs: navItems
+                              .map(
+                                (item) => GButton(
+                                  icon: item['icon'],
+                                  text: item['label'],
+                                  textStyle: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: Warna.black,
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          selectedIndex: selectedIndex == -1
+                              ? 0
+                              : selectedIndex,
+                          onTabChange: (index) {
+                            final item = navItems[index];
+                            if (item['branch'] != null) {
+                              widget.navigationShell.goBranch(
+                                item['branch'] as int,
+                              );
+                            }
+                          },
+                        ),
                       ),
-                      duration: const Duration(milliseconds: 300),
-                      tabBackgroundColor: Warna.primary,
-                      color: Colors.white54,
-                      tabs: navItems
-                          .map(
-                            (item) => GButton(
-                              icon: item['icon'],
-                              text: item['label'],
-                              textStyle: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                color: Warna.black,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                      selectedIndex: selectedIndex == -1 ? 0 : selectedIndex,
-                      onTabChange: (index) {
-                        final item = navItems[index];
-                        if (item['branch'] != null) {
-                          widget.navigationShell.goBranch(
-                            item['branch'] as int,
-                          );
-                        }
-                      },
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
