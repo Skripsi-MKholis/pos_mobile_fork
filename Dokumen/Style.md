@@ -9,7 +9,7 @@ Dokumen ini merinci identitas visual, skema warna, tipografi, dan gaya komponen 
 Aplikasi ini menggunakan perpaduan warna modern berbasis gaya desain **Shadcn UI (Preset: Luma - Stone/Lime)** yang bersih dengan aksen warna hijau limau (*lime green*) yang segar.
 
 ### A. Konstanta Warna Global (`Warna` Class)
-Didefinisikan di [configuration.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/Configuration/configuration.dart). Digunakan secara langsung pada widget kustom maupun logika UI.
+Didefinisikan di [colors.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/colors.dart) (dipindahkan dari `lib/Configuration/` saat restrukturisasi direktori). Digunakan secara langsung pada widget kustom maupun logika UI.
 
 | Nama Warna | Nilai Hex | Representasi Visual | Deskripsi / Penggunaan |
 | :--- | :--- | :--- | :--- |
@@ -48,47 +48,39 @@ Dikonfigurasi di [main.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/main.
 
 ## 2. Tipografi & Font
 
-Proyek ini memanfaatkan pustaka `google_fonts` untuk memuat font secara dinamis tanpa perlu menyimpan file ttf secara lokal. Terdapat empat keluarga font (*font family*) yang digunakan:
+Proyek ini memanfaatkan pustaka `google_fonts` untuk memuat font secara dinamis tanpa perlu menyimpan file ttf secara lokal. Sistem font kini terpusat dalam class `AppFonts` di [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart) dengan tiga peran font (*font roles*):
 
-### A. Space Grotesk
-Font bergaya modern-geometris dengan karakteristik tegas.
+### A. Bricolage Grotesque (`AppFonts.heading`)
+Font bergaya modern-geometris dengan karakteristik tegas. **Menggantikan Space Grotesk** sejak refaktor "Modular Font".
 * **Penggunaan**: Judul besar dan teks penutup yang membutuhkan penekanan tinggi.
-* **Lokasi**: [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
+* **Lokasi**: `AppFonts.heading()` di [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
 * **Penerapan**:
   * `displayLarge`: Ukuran 32, Tebal (Bold), Warna Hitam/Putih.
   * `headlineMedium`: Ukuran 24, Semi-Tebal (w600), Warna Hitam/Putih.
 
-### B. Outfit
+### B. Outfit (`AppFonts.body`)
 Font sans-serif dengan lekukan halus yang modern dan ramah dibaca.
-* **Penggunaan**: Konten teks utama, deskripsi, dan tulisan pada tombol primer.
-* **Lokasi**: [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
+* **Penggunaan**: Konten teks utama, deskripsi, tulisan pada tombol primer, dan menjadi `bodyFamily` default untuk seluruh komponen `shadcn_ui` (input, AppBar, dsb.) via `ShadThemeData.textTheme`.
+* **Lokasi**: `AppFonts.body()` di [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
 * **Penerapan**:
   * `bodyLarge`: Ukuran 16, Warna Hitam 87% / Putih 70%.
   * `bodyMedium`: Ukuran 14, Warna Hitam 54% / Putih 60%.
   * `ElevatedButton`: Gaya Semi-Tebal (w600).
 
-### C. Plus Jakarta Sans
-Font bersih dan profesional yang sangat cocok untuk antarmuka aplikasi seluler.
-* **Penggunaan**: Semua komponen masukan (*input*), AppBar, item Drawer, dan notifikasi snackbar.
-* **Lokasi**: [components.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/Configuration/components.dart)
-* **Penerapan**:
-  * Judul AppBar: Tebal (Bold).
-  * Label Input Field: Tebal (Bold), Ukuran 12.
-  * Teks Item Drawer: Tebal (Bold), Ukuran 14.
-  * Teks Snackbar: Tebal (w700), Ukuran 14.
-
-### D. Geist Mono
+### C. Geist Mono (`AppFonts.mono`)
 Font monospaced modern.
 * **Penggunaan**: Kode unik, label kecil, atau detail teknis.
-* **Lokasi**: [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
+* **Lokasi**: `AppFonts.mono()` di [app_theme.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/core/theme/app_theme.dart)
 * **Penerapan**:
   * `labelSmall`: Ukuran 12, Warna Abu-abu.
+
+> **Catatan**: `Plus Jakarta Sans` **tidak lagi menjadi bagian dari sistem font resmi** (`lib/Configuration/components.dart` sudah dihapus saat restrukturisasi direktori). String `fontFamily: 'Plus Jakarta Sans'` masih ditemukan secara hardcoded di beberapa widget pada fitur `customer` (`customer_screens.dart`) — ini adalah sisa legacy yang sebaiknya dibersihkan/diselaraskan ke `AppFonts` pada iterasi berikutnya, bukan bagian dari desain sistem yang disengaja.
 
 ---
 
 ## 3. Komponen Desain & Konsistensi UI
 
-Elemen UI standar didefinisikan dalam berkas pembantu [components.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/Configuration/components.dart) untuk menjaga konsistensi di seluruh halaman:
+Elemen UI standar sebelumnya didefinisikan dalam `lib/Configuration/components.dart`; berkas ini telah dihapus/direstrukturisasi. Komponen kustom kini tersebar di widget-widget fitur terkait dan tema global (`lib/core/theme/`), namun konvensi visual berikut tetap konsisten di seluruh halaman:
 
 ### A. Pengaturan Tema Global (Light Mode Only)
 Di [main.dart](file:///e:/SKRIPSI/Kholis/pos_mobile_fork/lib/main.dart), aplikasi sengaja mengunci tema ke mode terang:

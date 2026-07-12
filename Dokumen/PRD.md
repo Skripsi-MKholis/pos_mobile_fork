@@ -186,7 +186,13 @@ Mencatat log mutasi stok masuk dan keluar secara mendalam untuk audit inventaris
 * `isSynced` (Bool): Status sinkronisasi ke server.
 * `syncError` (String, Nullable): Pesan error sinkronisasi.
 
-### 3.7 Koleksi `NotificationLocalModel`
+### 3.7 Model Non-Isar (Cloud-Only)
+Selain 7 koleksi Isar di atas, beberapa model data bersifat *cloud-only* (dibaca langsung dari Supabase via `fromMap`/`toMap`, tanpa penyimpanan/antrean sinkronisasi lokal di Isar):
+* **`TableModel`** (`lib/core/models/table.dart`): Representasi meja dine-in (id, storeId, name, status, capacity). Membutuhkan koneksi internet untuk dibaca/diperbarui.
+* **`Voucher`** (`lib/core/models/voucher.dart`): Kode voucher diskon (id, code, type, value, minPurchase, maxDiscount) beserta logika `calculateDiscount()`. Penerapan voucher di POS memerlukan koneksi online karena tidak di-cache di Isar.
+* **`ReceiptConfig`** (`lib/core/models/receipt_config.dart`): Konfigurasi kustomisasi struk, diambil dari kolom JSON `stores.settings.receipt` — bukan koleksi tersendiri.
+
+### 3.8 Koleksi `NotificationLocalModel`
 Menyimpan pesan notifikasi lokal agar dapat diakses secara offline.
 * `id` (Id): Auto-increment primary key.
 * `supabaseId` (String, Indexed Unique): ID notifikasi dari Supabase.
@@ -204,7 +210,7 @@ Menyimpan pesan notifikasi lokal agar dapat diakses secara offline.
 
 ## 4. MATRIKS HAK AKSES (ROLE-BASED ACCESS CONTROL - RBAC)
 
-Aplikasi Parzello POS menerapkan pembatasan hak akses yang ketat berdasarkan peran (*role*) pengguna untuk menjaga keamanan finansial dan kerahasiaan data bisnis toko.
+Sejak penyesuaian fitur peran kasir (*"Penyesuaian Fitur Role Kasir"*), Parzello POS **melonggarkan** sebagian besar batasan akses lama. Saat ini pembatasan berbasis peran di level *routing* (`lib/core/router/router.dart`) hanya berlaku untuk dua rute: `/staff-management` dan `/store-info`. Hampir seluruh modul operasional lain (termasuk laporan, produk, kategori, dan Smart Analytics) kini dapat diakses oleh kasir, dengan asumsi kasir adalah staf tepercaya yang tetap perlu visibilitas operasional harian.
 
 ### 4.1 Matriks Fitur & Hak Akses
 | Modul / Fitur | Owner (Admin) | Cashier (Staff) | Batasan Teknis & Perilaku Sistem |
@@ -212,18 +218,20 @@ Aplikasi Parzello POS menerapkan pembatasan hak akses yang ketat berdasarkan per
 | **Autentikasi & Pilih Toko** | ✅ | ✅ | Semua pengguna wajib login. Pemilik bisa membuat toko baru, kasir bergabung menggunakan kode undangan. |
 | **Point of Sale (POS)** | ✅ | ✅ | Antarmuka kasir utama untuk memilih produk dan checkout transaksi. |
 | **Pencarian & Barcode POS** | ✅ | ✅ | Pemindaian barcode SKU via kamera HP untuk entri transaksi cepat. |
-| **Riwayat Transaksi** | ✅ | ✅ | Kasir hanya bisa melihat daftar transaksi harian, tidak bisa menghapus/mengubah transaksi. |
-| **Manajemen Produk & Kategori** | ✅ | ❌ | Tambah, ubah, atau hapus menu serta kategori hanya bisa dilakukan oleh Owner. Tombol ditutup di UI kasir. |
-| **Laporan & Analitik Keuangan** | ✅ | ❌ | Dashboard omzet, laba kotor, dan performa keuangan bulanan ditutup total bagi kasir. |
-| **Smart Analytics (AI Powered)** | ✅ | ❌ | Prediksi omzet, rekomendasi harga diskon cerdas hanya untuk Owner demi strategi bisnis. |
-| **Manajemen Staf** | ✅ | ❌ | Fitur menambah atau memberhentikan kasir dari toko. |
-| **Pengaturan Informasi Toko** | ✅ | ❌ | Mengubah nama, alamat, nomor telepon, dan mengunggah logo toko. |
-| **Pengaturan Struk & Printer** | ✅ | ✅ | Kustomisasi struk (logo, header, footer) hanya untuk Owner, namun setup printer Bluetooth diizinkan bagi kasir untuk cetak struk harian. |
-| **Manajemen Stok Manual** | ✅ | ❌ | Koreksi stok manual (*stock adjustment*) diblokir untuk kasir. Kasir hanya memotong stok secara otomatis melalui transaksi penjualan. |
+| **Riwayat Transaksi** | ✅ | ✅ | Semua peran dapat melihat riwayat transaksi. |
+| **Manajemen Produk & Kategori** | ✅ | ✅ | Rute `/products` dan `/categories` tidak lagi dibatasi peran — kasir kini dapat menambah/mengubah produk dan kategori. |
+| **Laporan & Analitik Keuangan** | ✅ | ✅ | Rute `/reports` dan `/sales-performance` terbuka untuk kasir. |
+| **Smart Analytics (AI Powered)** | ✅ | ✅ | Rute `/smart-analytics` dan riwayatnya tidak lagi dibatasi peran. |
+| **Manajemen Staf** | ✅ | ❌ | Satu-satunya fitur yang tetap dikunci untuk Owner. Rute `/staff-management` diblokir bagi non-owner oleh route guard. |
+| **Pengaturan Informasi Toko** | ✅ | ❌ | Rute `/store-info` tetap dikunci untuk Owner (mengubah nama, alamat, telepon, logo toko). |
+| **Broadcast Notifikasi** | ✅ | ✅ | Rute `/broadcast-notification` tidak dibatasi peran. |
+| **Pengaturan Struk & Printer** | ✅ | ✅ | `/printer-settings` dan `/receipt-customization` terbuka untuk semua peran. |
+| **Manajemen Stok Manual** | ✅ | ✅ | Rute `/stock` tidak dibatasi peran; kasir dapat melakukan penyesuaian stok manual. |
+| **Sync Monitoring** | ✅ | ✅ | Rute `/settings/sync-monitoring` terbuka untuk semua peran. |
 
 ### 4.2 Proteksi Tingkat Routing & UI Controls
-* **Route Guard (`GoRouter`)**: Jika kasir mencoba memasukkan URL navigasi secara manual ke halaman `/reports` atau `/settings/staff`, sistem akan mendeteksi role pengguna di level middleware router dan otomatis mengalihkan (*redirect*) ke dashboard kasir atau menampilkan halaman akses ditolak.
-* **UI Dynamic Hiding**: Tombol "Tambah Produk", "Ubah Stok", dan menu "Laporan" pada bilah navigasi utama (`AppDrawer` atau `GoogleNavBar`) otomatis disembunyikan jika role pengguna aktif adalah `Cashier`.
+* **Route Guard (`GoRouter`)**: Middleware `redirect` pada router mengevaluasi `user_role` dari data toko aktif (atau `app_metadata.role == 'admin'` pada akun Supabase). Hanya jika peran bukan `owner`/`admin`, akses ke rute dalam daftar `restrictedRoutes = ['/staff-management', '/store-info']` akan dialihkan (*redirect*) kembali ke `/dashboard`. Rute lain tidak lagi diperiksa peran di level router.
+* **UI Dynamic Hiding**: Elemen UI yang secara eksplisit disembunyikan dari kasir kini terbatas pada menu yang mengarah ke Manajemen Staf dan Info Toko; sisanya konsisten terlihat untuk semua peran.
 
 ---
 
@@ -257,8 +265,8 @@ Aplikasi Parzello POS menerapkan pembatasan hak akses yang ketat berdasarkan per
   - **Fitur Penjualan Stok Kosong**: Toko ritel/F&B dapat mengaktifkan penjualan produk meskipun stok berstatus `0` atau minus demi kelancaran operasional (fleksibilitas pencatatan penjualan).
 * **Split Bill**: Fitur pemisahan tagihan belanja pelanggan berdasarkan jumlah orang (`split_count`) dengan perhitungan matematis presisi dan pembagian struk terpisah.
 * **Dine-In & Manajemen Meja**:
-  - Mengintegrasikan nomor meja pada pesanan.
-  - Layar pemantauan meja (`TableMonitoringScreen`) untuk memantau status pesanan meja yang aktif (*Dine-in ongoing*) secara real-time.
+  - Mengintegrasikan nomor meja pada pesanan (`TableModel`, cloud-only via Supabase).
+  - Logika pemantauan status meja tersedia melalui `TableMonitoringProvider` (`lib/features/pos/providers/table_monitoring_provider.dart`); saat ini tidak memiliki rute/layar khusus (`/manage-tables`) di navigasi utama — kemungkinan telah disederhanakan menjadi bagian dari alur POS/keranjang alih-alih layar terpisah.
 
 ### 5.3 F-03: Manajemen Produk & Kategori
 * **Katalog Manajemen**: Menampilkan daftar produk dengan visualisasi gambar, harga beli (modal), harga jual, sisa stok, dan label kategori terkait.
@@ -291,6 +299,8 @@ Modul dashboard analitik premium yang menggabungkan Model LSTM Kustom yang dihos
   - Memprediksi produk mana yang akan paling laku besok atau minggu depan.
   - Menggabungkan wawasan cuaca (misal: "Cuaca besok diprediksi panas terik 34°C, es krim mangga dan minuman segar diproyeksikan naik penjualan hingga 40%").
   - Menampilkan skor tingkat akurasi prediksi (*confidence score*).
+* **Riwayat Analitik**: Halaman `SmartAnalyticsHistoryScreen` (rute `/smart-analytics/history`) menyimpan dan menampilkan histori hasil prediksi sebelumnya untuk ditinjau ulang.
+* **Performa Penjualan (`SalesPerformanceScreen`, rute `/sales-performance`)**: Modul tambahan yang menyajikan ringkasan performa penjualan (di luar prediksi LSTM) sebagai pelengkap dashboard analitik Owner/Kasir.
 
 ### 5.6 F-06: Pusat Notifikasi (Notification Hub)
 Sistem notifikasi 3-tingkat untuk menjamin kelancaran komunikasi operasional toko:
@@ -372,7 +382,8 @@ Pelacakan analitik diintegrasikan secara menyeluruh menggunakan **Firebase Analy
 
 ### 7.2 Status Implementasi Analitik
 * **MODUL 1 & 2 (Produk, Inventaris, POS, Penjualan)**: **100% SELESAI** diimplementasikan dalam kode produksi (menggunakan `AnalyticsService` singleton).
-* **MODUL 3, 4, & 5 (KDS, Staff, Notifikasi)**: Terdaftar dalam rencana peta jalan (*roadmap*) berikutnya seiring dengan implementasi penuh perangkat keras Kitchen Display System.
+* **MODUL 3 (Kitchen Display System / KDS)**: **Sempat diimplementasikan, kemudian dihapus** dari basis kode (commit *"Delete KDS Feature"*). KDS **bukan lagi bagian dari roadmap aktif** — event analitik `kds_start_cooking`, `kds_order_ready`, dan `kds_order_served` pada tabel di atas bersifat historis/tidak lagi relevan kecuali fitur ini dihidupkan kembali di masa depan.
+* **MODUL 4 & 5 (Staff, Notifikasi)**: Event `add_staff` dan `tap_notification` telah terimplementasi mengikuti fitur Manajemen Staf dan Pusat Notifikasi yang sudah berjalan di produksi.
 
 ---
 *Dokumen Kebutuhan Produk (PRD) ini dibuat secara otomatis berdasarkan analisis mendalam terhadap basis kode dan rencana pengembangan terintegrasi di dalam proyek Parzello POS Mobile.*
