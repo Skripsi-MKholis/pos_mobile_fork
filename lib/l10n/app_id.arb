@@ -14,6 +14,27 @@
   "myProfile": "Profil Saya",
   "changePassword": "Ganti Kata Sandi",
   "dataSynchronization": "Sinkronisasi Data",
+  "notificationSettings": "Notifikasi & Pengingat",
+  "workReminderTitle": "Pengingat Jam Kerja",
+  "workReminderDesc": "Notifikasi rutin untuk mengingatkan pencatatan penjualan selama jam kerja.",
+  "workStartTime": "Jam Mulai Kerja",
+  "workEndTime": "Jam Selesai Kerja",
+  "reminderInterval": "Interval Pengingat",
+  "everyXHours": "Setiap {count} jam",
+  "@everyXHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "testNotification": "Uji Notifikasi",
+  "testNotificationSent": "Notifikasi uji dikirim. Periksa panel notifikasi Anda.",
+  "testNotificationTitle": "🔔 Uji Notifikasi Parzello POS",
+  "testNotificationBody": "Notifikasi native berfungsi dengan baik di perangkat ini.",
+  "openOsNotificationSettings": "Buka Pengaturan Notifikasi Perangkat",
+  "reminderScheduleUpdated": "Jadwal pengingat diperbarui.",
+  "invalidWorkHourRange": "Jam selesai harus setelah jam mulai.",
   "language": "Bahasa",
   "languageName": "Bahasa Indonesia",
   "logoutApp": "Keluar Aplikasi",

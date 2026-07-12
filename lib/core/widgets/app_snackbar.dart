@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:delightful_toast/delight_toast.dart';
 import 'package:delightful_toast/toast/components/toast_card.dart';
+import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:pos_mobile/core/theme/app_theme.dart';
 
 enum ToastStatus { success, send, error, info, warning }
@@ -12,6 +13,7 @@ void mySnackBar({
   ToastStatus status = ToastStatus.info,
   IconData? icon,
   Duration duration = const Duration(seconds: 2),
+  DelightSnackbarPosition position = DelightSnackbarPosition.bottom,
 }) {
   // Tentukan warna dan ikon berdasarkan status
   Color bgColor;
@@ -48,6 +50,7 @@ void mySnackBar({
 
   DelightToastBar(
     autoDismiss: true,
+    position: position,
     snackbarDuration: duration,
     builder: (context) => ToastCard(
       color: bgColor,

@@ -51,6 +51,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataSynchronization => 'Data Synchronization';
 
   @override
+  String get notificationSettings => 'Notifications & Reminders';
+
+  @override
+  String get workReminderTitle => 'Work Hours Reminder';
+
+  @override
+  String get workReminderDesc =>
+      'Recurring notifications reminding you to record sales during work hours.';
+
+  @override
+  String get workStartTime => 'Work Start Time';
+
+  @override
+  String get workEndTime => 'Work End Time';
+
+  @override
+  String get reminderInterval => 'Reminder Interval';
+
+  @override
+  String everyXHours(int count) {
+    return 'Every $count hours';
+  }
+
+  @override
+  String get testNotification => 'Test Notification';
+
+  @override
+  String get testNotificationSent =>
+      'Test notification sent. Check your notification panel.';
+
+  @override
+  String get testNotificationTitle => '🔔 Parzello POS Notification Test';
+
+  @override
+  String get testNotificationBody =>
+      'Native notifications are working properly on this device.';
+
+  @override
+  String get openOsNotificationSettings => 'Open Device Notification Settings';
+
+  @override
+  String get reminderScheduleUpdated => 'Reminder schedule updated.';
+
+  @override
+  String get invalidWorkHourRange => 'End time must be after start time.';
+
+  @override
   String get language => 'Language';
 
   @override

@@ -51,6 +51,54 @@ class AppLocalizationsId extends AppLocalizations {
   String get dataSynchronization => 'Sinkronisasi Data';
 
   @override
+  String get notificationSettings => 'Notifikasi & Pengingat';
+
+  @override
+  String get workReminderTitle => 'Pengingat Jam Kerja';
+
+  @override
+  String get workReminderDesc =>
+      'Notifikasi rutin untuk mengingatkan pencatatan penjualan selama jam kerja.';
+
+  @override
+  String get workStartTime => 'Jam Mulai Kerja';
+
+  @override
+  String get workEndTime => 'Jam Selesai Kerja';
+
+  @override
+  String get reminderInterval => 'Interval Pengingat';
+
+  @override
+  String everyXHours(int count) {
+    return 'Setiap $count jam';
+  }
+
+  @override
+  String get testNotification => 'Uji Notifikasi';
+
+  @override
+  String get testNotificationSent =>
+      'Notifikasi uji dikirim. Periksa panel notifikasi Anda.';
+
+  @override
+  String get testNotificationTitle => '🔔 Uji Notifikasi Parzello POS';
+
+  @override
+  String get testNotificationBody =>
+      'Notifikasi native berfungsi dengan baik di perangkat ini.';
+
+  @override
+  String get openOsNotificationSettings =>
+      'Buka Pengaturan Notifikasi Perangkat';
+
+  @override
+  String get reminderScheduleUpdated => 'Jadwal pengingat diperbarui.';
+
+  @override
+  String get invalidWorkHourRange => 'Jam selesai harus setelah jam mulai.';
+
+  @override
   String get language => 'Bahasa';
 
   @override

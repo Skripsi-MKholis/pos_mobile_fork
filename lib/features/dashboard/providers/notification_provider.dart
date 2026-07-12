@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pos_mobile/core/database/isar_service.dart';
 import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
+import 'package:pos_mobile/core/services/local_notification_service.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -99,6 +100,17 @@ class NotificationNotifier extends _$NotificationNotifier {
 
             // Picu dialog/toast dengan menyimpan notifikasi di StateProvider
             ref.read(lastReceivedNotificationProvider.notifier).state = notif;
+
+            // Tampilkan juga notifikasi native di system tray agar tetap
+            // terlihat walau user sedang di layar lain / layar mati.
+            // Id tray = hash supabaseId, sama dengan jalur FCM → tidak dobel.
+            LocalNotificationService.instance.showForType(
+              title: notif.title,
+              body: notif.message,
+              type: notif.type,
+              supabaseId: notif.supabaseId,
+              metadataJson: notif.metadataJson,
+            );
           },
         )
         .subscribe();

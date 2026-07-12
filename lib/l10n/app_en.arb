@@ -14,6 +14,27 @@
   "myProfile": "My Profile",
   "changePassword": "Change Password",
   "dataSynchronization": "Data Synchronization",
+  "notificationSettings": "Notifications & Reminders",
+  "workReminderTitle": "Work Hours Reminder",
+  "workReminderDesc": "Recurring notifications reminding you to record sales during work hours.",
+  "workStartTime": "Work Start Time",
+  "workEndTime": "Work End Time",
+  "reminderInterval": "Reminder Interval",
+  "everyXHours": "Every {count} hours",
+  "@everyXHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "testNotification": "Test Notification",
+  "testNotificationSent": "Test notification sent. Check your notification panel.",
+  "testNotificationTitle": "🔔 Parzello POS Notification Test",
+  "testNotificationBody": "Native notifications are working properly on this device.",
+  "openOsNotificationSettings": "Open Device Notification Settings",
+  "reminderScheduleUpdated": "Reminder schedule updated.",
+  "invalidWorkHourRange": "End time must be after start time.",
   "language": "Language",
   "languageName": "English",
   "logoutApp": "Logout Application",

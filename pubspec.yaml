@@ -77,6 +77,8 @@ dependencies:
   qr_flutter: ^4.1.0
   firebase_messaging: ^15.2.10
   flutter_local_notifications: ^21.0.0
+  # Dipakai zonedSchedule (reminder jam kerja); versi mengikuti flutter_local_notifications 21.x
+  timezone: ^0.11.0
   barcode_widget: ^2.0.4
   in_app_update: ^4.2.5
   http: ^1.2.2

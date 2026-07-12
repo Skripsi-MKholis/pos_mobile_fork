@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pos_mobile/core/services/fcm_service.dart';
+import 'package:pos_mobile/core/services/notification_scheduler_service.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 
 part 'auth_provider.g.dart';
@@ -79,6 +80,9 @@ class Auth extends _$Auth {
   Future<void> signOut() async {
     try {
       await FCMService.instance.deleteTokenFromSupabase();
+    } catch (_) {}
+    try {
+      await NotificationSchedulerService.instance.cancelAllReminders();
     } catch (_) {}
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('active_store_id');

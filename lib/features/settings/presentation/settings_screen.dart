@@ -85,6 +85,13 @@ class SettingsScreen extends ConsumerWidget {
                       l10n.printerConnection,
                       () => context.push('/printer-settings'),
                     ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.bell_ringing,
+                      l10n.notificationSettings,
+                      () => context.push('/notification-settings'),
+                    ),
                     if (isAdmin) ...[
                       _buildMenuItem(
                         context,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
+import 'package:pos_mobile/core/services/notification_deep_link.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/features/auth/presentation/login_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/register_screen.dart';
@@ -24,6 +25,7 @@ import 'package:pos_mobile/features/pos/presentation/printer_settings_screen.dar
 import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/sales_performance_screen.dart';
@@ -53,7 +55,7 @@ import 'package:pos_mobile/features/customer/presentation/customer_scan_screen.d
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Instance GoRouter dibuat sekali dan tidak akan direbuild oleh perubahan state auth/store
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/onboarding',
     refreshListenable: _RouterRefreshNotifier(ref),
     observers: [AnalyticsService.instance.observer],
@@ -461,11 +463,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const NotificationCenterScreen(),
       ),
       GoRoute(
+        path: '/notification-settings',
+        builder: (context, state) => const NotificationSettingsScreen(),
+      ),
+      GoRoute(
         path: '/broadcast-notification',
         builder: (context, state) => const BroadcastNotificationScreen(),
       ),
     ],
   );
+
+  // Daftarkan router agar tap notifikasi bisa melakukan deep link navigasi
+  NotificationDeepLink.router = router;
+
+  return router;
 });
 
 class _RouterRefreshNotifier extends ChangeNotifier {

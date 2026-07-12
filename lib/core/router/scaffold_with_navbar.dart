@@ -11,11 +11,14 @@ import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:delightful_toast/toast/utils/enums.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/features/pos/providers/transaction_history_provider.dart';
 import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 import 'package:pos_mobile/core/services/fcm_service.dart';
+import 'package:pos_mobile/core/services/notification_deep_link.dart';
+import 'package:pos_mobile/core/services/notification_scheduler_service.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:pos_mobile/core/services/update_service.dart';
 
@@ -36,8 +39,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      FCMService.instance.initialize();
+    Future.microtask(() async {
+      await FCMService.instance.initialize();
+      // Terapkan jadwal reminder jam kerja sesuai preferensi tersimpan
+      await NotificationSchedulerService.instance.syncFromPrefs();
+      // Eksekusi deep link yang tertunda dari tap notifikasi saat app terminated
+      NotificationDeepLink.consumePendingRoute();
       if (mounted) {
         UpdateService().checkForUpdate(context);
       }
@@ -75,10 +82,12 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
           toastStatus = ToastStatus.success;
         }
 
+        // Pop-up notifikasi masuk selalu tampil dari atas layar
         mySnackBar(
           context: context,
           text: '${next.title}: ${next.message}',
           status: toastStatus,
+          position: DelightSnackbarPosition.top,
         );
 
         // Reset agar tidak memicu ulang toast pada rebuild UI berikutnya

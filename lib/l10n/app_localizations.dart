@@ -182,6 +182,90 @@ abstract class AppLocalizations {
   /// **'Data Synchronization'**
   String get dataSynchronization;
 
+  /// No description provided for @notificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications & Reminders'**
+  String get notificationSettings;
+
+  /// No description provided for @workReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Hours Reminder'**
+  String get workReminderTitle;
+
+  /// No description provided for @workReminderDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring notifications reminding you to record sales during work hours.'**
+  String get workReminderDesc;
+
+  /// No description provided for @workStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Start Time'**
+  String get workStartTime;
+
+  /// No description provided for @workEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Work End Time'**
+  String get workEndTime;
+
+  /// No description provided for @reminderInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder Interval'**
+  String get reminderInterval;
+
+  /// No description provided for @everyXHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Every {count} hours'**
+  String everyXHours(int count);
+
+  /// No description provided for @testNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Notification'**
+  String get testNotification;
+
+  /// No description provided for @testNotificationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification sent. Check your notification panel.'**
+  String get testNotificationSent;
+
+  /// No description provided for @testNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'🔔 Parzello POS Notification Test'**
+  String get testNotificationTitle;
+
+  /// No description provided for @testNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Native notifications are working properly on this device.'**
+  String get testNotificationBody;
+
+  /// No description provided for @openOsNotificationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Device Notification Settings'**
+  String get openOsNotificationSettings;
+
+  /// No description provided for @reminderScheduleUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder schedule updated.'**
+  String get reminderScheduleUpdated;
+
+  /// No description provided for @invalidWorkHourRange.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be after start time.'**
+  String get invalidWorkHourRange;
+
   /// No description provided for @language.
   ///
   /// In en, this message translates to:
