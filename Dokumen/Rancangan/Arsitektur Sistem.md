@@ -5,6 +5,8 @@
 
 ---
 
+> **Catatan revisi 2026-07-13**: dokumen ini diverifikasi ulang terhadap kode aktual. Dua koreksi penting: (1) modul **AI Smart Analytics memanggil model LSTM Hugging Face langsung dari client Flutter** (`Env.lstmHfUrl`), **bukan** melalui perantara Supabase Edge Function seperti digambarkan pada diagram alur data global dan §5 di bawah — lihat catatan koreksi di §5.1; (2) **RBAC telah dilonggarkan signifikan** — router hanya membatasi `/staff-management` dan `/store-info` untuk non-owner (lihat ERD.md §3 dan Screen.md), bukan matriks akses ketat seperti yang tersirat di §2.3.
+
 ## Pendahuluan
 
 Dokumen ini merinci rancangan **Arsitektur Sistem** untuk aplikasi **Parzello POS Mobile** (juga dikenal sebagai **ZelloPOS**). Sistem ini menggunakan pendekatan arsitektur terdistribusi *hybrid-cloud* yang membagi beban pemrosesan antara perangkat lokal (*client-side*) untuk keandalan operasional dan infrastruktur awan (*cloud backend*) untuk agregasi data, sinkronisasi, dan analisis kecerdasan buatan (AI).
@@ -274,11 +276,14 @@ Sinkronisasi dijalankan dalam antrean linier untuk menghormati relasi integritas
 Modul Smart Analytics menyediakan prediksi bisnis bernilai tinggi bagi pemilik toko (Owner) dengan memanfaatkan pemrosesan analitik hibrida.
 
 ### 5.1 Aliran Proses AI & PII Scrubbing (Privacy Guard)
-Untuk menjaga privasi pelanggan dan mematuhi kriteria non-fungsional keamanan (NFR), sistem menerapkan mekanisme **PII Scrubbing** sebelum mengirimkan payload data transaksi ke model AI:
+
+> **Koreksi implementasi**: berdasarkan pemeriksaan `lib/features/reports/providers/smart_analytics_provider.dart`, pemanggilan model dilakukan **langsung dari aplikasi Flutter ke URL Hugging Face** (`Env.lstmHfUrl`), **tanpa Supabase Edge Function sebagai perantara**. Hasil analitik disimpan langsung ke tabel `smart_analytics_snapshots` oleh client. Langkah "PII Scrubbing" eksplisit sebagai proses terpisah juga tidak ditemukan sebagai kode aktif — payload yang dikirim ke model LSTM secara desain hanya berisi data agregat (total, kuantitas, kategori, waktu), namun belum ada mekanisme scrubbing/masking eksplisit yang terverifikasi di kode. Poin 1–4 di bawah dipertahankan sebagai **rancangan/tujuan desain (NFR)** dan perlu ditandai sebagai belum sepenuhnya terimplementasi bila dipakai untuk penilaian akademis.
+
+Untuk menjaga privasi pelanggan dan mematuhi kriteria non-fungsional keamanan (NFR), sistem *seharusnya* menerapkan mekanisme **PII Scrubbing** sebelum mengirimkan payload data transaksi ke model AI:
 1.  **Local Data Retrieval**: Data histori transaksi ditarik dari Isar DB lokal secara teragregasi.
 2.  **Scrubbing & Masking**: Informasi pribadi seperti nama pelanggan, nomor telepon, dan nomor kartu debit dibersihkan sepenuhnya. AI hanya menerima data numerik berupa total transaksi, kuantitas item, kategori, waktu transaksi, dan ID produk.
 3.  **External Context Ingestion**: Sistem menyertakan data kondisi cuaca saat ini dari OpenWeatherMap API untuk memberikan konteks kondisi cuaca luar terhadap performa penjualan produk tertentu.
-4.  **Cloud Inference Call**: Data agregat yang terenkripsi dan bebas PII dikirimkan ke *Supabase Edge Function*, yang meneruskan data runtun waktu (time-series) tersebut ke **Model LSTM Kustom di Hugging Face**.
+4.  **Cloud Inference Call (rancangan)**: Data agregat idealnya dikirimkan melalui *Supabase Edge Function* sebagai perantara ke **Model LSTM Kustom di Hugging Face** — pada implementasi berjalan saat ini, panggilan dilakukan langsung dari client tanpa perantara Edge Function.
 
 ```mermaid
 sequenceDiagram

@@ -10,18 +10,20 @@ Dokumen ini merinci model **Use Case Diagram** beserta skenario spesifikasi fung
 
 Dokumen ini disusun menggunakan standar pemodelan perangkat lunak untuk mendukung penyusunan dokumen skripsi/akademis yang terstruktur dan siap uji.
 
+> **Direvisi 2026-07-13**: sejak penyesuaian RBAC (*"Penyesuaian Fitur Role Kasir"*), sebagian besar batasan akses Owner-eksklusif yang tergambar di versi dokumen sebelumnya sudah dilonggarkan di kode aplikasi. Kasir kini dapat mengakses Dashboard, Laporan, Manajemen Produk & Kategori, dan AI Smart Analytics — hanya Manajemen Staf dan Info Toko yang tetap eksklusif Owner (lihat `router.dart`, ERD.md, dan Screen.md). Fitur "Pelanggan" yang sebelumnya ditandai *opsional/masa depan* **sudah diimplementasikan penuh** sebagai mode self-order terpisah (`lib/features/customer/`).
+
 ---
 
 ## Aktor Sistem (System Actors)
 
 Sistem Parzello POS mengidentifikasi tiga aktor utama yang berinteraksi dengan aplikasi:
 
-1.  **Owner (Pemilik Toko)**: 
-    Aktor dengan hak istimewa tertinggi (*super-user*). Owner mengontrol seluruh konfigurasi toko, manajemen katalog produk, data karyawan, laporan keuangan mendalam, audit stok, serta fitur proyeksi penjualan berbasis kecerdasan buatan (**AI Smart Analytics**).
+1.  **Owner (Pemilik Toko)**:
+    Aktor dengan hak istimewa tertinggi (*super-user*). Secara teknis, satu-satunya hak eksklusif Owner di level router adalah manajemen data karyawan (`/staff-management`) dan pengaturan identitas toko (`/store-info`). Owner tetap menjadi penanggung jawab utama konfigurasi toko dan pengambilan keputusan strategis berbasis laporan/AI Smart Analytics.
 2.  **Karyawan / Kasir**:
-    Staf operasional harian toko. Staf kasir memiliki akses terbatas yang difokuskan pada pelayanan penjualan (POS), pencetakan struk belanja, monitoring status meja, penginputan mutasi stok barang, dan melihat ringkasan omzet harian terbatas khusus untuk shift hari ini saja.
-3.  **Pelanggan (Customer - Opsional / Masa Depan)**:
-    Aktor eksternal (diusulkan pada model masa depan) yang dapat memesan menu mandiri melalui pemindaian QR Code meja restoran dan melakukan pembayaran elektronik (*self-checkout*).
+    Staf operasional harian toko. Sejak penyesuaian RBAC, kasir memiliki akses yang jauh lebih luas dari sebelumnya: pelayanan penjualan (POS), pencetakan & kustomisasi struk, manajemen produk & kategori, audit/penyesuaian stok, laporan penjualan, broadcast notifikasi, dan AI Smart Analytics — kecuali manajemen staf dan info toko yang tetap eksklusif Owner.
+3.  **Pelanggan (Customer)**:
+    Aktor eksternal yang memesan menu mandiri melalui mode katalog self-order (`/customer/*`), tanpa perlu login sebagai staf toko. Fitur ini **sudah terimplementasi penuh** (bukan lagi rencana masa depan), mencakup pencarian toko, keranjang, checkout, pelacakan pesanan, riwayat, dan program loyalitas.
 
 ---
 
@@ -66,11 +68,16 @@ flowchart LR
         UC_StoreConfig(["Mengatur Profil Toko"])
     end
 
-    %% Associations for Kasir
+    %% Associations for Kasir (RBAC dilonggarkan — lihat router.dart)
     Kasir --> UC_Login
     Kasir --> UC_Checkout
     Kasir --> UC_TableMon
+    Kasir --> UC_ManageCatalog
+    Kasir --> UC_ManageCategory
+    Kasir --> UC_AuditStock
     Kasir --> UC_Dashboard
+    Kasir --> UC_AIAnalytics
+    Kasir --> UC_BroadcastNotif
     Kasir --> UC_SyncLocal
 
     %% Associations for Owner
@@ -122,16 +129,16 @@ Daftar berikut merinci fungsi dari masing-masing *use case* yang digambarkan pad
 | **UC-04** | Menerapkan Voucher | Owner, Kasir | Memasukkan kode promosi voucher belanja untuk memotong tagihan. |
 | **UC-05** | Melakukan Split Bill | Owner, Kasir | Memecah pembayaran satu nota belanja menjadi beberapa bill. |
 | **UC-06** | Mencetak Struk Belanja | Owner, Kasir | Mencetak struk transaksi fisik melalui printer thermal Bluetooth. |
-| **UC-07** | Memonitor Status Meja | Owner, Kasir | Memantau keterisian meja kasir secara visual (*dormant*). |
-| **UC-08** | Mengelola Katalog | Owner | Menambah, menyunting, dan menghapus produk atau stok barang. |
-| **UC-09** | Mengelola Kategori | Owner | Mengatur pengelompokan menu katalog produk toko. |
-| **UC-10** | Mengaudit Riwayat Stok | Owner | Melihat log keluar-masuk mutasi barang untuk mencegah fraud. |
-| **UC-11** | Melihat Dashboard | Owner, Kasir | Memantau performa keuangan (Kasir dibatasi khusus hari ini). |
-| **UC-12** | Melihat AI Analytics | Owner | Melihat proyeksi omzet cerdas berbasis Model LSTM di Hugging Face (*simulated*). |
-| **UC-13** | Kirim Broadcast Notif | Owner | Mengirim pesan push pemberitahuan real-time ke semua kasir. |
+| **UC-07** | Memonitor Status Meja | Owner, Kasir | Memantau keterisian meja secara visual, terintegrasi di alur POS (bukan screen terpisah). |
+| **UC-08** | Mengelola Katalog | Owner, Kasir | Menambah, menyunting, dan menghapus produk atau stok barang. Tidak lagi dibatasi router untuk Owner saja. |
+| **UC-09** | Mengelola Kategori | Owner, Kasir | Mengatur pengelompokan menu katalog produk toko. Tidak lagi dibatasi router untuk Owner saja. |
+| **UC-10** | Mengaudit Riwayat Stok | Owner, Kasir | Melihat log keluar-masuk mutasi barang untuk mencegah fraud. |
+| **UC-11** | Melihat Dashboard | Owner, Kasir | Memantau performa keuangan toko. |
+| **UC-12** | Melihat AI Analytics | Owner, Kasir | Melihat proyeksi omzet cerdas berbasis Model LSTM di Hugging Face, beserta riwayat hasil analitik sebelumnya (`SmartAnalyticsHistoryScreen`) dan modul Performa Penjualan (`SalesPerformanceScreen`). Tidak lagi dibatasi router untuk Owner saja. |
+| **UC-13** | Kirim Broadcast Notif | Owner, Kasir | Mengirim pesan push pemberitahuan real-time ke staf toko. Tidak lagi dibatasi router untuk Owner saja. |
 | **UC-14** | Sinkronisasi Data | Owner, Kasir | Menyinkronkan antrean transaksi offline lokal ke cloud Supabase. |
-| **UC-15** | Mengelola Karyawan | Owner | Mendaftarkan, menangguhkan, atau mengubah peran staf kasir. |
-| **UC-16** | Mengatur Profil Toko | Owner | Mengubah identitas nama toko, alamat, dan logo outlet. |
+| **UC-15** | Mengelola Karyawan | Owner | Mendaftarkan atau mengubah peran staf kasir. Satu-satunya use case yang tetap diblokir router untuk non-owner. |
+| **UC-16** | Mengatur Profil Toko | Owner | Mengubah identitas nama toko, alamat, dan logo outlet. Tetap diblokir router untuk non-owner. |
 
 ---
 
@@ -157,17 +164,20 @@ Berikut adalah skenario alur kejadian (*flow of events*) rinci untuk tiga fungsi
 
 ---
 
-### Skenario 2: Kalibrasi & Latihan AI Smart Analytics (UC-12)
-*   **Aktor Utama**: Owner
-*   **Kondisi Awal**: Owner berada di halaman laporan keuangan dan data transaksi toko memiliki minimal 20 entri riwayat penjualan baru.
-*   **Kondisi Akhir**: Model forecasting LSTM Hugging Face terkalibrasi secara cloud dan grafik peramalan omzet terbaru tersaji secara lokal.
+### Skenario 2: Melihat & Merefresh AI Smart Analytics (UC-12)
+*   **Aktor Utama**: Owner, Kasir
+*   **Kondisi Awal**: Pengguna berada di halaman Smart Analytics (`smart_analytics_screen.dart`), toko memiliki data transaksi historis untuk dianalisis.
+*   **Kondisi Akhir**: Hasil prediksi LSTM (Hugging Face) tersaji di layar dan disimpan sebagai snapshot baru di tabel `smart_analytics_snapshots` untuk dapat dilihat kembali via riwayat.
 
 | Alur Utama (Normal Flow) - Aksi Aktor | Reaksi Sistem |
 | :--- | :--- |
-| 1. Owner menekan menu "Smart Analytics". | 2. Sistem mendeteksi halaman terkunci (*Locked Backdrop Blur*), lalu menampilkan pop-up persetujuan privasi data latihan AI (*Agreement Dialog*). |
-| 3. Owner menekan tombol "Setuju & Mulai Latihan". | 4. Sistem menampilkan proses bar kalibrasi AI. |
-| | 5. Sistem memproses data tren secara lokal, mengaburkan informasi pribadi pelanggan (PII), mengunggah rangkuman histori transaksi terenkripsi ke API cloud, memicu model LSTM Hugging Face, menyimpan cache proyeksi di penyimpanan lokal, dan menampilkan status "Kalibrasi Sukses!". |
-| | 6. Sistem menyajikan visualisasi grafik fluktuasi peramalan omzet harian/mingguan/bulanan, jam sibuk pelanggan, rekomendasi harga dinamis (*smart pricing*), dan estimasi menu terlaris. |
+| 1. Pengguna menekan menu "Smart Analytics". | 2. Sistem menampilkan hasil analitik terakhir (bila ada) atau memuat data baru. |
+| 3. Pengguna menekan tombol refresh/muat ulang analitik. | 4. Aplikasi memanggil endpoint model LSTM (`Env.lstmHfUrl`, di-hosting Hugging Face) secara langsung dari client dengan data agregat penjualan, tanpa melalui Supabase Edge Function perantara. |
+| | 5. Sistem menampilkan status loading/cold-start warning bila server prediksi baru bangun dari idle (`cold_start_warning`), lalu merender hasil dan menyimpannya sebagai baris baru di `smart_analytics_snapshots`. |
+| | 6. Sistem menyajikan visualisasi grafik peramalan omzet, jam sibuk pelanggan, rekomendasi harga dinamis (*smart pricing*), dan estimasi menu terlaris. |
+| 7. Pengguna dapat membuka `/smart-analytics/history` untuk meninjau hasil analitik dari sesi sebelumnya. | 8. Sistem menampilkan daftar snapshot historis tanpa perlu memanggil ulang model. |
+
+> **Catatan koreksi dari versi dokumen sebelumnya**: alur "halaman terkunci (*Locked Backdrop Blur*)", "pop-up persetujuan privasi/*Agreement Dialog*", "minimal 20 entri riwayat penjualan", dan langkah eksplisit "PII scrubbing" via Supabase Edge Function **tidak ditemukan aktif di kode saat ini** — flag pengunci `_isLocked` pada `smart_analytics_screen.dart` bernilai `false` (hardcoded nonaktif), dan pemanggilan model LSTM dilakukan langsung dari client Flutter ke URL Hugging Face, bukan lewat Edge Function perantara. Elemen-elemen ini kemungkinan adalah desain awal yang belum/tidak jadi diimplementasikan sepenuhnya — jika akan dipakai untuk laporan skripsi sebagai *rencana desain*, sebaiknya ditandai eksplisit sebagai "rancangan awal, belum diimplementasikan" agar tidak menyesatkan penguji yang mengecek kode.
 
 ---
 

@@ -17,7 +17,7 @@ Dalam dokumen ini, diagram aktivitas dibagi menjadi tiga alur kerja utama yang p
 
 ## 1. Activity Diagram: Alur Kerja Transaksi Kasir (POS Checkout)
 
-Diagram ini menggambarkan alur kerja kasir/owner dalam memproses transaksi belanja pelanggan di kasir, termasuk opsi penerapan kupon dan pemisahan tagihan (*split bill*).
+Diagram ini menggambarkan alur kerja kasir/owner dalam memproses transaksi belanja pelanggan di kasir, termasuk opsi penerapan kupon dan pemisahan tagihan (*split bill*). Perlu dicatat bahwa "Layar Split Bill" pada diagram ini bersifat konseptual — pada kode saat ini, logika split bill terintegrasi langsung di dalam `cart_detail_sheet.dart` dan `payment_screen.dart`, bukan sebagai screen/route terpisah (lihat Screen.md §5).
 
 ### Visualisasi Mermaid Flowchart
 ```mermaid
@@ -129,6 +129,8 @@ flowchart TD
 ## 3. Activity Diagram: Proses Kalibrasi AI Smart Analytics (Hugging Face LSTM)
 
 Diagram aktivitas ini menggambarkan alur permohonan analisis bisnis cerdas oleh Owner, proses penyaringan keamanan privasi data pelanggan, pemanggilan model AI, hingga hasil analisis divisualisasikan.
+
+> **Catatan verifikasi kode (2026-07-13)**: diagram di bawah ini merepresentasikan **rancangan desain awal**. Pada implementasi `smart_analytics_screen.dart` saat ini, flag pengunci layar (`_isLocked`) bernilai `false` (nonaktif) sehingga langkah "Modal AI Pro & Syarat Persetujuan" serta pengecekan "Minimal 20 Histori Transaksi" **tidak berjalan aktif**. Pemanggilan model LSTM juga dilakukan **langsung dari client Flutter ke URL Hugging Face** (`Env.lstmHfUrl`), bukan lewat Supabase Edge Function perantara seperti digambarkan pada langkah "PushSummaryToCloud"/"CallLstmAPI" di bawah. Diagram dipertahankan sebagai referensi rancangan, namun sebaiknya ditandai eksplisit sebagai *desain yang belum diimplementasikan penuh* bila dipakai untuk laporan skripsi.
 
 ### Visualisasi Mermaid Flowchart
 ```mermaid
