@@ -1,5 +1,9 @@
+import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
@@ -12,6 +16,8 @@ import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
+import 'package:pos_mobile/core/models/receipt_config.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -35,6 +41,40 @@ class ReceiptScreen extends ConsumerStatefulWidget {
 
 class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
   bool _isPrinting = false;
+  bool _isSharingImage = false;
+  final GlobalKey _receiptKey = GlobalKey();
+
+  Future<void> _handleShareAsImage() async {
+    setState(() => _isSharingImage = true);
+    try {
+      final boundary =
+          _receiptKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
+      if (boundary == null) throw 'Gagal mengambil gambar struk';
+
+      final image = await boundary.toImage(pixelRatio: 2.5);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final bytes = byteData!.buffer.asUint8List();
+
+      final tempDir = await getTemporaryDirectory();
+      final file = await File(
+        '${tempDir.path}/struk_${widget.transaction['id']}.png',
+      ).create();
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles([XFile(file.path)], text: 'Struk Belanja');
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(
+          context: context,
+          text: 'Gagal membagikan gambar struk: $e',
+          status: ToastStatus.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharingImage = false);
+    }
+  }
 
   @override
   void initState() {
@@ -125,33 +165,30 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
     final theme = ShadTheme.of(context);
 
     final activeStore = ref.watch(activeStoreProvider).value;
-    final storeSettings =
-        activeStore?['settings'] as Map<String, dynamic>? ?? {};
-    final receiptSettings =
-        storeSettings['receipt'] as Map<String, dynamic>? ?? {};
+    final config = ReceiptConfig.fromStore(activeStore);
 
-    final storeName = receiptSettings['store_name']?.isNotEmpty == true
-        ? receiptSettings['store_name']
-        : (activeStore?['name'] ?? 'PARZELLO POS');
-    final showLogo = receiptSettings['show_logo'] ?? true;
-    final showAddress = receiptSettings['show_address'] ?? true;
-    final address = receiptSettings['address']?.isNotEmpty == true
-        ? receiptSettings['address']
-        : (activeStore?['address'] ?? '');
-    final showPhone = receiptSettings['show_phone'] ?? true;
-    final phone = receiptSettings['phone']?.isNotEmpty == true
-        ? receiptSettings['phone']
-        : (activeStore?['phone'] ?? '');
-    final showHeaderMsg = receiptSettings['show_header_message'] ?? true;
-    final headerMsg = receiptSettings['header_message'] ?? '';
-    final showFooterMsg = receiptSettings['show_footer_message'] ?? true;
-    final footerMsg = receiptSettings['footer_message']?.isNotEmpty == true
-        ? receiptSettings['footer_message']
-        : 'Terima Kasih';
-    final showCashier = receiptSettings['show_cashier'] ?? true;
-    final websiteUrl = receiptSettings['website_url'] ?? '';
-    final showQrCode = receiptSettings['show_qr_code'] ?? true;
-    final freeText = receiptSettings['free_text'] ?? '';
+    final storeName = config.storeName;
+    final showLogo = config.showLogo;
+    final showAddress = config.showAddress;
+    final address = config.address;
+    final showPhone = config.showPhone;
+    final phone = config.phone;
+    final showHeaderMsg = config.showHeaderMessage;
+    final headerMsg = config.headerMessage;
+    final showFooterMsg = config.showFooterMessage;
+    final footerMsg = config.footerMessage;
+    final showCashier = config.showCashier;
+    final loggedInName =
+        ref.watch(userProfileProvider).value?['full_name'] as String?;
+    final cashierName = config.resolveCashierName(
+      loggedInName,
+      fallback: l10n.parzelloStaff,
+    );
+    final receiptPrefix = config.receiptNumberPrefix;
+    final websiteUrl = config.websiteUrl;
+    final showQrCode = config.showQrCode;
+    final freeText = config.freeText;
+    final showPaymentMethod = config.showPaymentMethod;
 
     return PopScope(
       canPop: false,
@@ -185,7 +222,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
             padding: const EdgeInsets.all(24),
             child: Column(
               children: [
-                ShadCard(
+                RepaintBoundary(
+                  key: _receiptKey,
+                  child: ShadCard(
                   padding: const EdgeInsets.all(24),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 350),
@@ -272,7 +311,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         const SizedBox(height: 16),
                         _buildRow(
                           l10n.transactionNo,
-                          '#${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}',
+                          '#$receiptPrefix-${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}',
                         ),
                         _buildRow(
                           l10n.date,
@@ -280,12 +319,14 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                             DateTime.parse(widget.transaction['created_at']).toLocal(),
                           ),
                         ),
-                        _buildRow(
-                          l10n.method,
-                          widget.transaction['payment_method'],
-                        ),
+                        if (showPaymentMethod) ...[
+                          _buildRow(
+                            l10n.method,
+                            widget.transaction['payment_method'],
+                          ),
+                        ],
                         if (showCashier) ...[
-                          _buildRow(l10n.cashier, l10n.parzelloStaff),
+                          _buildRow(l10n.cashier, cashierName),
                         ],
                         const SizedBox(height: 16),
                         const Divider(),
@@ -551,10 +592,13 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                       ],
                     ),
                   ),
+                  ),
                 ),
                 const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
                     ShadButton.outline(
                       onPressed: () async {
@@ -564,10 +608,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       ${storeName.toUpperCase()}       
 =================================
 ${showHeaderMsg && headerMsg.isNotEmpty ? '$headerMsg\n' : ''}${showAddress && address.isNotEmpty ? '$address\n' : ''}${showPhone && phone.isNotEmpty ? 'Telp: $phone\n' : ''}---------------------------------
-${l10n.transactionNo}: #${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
+${l10n.transactionNo}: #$receiptPrefix-${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
 ${l10n.date}: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
-${l10n.method}: ${widget.transaction['payment_method']}
-${showCashier ? '${l10n.cashier}: ${l10n.parzelloStaff}\n' : ''}---------------------------------
+${showPaymentMethod ? '${l10n.method}: ${widget.transaction['payment_method']}\n' : ''}${showCashier ? '${l10n.cashier}: $cashierName\n' : ''}---------------------------------
 ${widget.items.map((item) => "${item['product_name']}\n${item['quantity'] ?? 1} x ${currencyFormat.format(item['unit_price'] ?? 0)}   ${currencyFormat.format(item['subtotal'] ?? 0)}").join('\n---------------------------------\n')}
 ---------------------------------
 ${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'] ?? 0)}
@@ -585,7 +628,18 @@ ${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
                       leading: const Icon(TablerIcons.share),
                       child: Text(l10n.share),
                     ),
-                    const SizedBox(width: 12),
+                    ShadButton.outline(
+                      enabled: !_isSharingImage,
+                      onPressed: _isSharingImage ? null : _handleShareAsImage,
+                      leading: _isSharingImage
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(TablerIcons.photo),
+                      child: const Text('Gambar'),
+                    ),
                     ShadButton(
                       enabled: !_isPrinting,
                       onPressed: _isPrinting ? null : _handlePrint,

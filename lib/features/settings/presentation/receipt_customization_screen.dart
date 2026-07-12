@@ -5,7 +5,11 @@ import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:pos_mobile/core/services/printer_service.dart';
+import 'package:pos_mobile/features/pos/providers/printer_provider.dart';
+import 'package:pos_mobile/core/models/receipt_config.dart';
 
 class ReceiptCustomizationScreen extends ConsumerStatefulWidget {
   const ReceiptCustomizationScreen({super.key});
@@ -31,6 +35,9 @@ class _ReceiptCustomizationScreenState
   late TextEditingController _footerController;
   late TextEditingController _websiteController;
   late TextEditingController _freeTextController;
+  late TextEditingController _cashierNameController;
+  late TextEditingController _receiptPrefixController;
+  bool _isTestPrinting = false;
 
   @override
   void dispose() {
@@ -41,6 +48,8 @@ class _ReceiptCustomizationScreenState
     _footerController.dispose();
     _websiteController.dispose();
     _freeTextController.dispose();
+    _cashierNameController.dispose();
+    _receiptPrefixController.dispose();
     super.dispose();
   }
 
@@ -68,6 +77,15 @@ class _ReceiptCustomizationScreenState
       return true;
     if (_freeTextController.text != (_initialSettings['free_text'] ?? ''))
       return true;
+    if (_cashierNameController.text.trim() !=
+        (_initialSettings['cashier_name'] ?? '').trim())
+      return true;
+    if (_receiptPrefixController.text.trim() !=
+        (_initialSettings['receipt_number_prefix'] ?? '').trim())
+      return true;
+    if ((_settings['paper_width'] ?? '58') !=
+        (_initialSettings['paper_width'] ?? '58'))
+      return true;
 
     // Check toggles
     if ((_settings['show_logo'] ?? true) !=
@@ -90,6 +108,9 @@ class _ReceiptCustomizationScreenState
       return true;
     if ((_settings['show_qr_code'] ?? true) !=
         (_initialSettings['show_qr_code'] ?? true))
+      return true;
+    if ((_settings['show_payment_method'] ?? true) !=
+        (_initialSettings['show_payment_method'] ?? true))
       return true;
 
     return false;
@@ -141,7 +162,11 @@ class _ReceiptCustomizationScreenState
         'show_footer_message': receipt['show_footer_message'] ?? true,
         'show_cashier': receipt['show_cashier'] ?? true,
         'show_qr_code': receipt['show_qr_code'] ?? true,
+        'show_payment_method': receipt['show_payment_method'] ?? true,
         'free_text': receipt['free_text'] ?? '',
+        'cashier_name': receipt['cashier_name'] ?? '',
+        'receipt_number_prefix': receipt['receipt_number_prefix'] ?? 'PRZ',
+        'paper_width': receipt['paper_width'] ?? '58',
       };
 
       _nameController = TextEditingController(text: _settings['store_name']);
@@ -157,6 +182,12 @@ class _ReceiptCustomizationScreenState
         text: _settings['website_url'],
       );
       _freeTextController = TextEditingController(text: _settings['free_text']);
+      _cashierNameController = TextEditingController(
+        text: _settings['cashier_name'],
+      );
+      _receiptPrefixController = TextEditingController(
+        text: _settings['receipt_number_prefix'],
+      );
 
       _initialSettings = Map<String, dynamic>.from(_settings);
       _isInitialized = true;
@@ -174,6 +205,10 @@ class _ReceiptCustomizationScreenState
       _settings['footer_message'] = _footerController.text.trim();
       _settings['website_url'] = _websiteController.text.trim();
       _settings['free_text'] = _freeTextController.text;
+      _settings['cashier_name'] = _cashierNameController.text.trim();
+      _settings['receipt_number_prefix'] = _receiptPrefixController.text
+          .trim()
+          .toUpperCase();
 
       await ref.read(activeStoreProvider.notifier).updateSettings({
         'receipt': _settings,
@@ -460,12 +495,54 @@ class _ReceiptCustomizationScreenState
                       _settings['show_cashier'] ?? true,
                       (val) => setState(() => _settings['show_cashier'] = val),
                     ),
+                    if (_settings['show_cashier'] ?? true) ...[
+                      const SizedBox(height: 12),
+                      _buildInputRow(
+                        label: 'Nama Kasir Kustom',
+                        controller: _cashierNameController,
+                        placeholder:
+                            'Kosongkan untuk memakai nama akun yang login',
+                        onChanged: (val) =>
+                            setState(() => _settings['cashier_name'] = val),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    _buildToggleRow(
+                      'Tampilkan Metode Pembayaran',
+                      'Menyertakan metode bayar (Tunai/QRIS/dll) pada struk.',
+                      _settings['show_payment_method'] ?? true,
+                      (val) =>
+                          setState(() => _settings['show_payment_method'] = val),
+                    ),
                     const SizedBox(height: 16),
                     _buildLockedToggleRow(
                       'Tampilkan Watermark Parzello POS',
                       'Menghilangkan tulisan "Powered by Parzello POS" di bagian bawah struk.',
                       true,
                     ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'PENOMORAN & PRINTER',
+                      style: theme.textTheme.muted.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInputRow(
+                      label: 'Prefix No. Struk',
+                      controller: _receiptPrefixController,
+                      placeholder: 'Contoh: PRZ',
+                      maxLines: 1,
+                      onChanged: (val) => setState(
+                        () => _settings['receipt_number_prefix'] = val,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPaperWidthSelector(),
+                    const SizedBox(height: 16),
+                    _buildTestPrintButton(),
                     const SizedBox(height: 40),
                     // Render receipt preview stacked for smaller devices
                     if (MediaQuery.of(context).size.width < 800) ...[
@@ -641,6 +718,171 @@ class _ReceiptCustomizationScreenState
         ShadSwitch(value: val, onChanged: onChanged),
       ],
     );
+  }
+
+  Widget _buildPaperWidthSelector() {
+    final theme = ShadTheme.of(context);
+    final current = (_settings['paper_width'] ?? '58') as String;
+    Widget option(String value, String label) {
+      final selected = current == value;
+      return Expanded(
+        child: InkWell(
+          onTap: () => setState(() => _settings['paper_width'] = value),
+          borderRadius: BorderRadius.circular(6),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected
+                  ? Warna.primary.withOpacity(0.1)
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: selected ? Warna.primary : Colors.grey.shade300,
+              ),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: selected ? Warna.primary : Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 2, bottom: 6),
+          child: Text(
+            'Lebar Kertas Printer',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ),
+        Row(
+          children: [
+            option('58', '58mm'),
+            const SizedBox(width: 8),
+            option('80', '80mm'),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Menentukan lebar baris dan pemisah saat mencetak struk thermal.',
+          style: theme.textTheme.muted.copyWith(fontSize: 11),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTestPrintButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ShadButton.outline(
+        enabled: !_isTestPrinting,
+        onPressed: _isTestPrinting ? null : _handleTestPrint,
+        leading: _isTestPrinting
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(TablerIcons.printer),
+        child: Text(_isTestPrinting ? 'Mencetak...' : 'Test Print Struk'),
+      ),
+    );
+  }
+
+  Future<void> _handleTestPrint() async {
+    final connectedPrinter = ref.read(printerNotifierProvider);
+    if (connectedPrinter == null) {
+      mySnackBar(
+        context: context,
+        text: 'Hubungkan printer thermal terlebih dahulu di Pengaturan Printer.',
+        status: ToastStatus.warning,
+      );
+      return;
+    }
+
+    setState(() => _isTestPrinting = true);
+    try {
+      final activeStore = ref.read(activeStoreProvider).value;
+      final testStore = {
+        ...?activeStore,
+        'settings': {
+          ...(activeStore?['settings'] as Map<String, dynamic>? ?? {}),
+          'receipt': {
+            ..._settings,
+            'store_name': _nameController.text.trim().isNotEmpty
+                ? _nameController.text.trim()
+                : (activeStore?['name'] ?? 'PARZELLO POS'),
+            'address': _addressController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'header_message': _headerController.text.trim(),
+            'footer_message': _footerController.text.trim(),
+            'website_url': _websiteController.text.trim(),
+            'free_text': _freeTextController.text,
+            'cashier_name': _cashierNameController.text.trim(),
+            'receipt_number_prefix': _receiptPrefixController.text
+                .trim()
+                .toUpperCase(),
+          },
+        },
+      };
+      final loggedInName =
+          (await ref.read(userProfileProvider.future))?['full_name']
+              as String?;
+
+      await PrinterService().printReceipt(
+        transaction: {
+          'id': 'TEST0000-0000-0000-0000-000000000000',
+          'created_at': DateTime.now().toIso8601String(),
+          'payment_method': 'Tunai',
+          'total_amount': 51000,
+          'cash_paid': 100000,
+          'change_amount': 49000,
+        },
+        items: [
+          {
+            'product_name': 'Kopi Susu Gula Aren',
+            'quantity': 2,
+            'unit_price': 18000,
+            'subtotal': 36000,
+          },
+          {
+            'product_name': 'Roti Bakar Cokelat',
+            'quantity': 1,
+            'unit_price': 15000,
+            'subtotal': 15000,
+          },
+        ],
+        activeStore: testStore,
+        loggedInCashierName: loggedInName,
+      );
+
+      if (mounted) {
+        mySnackBar(
+          context: context,
+          text: 'Struk uji coba berhasil dikirim ke printer!',
+          status: ToastStatus.success,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(
+          context: context,
+          text: 'Gagal test print: $e',
+          status: ToastStatus.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isTestPrinting = false);
+    }
   }
 
   Widget _buildInputRow({
@@ -827,27 +1069,26 @@ class _ReceiptCustomizationScreenState
   }
 
   Widget _buildReceiptPreview(Map<String, dynamic> store) {
-    final showLogo = _settings['show_logo'] ?? true;
-    final storeName = _settings['store_name']?.isNotEmpty == true
-        ? _settings['store_name']
-        : (store['name'] ?? 'PARZELLO POS');
-    final showAddress = _settings['show_address'] ?? true;
-    final address = _settings['address']?.isNotEmpty == true
-        ? _settings['address']
-        : (store['address'] ?? '');
-    final showPhone = _settings['show_phone'] ?? true;
-    final phone = _settings['phone']?.isNotEmpty == true
-        ? _settings['phone']
-        : (store['phone'] ?? '');
-    final showHeaderMsg = _settings['show_header_message'] ?? true;
-    final headerMsg = _settings['header_message'] ?? '';
-    final showFooterMsg = _settings['show_footer_message'] ?? true;
-    final footerMsg = _settings['footer_message'] ?? '';
-    final showCashier = _settings['show_cashier'] ?? true;
-    final websiteUrl = _settings['website_url'] ?? '';
+    final config = ReceiptConfig.fromReceiptMap(_settings, store: store);
+    final showLogo = config.showLogo;
+    final storeName = config.storeName;
+    final showAddress = config.showAddress;
+    final address = config.address;
+    final showPhone = config.showPhone;
+    final phone = config.phone;
+    final showHeaderMsg = config.showHeaderMessage;
+    final headerMsg = config.headerMessage;
+    final showFooterMsg = config.showFooterMessage;
+    final footerMsg = config.footerMessage;
+    final showCashier = config.showCashier;
+    final loggedInName = ref.watch(userProfileProvider).value?['full_name']
+        as String?;
+    final cashierName = config.resolveCashierName(loggedInName);
+    final websiteUrl = config.websiteUrl;
     final logoUrl = store['logo_url'] as String? ?? '';
-    final showQrCode = _settings['show_qr_code'] ?? true;
-    final freeText = _settings['free_text'] ?? '';
+    final showQrCode = config.showQrCode;
+    final freeText = config.freeText;
+    final receiptPrefix = config.receiptNumberPrefix;
 
     return Container(
       width: 290,
@@ -976,9 +1217,12 @@ class _ReceiptCustomizationScreenState
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'No. Struk: #PRZ-98B2',
-                      style: TextStyle(fontSize: 9, fontFamily: 'monospace'),
+                    Text(
+                      'No. Struk: #$receiptPrefix-98B2',
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontFamily: 'monospace',
+                      ),
                     ),
                     Text(
                       '18/05/26 16:50',
@@ -996,7 +1240,7 @@ class _ReceiptCustomizationScreenState
                     children: [
                       const Text('Kasir:', style: TextStyle(fontSize: 9)),
                       Text(
-                        'Staf Parzello',
+                        cashierName,
                         style: TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,

@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pos_mobile/core/services/printer_service.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 
 part 'printer_provider.g.dart';
 
@@ -33,10 +34,13 @@ class PrinterNotifier extends _$PrinterNotifier {
     required List<dynamic> items,
   }) async {
     final activeStore = ref.read(activeStoreProvider).value;
+    final loggedInName =
+        (await ref.read(userProfileProvider.future))?['full_name'] as String?;
     await _service.printReceipt(
       transaction: transaction,
       items: items,
       activeStore: activeStore,
+      loggedInCashierName: loggedInName,
     );
   }
 }
