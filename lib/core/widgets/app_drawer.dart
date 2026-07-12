@@ -53,8 +53,6 @@ class _DrawerMenuContent extends ConsumerWidget {
     final settings = activeStore?['settings'] as Map<String, dynamic>?;
     final features = settings?['features'] as Map<String, dynamic>?;
 
-    const hasTables = false; // Sembunyikan untuk sementara waktu
-
     final String location = GoRouterState.of(context).matchedLocation;
     final bool isCustomerMode = location.startsWith('/customer');
 
@@ -116,18 +114,6 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: l10n.transactionHistory,
           route: '/transactions',
         ),
-        if (hasTables)
-          _DrawerItem(
-            icon: TablerIcons.device_desktop_analytics,
-            title: l10n.tableMonitoring,
-            route: '/table-monitoring',
-          ),
-        if (hasTables)
-          _DrawerItem(
-            icon: TablerIcons.table,
-            title: l10n.tableManagement,
-            route: '/manage-tables',
-          ),
 
         const _SectionSpacing(),
         _SectionHeader(title: l10n.catalogAndStock),

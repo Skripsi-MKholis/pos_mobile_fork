@@ -10,6 +10,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
@@ -173,13 +174,19 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Center(
-                    child: Text(
-                      'Antigravity POS • ${l10n.version} 1.0.0',
-                      style: theme.textTheme.muted.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
+                    child: FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snapshot) {
+                        final appVersion = snapshot.data?.version ?? '';
+                        return Text(
+                          'Zello POS • ${l10n.version} $appVersion',
+                          style: theme.textTheme.muted.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 85),

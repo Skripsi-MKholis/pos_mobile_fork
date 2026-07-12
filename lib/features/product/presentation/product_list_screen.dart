@@ -17,7 +17,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
-import 'package:pos_mobile/core/widgets/parzello_table.dart';
 import 'package:pos_mobile/core/widgets/connectivity_status_bar.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:share_plus/share_plus.dart';

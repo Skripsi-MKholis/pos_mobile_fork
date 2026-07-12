@@ -33,11 +33,7 @@ import 'package:pos_mobile/features/reports/presentation/smart_analytics_history
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
-import 'package:pos_mobile/features/settings/presentation/manage_tables_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/receipt_customization_screen.dart';
-import 'package:pos_mobile/features/pos/presentation/table_monitoring_screen.dart';
-import 'package:pos_mobile/features/pos/presentation/split_bill_screen.dart';
-import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/router/scaffold_with_navbar.dart';
@@ -379,21 +375,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/staff-management',
         builder: (context, state) => const StaffManagementScreen(),
-      ),
-      GoRoute(
-        path: '/manage-tables',
-        builder: (context, state) => const ManageTablesScreen(),
-      ),
-      GoRoute(
-        path: '/table-monitoring',
-        builder: (context, state) => const TableMonitoringScreen(),
-      ),
-      GoRoute(
-        path: '/split-bill',
-        builder: (context, state) {
-          final order = state.extra as TableOrder;
-          return SplitBillScreen(order: order);
-        },
       ),
       GoRoute(
         path: '/products',

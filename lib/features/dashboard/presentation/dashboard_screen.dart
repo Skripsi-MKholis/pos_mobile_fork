@@ -86,8 +86,6 @@ class DashboardScreen extends ConsumerWidget {
     ShadThemeData theme,
     WidgetRef ref,
   ) {
-    const hasTables = false; // Sembunyikan untuk sementara waktu
-
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -111,14 +109,6 @@ class DashboardScreen extends ConsumerWidget {
           l10n.manageProductStock,
           onTap: () => context.push('/products'),
         ),
-        if (hasTables)
-          _buildAccessCard(
-            theme,
-            TablerIcons.armchair,
-            l10n.tableManagement,
-            l10n.setupTableLayout,
-            onTap: () => context.push('/tables'),
-          ),
         _buildAccessCard(
           theme,
           TablerIcons.chart_dots,
@@ -639,30 +629,6 @@ class DashboardScreen extends ConsumerWidget {
         maxY: maxY * 1.2,
       ),
     ).animate().fadeIn(duration: 800.ms);
-  }
-
-  Widget _buildStatsSkeleton(ShadThemeData theme) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
-      children: List.generate(
-        4,
-        (index) => Shimmer.fromColors(
-          baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
-          highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _buildChartSkeleton(ShadThemeData theme) {
