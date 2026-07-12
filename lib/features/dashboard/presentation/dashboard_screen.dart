@@ -7,7 +7,6 @@ import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
@@ -21,21 +20,6 @@ class DashboardScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final analyticsAsync = ref.watch(analyticsProvider);
     final productsAsync = ref.watch(productNotifierProvider);
-    final role = ref.watch(userRoleProvider);
-    final isAdmin = role?.toLowerCase() == 'owner';
-
-    // Auto switch to 'today' for Kasir if not already
-    if (!isAdmin) {
-      final analytics = analyticsAsync.value;
-      if (analytics != null &&
-          analytics.timeRange != AnalyticsTimeRange.today) {
-        Future.microtask(
-          () => ref
-              .read(analyticsProvider.notifier)
-              .fetchAnalytics(AnalyticsTimeRange.today),
-        );
-      }
-    }
 
     final currencyFormat = NumberFormat.currency(
       locale: Localizations.localeOf(context).toString() == 'en'
@@ -49,9 +33,7 @@ class DashboardScreen extends ConsumerWidget {
       onRefresh: () async {
         ref
             .read(analyticsProvider.notifier)
-            .fetchAnalytics(
-              isAdmin ? AnalyticsTimeRange.week : AnalyticsTimeRange.today,
-            );
+            .fetchAnalytics(AnalyticsTimeRange.week);
         ref.read(productNotifierProvider.notifier).syncProducts();
       },
       color: Warna.primary,
@@ -65,10 +47,8 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _buildHeader(l10n, theme),
             const SizedBox(height: 24),
-            if (isAdmin) ...[
-              _buildTimeFilter(ref, l10n, theme),
-              const SizedBox(height: 16),
-            ],
+            _buildTimeFilter(ref, l10n, theme),
+            const SizedBox(height: 16),
             _buildStatsGrid(
               context,
               l10n,
@@ -76,12 +56,9 @@ class DashboardScreen extends ConsumerWidget {
               productsAsync,
               currencyFormat,
               theme,
-              isAdmin,
             ),
-            if (isAdmin) ...[
-              const SizedBox(height: 24),
-              _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
-            ],
+            const SizedBox(height: 24),
+            _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
             const SizedBox(height: 24),
             Text(
               l10n.quickAccess,
@@ -92,7 +69,7 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildQuickAccessGrid(context, l10n, theme, ref, isAdmin),
+            _buildQuickAccessGrid(context, l10n, theme, ref),
             const Center(
               child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
             ),
@@ -108,7 +85,6 @@ class DashboardScreen extends ConsumerWidget {
     AppLocalizations l10n,
     ShadThemeData theme,
     WidgetRef ref,
-    bool isAdmin,
   ) {
     const hasTables = false; // Sembunyikan untuk sementara waktu
 
@@ -128,14 +104,13 @@ class DashboardScreen extends ConsumerWidget {
           l10n.openNewCashier,
           onTap: () => context.go('/pos'),
         ),
-        if (isAdmin)
-          _buildAccessCard(
-            theme,
-            TablerIcons.package,
-            l10n.product,
-            l10n.manageProductStock,
-            onTap: () => context.push('/products'),
-          ),
+        _buildAccessCard(
+          theme,
+          TablerIcons.package,
+          l10n.product,
+          l10n.manageProductStock,
+          onTap: () => context.push('/products'),
+        ),
         if (hasTables)
           _buildAccessCard(
             theme,
@@ -144,22 +119,20 @@ class DashboardScreen extends ConsumerWidget {
             l10n.setupTableLayout,
             onTap: () => context.push('/tables'),
           ),
-        if (isAdmin) ...[
-          _buildAccessCard(
-            theme,
-            TablerIcons.chart_dots,
-            l10n.reports,
-            l10n.performanceAnalysis,
-            onTap: () => context.go('/reports'),
-          ),
-          _buildAccessCard(
-            theme,
-            TablerIcons.settings,
-            l10n.settings,
-            l10n.appConfiguration,
-            onTap: () => context.go('/settings'),
-          ),
-        ],
+        _buildAccessCard(
+          theme,
+          TablerIcons.chart_dots,
+          l10n.reports,
+          l10n.performanceAnalysis,
+          onTap: () => context.go('/reports'),
+        ),
+        _buildAccessCard(
+          theme,
+          TablerIcons.settings,
+          l10n.settings,
+          l10n.appConfiguration,
+          onTap: () => context.go('/settings'),
+        ),
       ],
     );
   }
@@ -234,7 +207,6 @@ class DashboardScreen extends ConsumerWidget {
     AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
     ShadThemeData theme,
-    bool isAdmin,
   ) {
     final analytics = analyticsAsync.value;
     final products = productsAsync.value;

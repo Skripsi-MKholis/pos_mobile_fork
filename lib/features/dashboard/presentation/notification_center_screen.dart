@@ -8,8 +8,6 @@ import 'package:pos_mobile/core/models/notification_local_model.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
-import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
-import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 class NotificationCenterScreen extends ConsumerStatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -105,10 +103,6 @@ class _NotificationCenterScreenState
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final notificationsAsync = ref.watch(notificationNotifierProvider);
-    final user = ref.watch(currentUserProvider);
-    final role = ref.watch(userRoleProvider);
-    final isAdmin =
-        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFC),
@@ -492,13 +486,11 @@ class _NotificationCenterScreenState
           );
         },
       ),
-      floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              onPressed: () => context.push('/broadcast-notification'),
-              backgroundColor: Warna.primary,
-              child: const Icon(TablerIcons.speakerphone, color: Colors.black),
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/broadcast-notification'),
+        backgroundColor: Warna.primary,
+        child: const Icon(TablerIcons.speakerphone, color: Colors.black),
+      ),
     );
   }
 }

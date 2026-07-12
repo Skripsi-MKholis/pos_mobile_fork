@@ -42,41 +42,39 @@ class SettingsScreen extends ConsumerWidget {
                         .fadeIn(duration: 400.ms)
                         .slideX(begin: 0.1, end: 0),
                   const SizedBox(height: 32),
-                  if (isAdmin) ...[
-                    _buildMenuSection(theme, l10n.catalogAndStock, [
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.package,
-                        l10n.productList,
-                        () => context.push('/products'),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.packages,
-                        l10n.manageStock,
-                        () => context.push('/stock'),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.category,
-                        l10n.productCategory,
-                        () => context.push('/categories'),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.history,
-                        Localizations.localeOf(context).languageCode == 'id'
-                            ? 'Riwayat Stok'
-                            : 'Stock History',
-                        () => context.push('/stock/history'),
-                      ),
-                    ]),
-                    const SizedBox(height: 32),
-                  ],
+                  _buildMenuSection(theme, l10n.catalogAndStock, [
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.package,
+                      l10n.productList,
+                      () => context.push('/products'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.packages,
+                      l10n.manageStock,
+                      () => context.push('/stock'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.category,
+                      l10n.productCategory,
+                      () => context.push('/categories'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.history,
+                      Localizations.localeOf(context).languageCode == 'id'
+                          ? 'Riwayat Stok'
+                          : 'Stock History',
+                      () => context.push('/stock/history'),
+                    ),
+                  ]),
+                  const SizedBox(height: 32),
                   _buildMenuSection(theme, l10n.storeSettings, [
                     _buildMenuItem(
                       context,
@@ -92,14 +90,21 @@ class SettingsScreen extends ConsumerWidget {
                       l10n.notificationSettings,
                       () => context.push('/notification-settings'),
                     ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.receipt,
+                      l10n.receiptCustomization,
+                      () => context.push('/receipt-customization'),
+                    ),
+                    _buildMenuItem(
+                      context,
+                      theme,
+                      TablerIcons.speakerphone,
+                      l10n.broadcastNotification,
+                      () => context.push('/broadcast-notification'),
+                    ),
                     if (isAdmin) ...[
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.receipt,
-                        l10n.receiptCustomization,
-                        () => context.push('/receipt-customization'),
-                      ),
                       _buildMenuItem(
                         context,
                         theme,
@@ -113,13 +118,6 @@ class SettingsScreen extends ConsumerWidget {
                         TablerIcons.users,
                         l10n.employeeManagement,
                         () => context.push('/staff-management'),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.speakerphone,
-                        l10n.broadcastNotification,
-                        () => context.push('/broadcast-notification'),
                       ),
                     ],
                   ]),

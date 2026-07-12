@@ -330,8 +330,6 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final role = ref.watch(userRoleProvider);
-    final isAdmin = role?.toLowerCase() == 'owner';
     final productsAsync = ref.watch(productNotifierProvider);
     final products = productsAsync.value ?? [];
     final categoriesAsync = ref.watch(categoryNotifierProvider);
@@ -538,22 +536,20 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                             style: const TextStyle(color: Colors.grey),
                           ),
                           const SizedBox(height: 24),
-                          if (isAdmin) ...[
-                            ShadButton(
-                              onPressed: () => context.push('/products/add'),
-                              leading: const Icon(TablerIcons.plus, size: 18),
-                              child: Text(l10n.addProduct),
+                          ShadButton(
+                            onPressed: () => context.push('/products/add'),
+                            leading: const Icon(TablerIcons.plus, size: 18),
+                            child: Text(l10n.addProduct),
+                          ),
+                          const SizedBox(height: 12),
+                          ShadButton.outline(
+                            onPressed: () => context.push('/products'),
+                            leading: const Icon(
+                              TablerIcons.settings,
+                              size: 18,
                             ),
-                            const SizedBox(height: 12),
-                            ShadButton.outline(
-                              onPressed: () => context.push('/products'),
-                              leading: const Icon(
-                                TablerIcons.settings,
-                                size: 18,
-                              ),
-                              child: Text(l10n.manageProduct),
-                            ),
-                          ],
+                            child: Text(l10n.manageProduct),
+                          ),
                         ],
                       ),
                     );

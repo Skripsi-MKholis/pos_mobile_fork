@@ -8,7 +8,6 @@ import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:flutter/services.dart';
 import 'package:pos_mobile/core/widgets/app_drawer.dart';
 import 'package:pos_mobile/core/widgets/pill_app_bar.dart';
-import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:delightful_toast/toast/utils/enums.dart';
@@ -55,10 +54,6 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final user = ref.watch(currentUserProvider);
-    final role = ref.watch(userRoleProvider);
-    final isAdmin =
-        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     // Listener untuk notifikasi real-time yang masuk untuk menampilkan Toast instan
     ref.listen<NotificationLocalModel?>(lastReceivedNotificationProvider, (
@@ -119,53 +114,30 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
       }
     });
 
-    // Tentukan item navigasi berdasarkan Role dengan pemetaan Branch yang eksplisit
-    final List<Map<String, dynamic>> navItems = isAdmin
-        ? [
-            {'icon': TablerIcons.chart_pie, 'label': l10n.homeTab, 'branch': 0},
-            {
-              'icon': TablerIcons.shopping_cart,
-              'label': l10n.cashierTab,
-              'branch': 1,
-            },
-            {
-              'icon': TablerIcons.history,
-              'label': l10n.historyTab,
-              'branch': 2,
-            },
-            {
-              'icon': TablerIcons.report_money,
-              'label': l10n.reportsTab,
-              'branch': 3,
-            },
-            {
-              'icon': TablerIcons.layout_grid,
-              'label': l10n.menuTab,
-              'branch': 4,
-            },
-          ]
-        : [
-            {
-              'icon': TablerIcons.layout_dashboard,
-              'label': l10n.homeTab,
-              'branch': 0,
-            },
-            {
-              'icon': TablerIcons.shopping_cart,
-              'label': l10n.cashierTab,
-              'branch': 1,
-            },
-            {
-              'icon': TablerIcons.history,
-              'label': l10n.historyTab,
-              'branch': 2,
-            },
-            {
-              'icon': TablerIcons.layout_grid,
-              'label': l10n.menuTab,
-              'branch': 4,
-            },
-          ];
+    // Item navigasi bottom-nav sama untuk semua role
+    final List<Map<String, dynamic>> navItems = [
+      {'icon': TablerIcons.chart_pie, 'label': l10n.homeTab, 'branch': 0},
+      {
+        'icon': TablerIcons.shopping_cart,
+        'label': l10n.cashierTab,
+        'branch': 1,
+      },
+      {
+        'icon': TablerIcons.history,
+        'label': l10n.historyTab,
+        'branch': 2,
+      },
+      {
+        'icon': TablerIcons.report_money,
+        'label': l10n.reportsTab,
+        'branch': 3,
+      },
+      {
+        'icon': TablerIcons.layout_grid,
+        'label': l10n.menuTab,
+        'branch': 4,
+      },
+    ];
 
     // Judul AppBar berdasarkan branch yang aktif (bukan berdasarkan index bottom bar)
     final String pageTitle;

@@ -6,7 +6,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
@@ -94,17 +93,6 @@ class _TransactionHistoryScreenState
     final dateFormat = DateFormat('HH:mm');
     final dateFullFormat = DateFormat('dd MMM yyyy');
 
-    final role = ref.watch(userRoleProvider);
-    final isAdmin = role?.toLowerCase() == 'owner';
-
-    // Auto switch to 'Hari Ini' for Kasir if they try to see other dates
-    if (!isAdmin && _dateFilter != 'Hari Ini') {
-      Future.microtask(() {
-        setState(() => _dateFilter = 'Hari Ini');
-        _applyFilters();
-      });
-    }
-
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(transactionSummaryProvider);
@@ -129,19 +117,16 @@ class _TransactionHistoryScreenState
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          if (isAdmin) ...[
-                            _buildDateChip(l10n.all, 'Semua'),
-                            _buildDateChip(l10n.today, 'Hari Ini'),
-                            _buildDateChip(l10n.yesterday, 'Kemarin'),
-                            _buildDateChip(
-                              _dateFilter == 'Custom' && _customDate != null
-                                  ? DateFormat('dd MMM').format(_customDate!)
-                                  : l10n.selectDate,
-                              'Custom',
-                              isCalendar: true,
-                            ),
-                          ] else
-                            _buildDateChip(l10n.today, 'Hari Ini'),
+                          _buildDateChip(l10n.all, 'Semua'),
+                          _buildDateChip(l10n.today, 'Hari Ini'),
+                          _buildDateChip(l10n.yesterday, 'Kemarin'),
+                          _buildDateChip(
+                            _dateFilter == 'Custom' && _customDate != null
+                                ? DateFormat('dd MMM').format(_customDate!)
+                                : l10n.selectDate,
+                            'Custom',
+                            isCalendar: true,
+                          ),
                         ],
                       ),
                     ),

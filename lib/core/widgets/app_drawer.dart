@@ -46,10 +46,7 @@ class _DrawerMenuContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
-    final role = ref.watch(userRoleProvider);
     final l10n = AppLocalizations.of(context)!;
-    final bool isAdmin =
-        role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
     final activeStoreAsync = ref.watch(activeStoreProvider);
     final activeStore = activeStoreAsync.value;
@@ -96,18 +93,16 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: l10n.dashboard,
           route: '/dashboard',
         ),
-        if (isAdmin)
-          _DrawerItem(
-            icon: TablerIcons.chart_dots,
-            title: l10n.reports,
-            route: '/reports',
-          ),
-        if (isAdmin)
-          _DrawerItem(
-            icon: TablerIcons.brain,
-            title: l10n.smartAnalytics,
-            route: '/smart-analytics',
-          ),
+        _DrawerItem(
+          icon: TablerIcons.chart_dots,
+          title: l10n.reports,
+          route: '/reports',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.brain,
+          title: l10n.smartAnalytics,
+          route: '/smart-analytics',
+        ),
 
         const _SectionSpacing(),
         _SectionHeader(title: l10n.cashierOperational),
@@ -134,32 +129,30 @@ class _DrawerMenuContent extends ConsumerWidget {
             route: '/manage-tables',
           ),
 
-        if (isAdmin) ...[
-          const _SectionSpacing(),
-          _SectionHeader(title: l10n.catalogAndStock),
-          _DrawerItem(
-            icon: TablerIcons.box,
-            title: l10n.productList,
-            route: '/products',
-          ),
-          _DrawerItem(
-            icon: TablerIcons.packages,
-            title: l10n.manageStock,
-            route: '/stock',
-          ),
-          _DrawerItem(
-            icon: TablerIcons.history,
-            title: Localizations.localeOf(context).languageCode == 'id'
-                ? 'Riwayat Stok'
-                : 'Stock History',
-            route: '/stock/history',
-          ),
-          _DrawerItem(
-            icon: TablerIcons.category,
-            title: l10n.categories,
-            route: '/categories',
-          ),
-        ],
+        const _SectionSpacing(),
+        _SectionHeader(title: l10n.catalogAndStock),
+        _DrawerItem(
+          icon: TablerIcons.box,
+          title: l10n.productList,
+          route: '/products',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.packages,
+          title: l10n.manageStock,
+          route: '/stock',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.history,
+          title: Localizations.localeOf(context).languageCode == 'id'
+              ? 'Riwayat Stok'
+              : 'Stock History',
+          route: '/stock/history',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.category,
+          title: l10n.categories,
+          route: '/categories',
+        ),
 
         const _SectionSpacing(),
         _SectionHeader(title: l10n.settings),
@@ -168,18 +161,16 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: l10n.printAndReceipt,
           route: '/printer-settings',
         ),
-        if (isAdmin)
-          _DrawerItem(
-            icon: TablerIcons.receipt,
-            title: l10n.receiptCustomization,
-            route: '/receipt-customization',
-          ),
-        if (isAdmin)
-          _DrawerItem(
-            icon: TablerIcons.building_store,
-            title: l10n.storeInformation,
-            route: '/settings',
-          ),
+        _DrawerItem(
+          icon: TablerIcons.receipt,
+          title: l10n.receiptCustomization,
+          route: '/receipt-customization',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.building_store,
+          title: l10n.storeInformation,
+          route: '/settings',
+        ),
 
         if (user?.appMetadata['role'] == 'admin') ...[
           const _SectionSpacing(),
