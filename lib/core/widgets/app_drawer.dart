@@ -530,6 +530,11 @@ class _UserFooter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final profileAsync = ref.watch(userProfileProvider);
+    final profile = profileAsync.value;
+    final avatarUrl = profile?['avatar_url'] as String? ??
+        user?.userMetadata?['avatar_url'] as String? ??
+        user?.userMetadata?['picture'] as String?;
 
     final String location = GoRouterState.of(context).matchedLocation;
     final bool isCustomerMode = location.startsWith('/customer');
@@ -609,12 +614,35 @@ class _UserFooter extends ConsumerWidget {
                     CircleAvatar(
                       radius: 18,
                       backgroundColor: Warna.primary,
-                      child: Text(
-                        user?.email?[0].toUpperCase() ?? 'U',
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w900,
-                        ),
+                      child: ClipOval(
+                        child: avatarUrl != null && avatarUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: avatarUrl,
+                                width: 36,
+                                height: 36,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Text(
+                                  user?.email?[0].toUpperCase() ?? 'U',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Text(
+                                  user?.email?[0].toUpperCase() ?? 'U',
+                                  style: const TextStyle(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                user?.email?[0].toUpperCase() ?? 'U',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 12),

@@ -44,7 +44,7 @@ This is a Flutter POS (Point of Sale) mobile app called **Parzello POS**, using:
 - `providers/` — Riverpod providers (`.dart` source + `.g.dart` generated)
 - `models/` — data models (customer feature only; core models live in `lib/core/models/`)
 
-Features: `auth`, `pos`, `product`, `reports`, `dashboard`, `settings`, `customer`, `kds`, `onboarding`
+Features: `auth`, `pos`, `product`, `reports`, `dashboard`, `settings`, `customer`, `onboarding`
 
 ### Offline-first sync
 
@@ -54,7 +54,9 @@ Features: `auth`, `pos`, `product`, `reports`, `dashboard`, `settings`, `custome
 
 ### Code generation
 
-Riverpod providers use `@riverpod` annotation. Every provider file `foo.dart` has a generated `foo.g.dart` counterpart. Run `build_runner` after modifying any annotated provider or Isar model. Never edit `.g.dart` files manually.
+Riverpod providers use `@riverpod` annotation. Every provider file `foo.dart` has a generated `foo.g.dart` counterpart — run `build_runner` after modifying any annotated provider and never edit these `.g.dart` files manually.
+
+Isar is pinned to `isar_community` 3.2.1 (not the abandoned `isar` package; import as `package:isar_community/isar.dart`) to get 16 KB-page-aligned native binaries for Google Play. Its generator isn't wired into `build_runner` (3.2.1 generator is broken on current Dart; newer generators need an analyzer/build version that conflicts with `riverpod_generator` 2.x), so the `.g.dart` files under `lib/core/models/` are **hand-maintained** — `build.yaml` excludes that path from `--delete-conflicting-outputs`. If you change an `@collection` model, regenerate its `.g.dart` externally (e.g. a throwaway project with `isar_community_generator` 3.2.1) and keep the schema `version:` string equal to `Isar.version` ('3.2.1'), or the const `CollectionSchema` assertion throws at compile time.
 
 ### Routing & RBAC
 
