@@ -23,6 +23,7 @@ class StoreInfoScreen extends ConsumerStatefulWidget {
 class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   final _formKey = GlobalKey<ShadFormState>();
   bool _isSaving = false;
+  bool _isDeleting = false;
   File? _imageFile;
   bool _logoRemoved = false;
   final _picker = ImagePicker();
@@ -376,12 +377,131 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
                           ),
                   ),
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0),
+
+                const SizedBox(height: 32),
+                _buildDangerZoneCard(activeStore, theme, isId),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildDangerZoneCard(
+    Map<String, dynamic> activeStore,
+    ShadThemeData theme,
+    bool isId,
+  ) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final isOwner = activeStore['owner_id'] == user?.id;
+    if (!isOwner) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 6, bottom: 8),
+          child: Text(
+            isId ? 'ZONA BERBAHAYA' : 'DANGER ZONE',
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+              color: Colors.red,
+            ),
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.red.shade50,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.red.shade100),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isId ? 'Hapus Toko' : 'Delete Store',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.red),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                isId
+                    ? 'Toko akan disembunyikan secara permanen dari akun Anda dan semua staf. Riwayat transaksi tetap disimpan untuk keperluan audit.'
+                    : 'The store will be permanently hidden from your account and all staff. Transaction history is kept for audit purposes.',
+                style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ShadButton.destructive(
+                  onPressed: _isDeleting ? null : () => _handleDeleteStore(activeStore, isId),
+                  child: _isDeleting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                        )
+                      : Text(isId ? 'Hapus Toko Ini' : 'Delete This Store'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.04, end: 0);
+  }
+
+  Future<void> _handleDeleteStore(Map<String, dynamic> activeStore, bool isId) async {
+    final storeName = activeStore['name'] ?? '';
+    final confirmed = await showShadDialog<bool>(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        title: Text(isId ? 'Hapus "$storeName"?' : 'Delete "$storeName"?'),
+        description: Text(
+          isId
+              ? 'Tindakan ini tidak dapat dibatalkan sendiri melalui aplikasi. Semua staf akan kehilangan akses ke toko ini.'
+              : 'This action cannot be undone from within the app. All staff will lose access to this store.',
+        ),
+        actions: [
+          ShadButton.outline(
+            child: Text(isId ? 'Batal' : 'Cancel'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ShadButton.destructive(
+            child: Text(isId ? 'Ya, Hapus' : 'Yes, Delete'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await ref.read(activeStoreProvider.notifier).deleteStore();
+      if (mounted) {
+        mySnackBar(
+          context: context,
+          text: isId ? 'Toko berhasil dihapus' : 'Store deleted successfully',
+          status: ToastStatus.success,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        mySnackBar(
+          context: context,
+          text: isId ? 'Gagal menghapus toko: $e' : 'Failed to delete store: $e',
+          status: ToastStatus.error,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
   }
 
   Widget _buildLogoBentoCard(

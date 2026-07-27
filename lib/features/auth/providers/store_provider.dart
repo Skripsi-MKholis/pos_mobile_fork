@@ -183,6 +183,37 @@ class ActiveStore extends _$ActiveStore {
     await prefs.remove(_storageKey);
     state = const AsyncData(null);
   }
+
+  /// Soft-deletes the active store. Only the store owner may do this.
+  /// Financial records (transactions) are intentionally preserved and stay
+  /// blocked from hard-deletion at the database level — this only marks the
+  /// store as deleted (`deleted_at`) so it disappears from every listing.
+  Future<void> deleteStore() async {
+    final currentStore = state.value;
+    if (currentStore == null) throw 'No active store selected';
+
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) throw 'User not authenticated';
+
+    final storeId = currentStore['id'].toString();
+    if (currentStore['owner_id'] != user.id) {
+      throw 'Only the store owner can delete this store';
+    }
+
+    await supabase
+        .from('stores')
+        .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+        .eq('id', storeId)
+        .eq('owner_id', user.id);
+
+    // Drop local cache for the deleted store and clear the active selection.
+    await _isar.writeTxn(() =>
+        _isar.stores.filter().supabaseIdEqualTo(storeId).deleteFirst());
+    ref.invalidate(userStoresProvider);
+
+    await clear();
+  }
 }
 
 @riverpod
