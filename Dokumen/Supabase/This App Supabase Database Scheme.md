@@ -8,7 +8,7 @@ Untuk skema lengkap seluruh 24 tabel di project (termasuk yang tidak dipakai apl
 
 ## 1. Ringkasan: Tabel Terpakai vs Tidak Terpakai
 
-### ✅ Dipakai aplikasi (14 tabel)
+### ✅ Dipakai aplikasi (15 tabel)
 | Tabel | Contoh lokasi pemakaian di kode |
 | :--- | :--- |
 | `stores` | `lib/features/auth/providers/store_provider.dart`, `customer_session_provider.dart` |
@@ -25,7 +25,8 @@ Untuk skema lengkap seluruh 24 tabel di project (termasuk yang tidak dipakai apl
 | `customers` | `lib/features/customer/providers/customer_session_provider.dart`, `customer_checkout_page.dart` |
 | `notifications` | `lib/features/dashboard/providers/notification_repository.dart` |
 | `user_fcm_tokens` | `lib/core/services/fcm_service.dart` |
-| `smart_analytics_snapshots` | `lib/features/reports/providers/smart_analytics_provider.dart` (`_snapshotsTable`) |
+| `smart_analytics_snapshots` | `lib/features/reports/data/smart_analytics_repository.dart` (`snapshotsTable`) |
+| `ai_forecast_points` | `lib/features/reports/data/smart_analytics_repository.dart` (`forecastPointsTable`) — evaluasi akurasi prediksi |
 
 ### ❌ Tidak dipakai aplikasi ini (9 tabel — diabaikan dari dokumen ini)
 `product_categories`, `discounts`, `reservations`, `subscription_plans`, `subscriptions`, `subscription_history`, `app_configs`, `classifications`, `download_waitlist`.
@@ -39,7 +40,11 @@ Untuk skema lengkap seluruh 24 tabel di project (termasuk yang tidak dipakai apl
 | `create_transaction_v3` | `lib/features/pos/providers/table_monitoring_provider.dart` | Membuat transaksi langsung (jalur non-sync, terkait alur dine-in/table monitoring) — versi lebih lama dari v4 |
 | `sync_pending_transaction` | `lib/features/pos/providers/table_monitoring_provider.dart` | Sinkronisasi transaksi pending terkait meja |
 | `get_sales_performance` | `lib/features/reports/providers/sales_performance_provider.dart` | Data agregat untuk layar Performa Penjualan (`/sales-performance`) |
-| `get_analytics` | `lib/features/reports/providers/analytics_provider.dart` | Data agregat untuk laporan (`/reports`) |
+| `get_analytics` | `lib/features/reports/providers/analytics_provider.dart`, `today_revenue_provider.dart` | Data agregat untuk laporan (`/reports`) dan realisasi omzet hari ini |
+| `get_forecast_input` | `lib/features/reports/data/smart_analytics_repository.dart` | Agregat harian/per jam/per produk sebagai input model prediksi (menggantikan penarikan transaksi mentah) |
+| `evaluate_forecast_points` | `lib/features/reports/data/smart_analytics_repository.dart` | Mengisi realisasi pada `ai_forecast_points` untuk tanggal yang sudah lewat |
+
+> `get_forecast_input` dan `evaluate_forecast_points` didefinisikan di `supabase/migrations/20260728_lstm_forecast.sql`. Klien memperlakukan keduanya sebagai **opsional**: bila migrasi belum dijalankan, input model diambil lewat query langsung dan evaluasi akurasi dilewati.
 
 ---
 
@@ -341,6 +346,36 @@ Histori hasil Smart Analytics (LSTM), dipakai `smart_analytics_provider.dart` (k
 | `pricing_recommendations` | jsonb | ❌ | `[]` | **Check**: harus array JSON |
 | `tab_data` | jsonb | ❌ | `{}` | **Check**: harus objek JSON — cache tab daily/weekly/monthly/custom |
 | `created_at` | timestamptz | ❌ | `now()` | |
+| `model_version` | text | ✅ | | Versi artefak model, mis. `lstm-v2.1.0` |
+| `fallback_reason` | text | ✅ | | Alasan memakai baseline: `insufficient_history`, `model_unavailable`, `timeout`, `legacy_v1_endpoint` |
+| `input_days` | integer | ❌ | `0` | Jumlah hari data yang dipakai model |
+| `metrics` | jsonb | ❌ | `{}` | MAPE/RMSE backtest yang dilaporkan server |
+| `hourly_traffic` | jsonb | ❌ | `[]` | Prediksi transaksi per jam |
+| `product_demand` | jsonb | ❌ | `[]` | Prediksi permintaan per produk |
+| `forecast_payload` | jsonb | ❌ | `{}` | `{forecast, input_daily, profile}` — cukup untuk menggambar ulang snapshot sepenuhnya |
+
+> Delapan kolom terakhir ditambahkan migrasi `20260728_lstm_forecast.sql`. Klien melepasnya otomatis saat insert bila migrasi belum dijalankan, sehingga fitur tetap berjalan.
+
+---
+
+### 2.16 `ai_forecast_points`
+Satu baris per titik prediksi harian. Kolom `actual_*` diisi belakangan oleh RPC `evaluate_forecast_points`, dan menjadi dasar perhitungan MAE/RMSE/MAPE pada layar Akurasi Model (`/smart-analytics/accuracy`).
+
+| Kolom | Tipe | Nullable | Default | Keterangan |
+| :--- | :--- | :---: | :--- | :--- |
+| `id` | uuid (PK) | ❌ | `gen_random_uuid()` | |
+| `store_id` | uuid | ❌ | | FK → `stores.id` **ON DELETE CASCADE** (data turunan, bukan catatan keuangan) |
+| `snapshot_id` | uuid | ✅ | | FK → `smart_analytics_snapshots.id` ON DELETE CASCADE |
+| `target_date` | date | ❌ | | Tanggal yang diprediksi |
+| `horizon_days` | smallint | ❌ | | Jarak hari saat prediksi dibuat (H+1, H+7, …) |
+| `model_used` | text | ❌ | | `lstm`, `lstm_finetuned`, `seasonal_naive`, `naive`, `offline_local` |
+| `predicted_revenue` | numeric | ❌ | | |
+| `predicted_tx` | integer | ✅ | | |
+| `actual_revenue` / `actual_tx` | numeric / integer | ✅ | | Realisasi, diisi setelah tanggalnya lewat |
+| `evaluated_at` | timestamptz | ✅ | | |
+| `created_at` | timestamptz | ❌ | `now()` | |
+
+**Unique**: `(store_id, snapshot_id, target_date)`. **RLS**: SELECT & INSERT untuk anggota toko.
 
 ---
 

@@ -30,6 +30,7 @@ import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/sales_performance_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_history_screen.dart';
+import 'package:pos_mobile/features/reports/presentation/forecast_accuracy_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
@@ -414,6 +415,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/sales-performance',
         builder: (context, state) => const SalesPerformanceScreen(),
+      ),
+      GoRoute(
+        path: '/smart-analytics/accuracy',
+        builder: (context, state) => const ForecastAccuracyScreen(),
       ),
       GoRoute(
         path: '/smart-analytics/history',

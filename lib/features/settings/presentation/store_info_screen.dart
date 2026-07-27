@@ -9,6 +9,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/services/wilayah_service.dart';
+import 'package:pos_mobile/features/reports/models/forecast_input.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shimmer/shimmer.dart';
@@ -37,6 +38,15 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   bool _loadingCities = false;
   bool _locationInitialized = false;
 
+  // Profil operasional — dipakai model prediksi untuk menyelaraskan hari
+  // aktif toko (§8.9). Sebelumnya nilai ini dikirim ke model tapi tidak
+  // pernah bisa diisi lewat UI mana pun (T-13).
+  Set<int> _openWeekdays = {1, 2, 3, 4, 5, 6, 7};
+  Set<int> _closedMonths = {};
+  int _openHour = 8;
+  int _closeHour = 21;
+  bool _showClosedMonths = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -46,6 +56,12 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
       if (activeStore != null) {
         _selectedProvinceName = activeStore['province'] as String?;
         _selectedCityName = activeStore['city'] as String?;
+
+        final profile = StoreOperationalProfile.fromStoreSettings(activeStore);
+        _openWeekdays = profile.openWeekdays.toSet();
+        _closedMonths = profile.closedMonths.toSet();
+        _openHour = profile.openHour;
+        _closeHour = profile.closeHour;
       }
     }
   }
@@ -349,6 +365,10 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
 
                 // BENTO CARD 2: Detail Informasi Toko (Form)
                 _buildFormBentoCard(activeStore, theme, isId),
+                const SizedBox(height: 16),
+
+                // BENTO CARD 3: Profil Operasional (input model prediksi)
+                _buildOperationalBentoCard(theme, isId),
                 const SizedBox(height: 24),
 
                 // Primary Save Button
@@ -385,6 +405,251 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Profil operasional toko: hari buka, jam operasional, dan bulan tutup.
+  ///
+  /// Nilai-nilai ini dikirim ke server model sebagai `store_profile`, dan
+  /// dipakai estimasi lokal untuk memprediksi hari tutup sebagai nol alih-alih
+  /// rata-rata. Sebelum ini, `open_on_weekends`/`closed_months` sudah dikirim
+  /// provider tetapi tidak pernah bisa diubah pengguna (T-13).
+  Widget _buildOperationalBentoCard(ShadThemeData theme, bool isId) {
+    const dayLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+    const monthLabels = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: theme.colorScheme.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Warna.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  TablerIcons.calendar_time,
+                  size: 16,
+                  color: Warna.black,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isId ? 'Profil Operasional' : 'Operating Profile',
+                      style: theme.textTheme.large.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      isId
+                          ? 'Dipakai model prediksi agar hari tutup tidak dihitung sebagai penurunan penjualan'
+                          : 'Used by the forecast model so closed days are not read as a sales drop',
+                      style: theme.textTheme.muted.copyWith(fontSize: 10.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          Text(
+            isId ? 'Hari buka' : 'Open days',
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (int day = 1; day <= 7; day++)
+                _buildToggleChip(
+                  label: dayLabels[day - 1],
+                  selected: _openWeekdays.contains(day),
+                  onTap: () => setState(() {
+                    if (_openWeekdays.contains(day)) {
+                      // Minimal satu hari harus tetap buka.
+                      if (_openWeekdays.length > 1) _openWeekdays.remove(day);
+                    } else {
+                      _openWeekdays.add(day);
+                    }
+                  }),
+                  theme: theme,
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          Text(
+            isId ? 'Jam operasional' : 'Operating hours',
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildHourPicker(
+                  label: isId ? 'Buka' : 'Open',
+                  hour: _openHour,
+                  theme: theme,
+                  onChanged: (value) => setState(() {
+                    _openHour = value;
+                    if (_closeHour <= _openHour) _closeHour = _openHour + 1;
+                  }),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildHourPicker(
+                  label: isId ? 'Tutup' : 'Close',
+                  hour: _closeHour,
+                  theme: theme,
+                  minHour: _openHour + 1,
+                  onChanged: (value) => setState(() => _closeHour = value),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          InkWell(
+            onTap: () =>
+                setState(() => _showClosedMonths = !_showClosedMonths),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    isId
+                        ? 'Bulan tutup (opsional)'
+                        : 'Closed months (optional)',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                if (_closedMonths.isNotEmpty)
+                  Text(
+                    '${_closedMonths.length} ${isId ? 'bulan' : 'months'}',
+                    style: theme.textTheme.muted.copyWith(fontSize: 10),
+                  ),
+                Icon(
+                  _showClosedMonths
+                      ? TablerIcons.chevron_up
+                      : TablerIcons.chevron_down,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+          if (_showClosedMonths) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (int month = 1; month <= 12; month++)
+                  _buildToggleChip(
+                    label: monthLabels[month - 1],
+                    selected: _closedMonths.contains(month),
+                    onTap: () => setState(() {
+                      if (!_closedMonths.remove(month)) {
+                        _closedMonths.add(month);
+                      }
+                    }),
+                    theme: theme,
+                    danger: true,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildToggleChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required ShadThemeData theme,
+    bool danger = false,
+  }) {
+    final activeColor = danger ? Colors.red.shade400 : Warna.primary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? activeColor.withValues(alpha: 0.18)
+              : theme.colorScheme.muted.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? activeColor : Colors.transparent,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+            color: selected
+                ? theme.colorScheme.foreground
+                : theme.colorScheme.mutedForeground,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHourPicker({
+    required String label,
+    required int hour,
+    required ShadThemeData theme,
+    required ValueChanged<int> onChanged,
+    int minHour = 0,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: theme.textTheme.muted.copyWith(fontSize: 10)),
+        const SizedBox(height: 4),
+        ShadSelect<int>(
+          initialValue: hour,
+          options: [
+            for (int h = minHour; h <= 23; h++)
+              ShadOption(
+                value: h,
+                child: Text('${h.toString().padLeft(2, '0')}.00'),
+              ),
+          ],
+          selectedOptionBuilder: (context, value) =>
+              Text('${value.toString().padLeft(2, '0')}.00'),
+          onChanged: (value) {
+            if (value != null) onChanged(value);
+          },
+        ),
+      ],
     );
   }
 
@@ -900,6 +1165,30 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         logoUrl = supabase.storage.from('store_assets').getPublicUrl(path);
       }
 
+      // Gabungkan profil operasional ke `settings` tanpa menghapus kunci lain
+      // (mis. `settings.features`) yang dikelola bagian aplikasi berbeda.
+      final existingSettings = activeStore['settings'] is Map
+          ? Map<String, dynamic>.from(activeStore['settings'] as Map)
+          : <String, dynamic>{};
+      final existingOperational = existingSettings['operational'] is Map
+          ? Map<String, dynamic>.from(existingSettings['operational'] as Map)
+          : <String, dynamic>{};
+
+      final openWeekdays = (_openWeekdays.toList()..sort());
+      final updatedSettings = {
+        ...existingSettings,
+        'operational': {
+          ...existingOperational,
+          'open_weekdays': openWeekdays,
+          // Tetap ditulis demi kompatibilitas dengan pembaca lama.
+          'open_on_weekends':
+              openWeekdays.contains(6) || openWeekdays.contains(7),
+          'closed_months': (_closedMonths.toList()..sort()),
+          'open_hour': _openHour,
+          'close_hour': _closeHour,
+        },
+      };
+
       final updatedData = {
         'name': values['name'],
         'phone': values['phone'],
@@ -907,6 +1196,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         'logo_url': logoUrl,
         'province': _selectedProvinceName,
         'city': _selectedCityName,
+        'settings': updatedSettings,
       };
 
       await supabase.from('stores').update(updatedData).eq('id', activeStore['id']);

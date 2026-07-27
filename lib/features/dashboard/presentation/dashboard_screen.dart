@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/features/reports/presentation/widgets/today_forecast_card.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart';
+import 'package:pos_mobile/features/reports/providers/forecast_provider.dart';
+import 'package:pos_mobile/features/reports/providers/today_revenue_provider.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -35,6 +38,9 @@ class DashboardScreen extends ConsumerWidget {
             .read(analyticsProvider.notifier)
             .fetchAnalytics(AnalyticsTimeRange.week);
         ref.read(productNotifierProvider.notifier).syncProducts();
+        // Menyegarkan pembacaan prediksi tersimpan (bukan memanggil model).
+        ref.invalidate(forecastProvider);
+        ref.invalidate(todayRevenueProvider);
       },
       color: Warna.primary,
       child: SingleChildScrollView(
@@ -57,6 +63,8 @@ class DashboardScreen extends ConsumerWidget {
               currencyFormat,
               theme,
             ),
+            const SizedBox(height: 16),
+            const TodayForecastCard(),
             const SizedBox(height: 24),
             _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
             const SizedBox(height: 24),

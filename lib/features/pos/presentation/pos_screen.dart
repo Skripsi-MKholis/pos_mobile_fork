@@ -5,6 +5,7 @@ import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/pos/providers/cart_provider.dart';
+import 'package:pos_mobile/features/reports/presentation/widgets/hourly_forecast_card.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/presentation/widgets/cart_detail_sheet.dart';
 import 'package:shimmer/shimmer.dart';
@@ -350,6 +351,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
       behavior: HitTestBehavior.translucent,
       child: Column(
         children: [
+          // Pengingat jam sibuk dari prediksi tersimpan (§8.5). Hanya membaca
+          // cache — tidak memanggil model — agar POS tetap ringan, dan
+          // menghilang sendiri di luar rentang 3 jam menjelang puncak.
+          const PosPeakHourBanner(),
+
           // Top Toolbar with Table Selection
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),

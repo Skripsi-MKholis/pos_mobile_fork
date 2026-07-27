@@ -10,6 +10,11 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/features/reports/models/forecast_point.dart'
+    show DemandTrend;
+import 'package:pos_mobile/features/reports/presentation/widgets/recommendation_style.dart'
+    show DemandTrendStyle;
+import 'package:pos_mobile/features/reports/providers/stock_forecast_provider.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -38,6 +43,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 300));
   String _searchQuery = '';
   String? _selectedCategory;
+
+  /// Filter "Melambat": hanya menampilkan produk yang permintaannya
+  /// diproyeksikan turun — kandidat promo cuci gudang (§8.4).
+  bool _showSlowingOnly = false;
 
   @override
   void initState() {
@@ -265,6 +274,45 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
+                          // Filter khusus prediksi: produk yang permintaannya
+                          // diproyeksikan melambat (§8.4). Hanya muncul bila
+                          // sudah ada hasil analisis untuk dibandingkan.
+                          if (ref.watch(slowingProductIdsProvider).isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ChoiceChip(
+                                avatar: Icon(
+                                  TablerIcons.trending_down,
+                                  size: 14,
+                                  color: _showSlowingOnly
+                                      ? Colors.black
+                                      : Colors.orange.shade700,
+                                ),
+                                label: const Text('Melambat'),
+                                selected: _showSlowingOnly,
+                                selectedColor: Warna.primary,
+                                backgroundColor: theme.colorScheme.muted
+                                    .withOpacity(0.3),
+                                labelStyle: TextStyle(
+                                  color: _showSlowingOnly
+                                      ? Colors.black
+                                      : theme.colorScheme.foreground,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  side: BorderSide(
+                                    color: _showSlowingOnly
+                                        ? Colors.transparent
+                                        : theme.colorScheme.border
+                                              .withOpacity(0.3),
+                                  ),
+                                ),
+                                onSelected: (v) =>
+                                    setState(() => _showSlowingOnly = v),
+                              ),
+                            ),
                           ChoiceChip(
                             label: Text(l10n.all),
                             selected: _selectedCategory == null,
@@ -353,7 +401,12 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       final matchesCategory =
                           _selectedCategory == null ||
                           p.categoryId == _selectedCategory;
-                      return matchesSearch && matchesCategory;
+                      final matchesTrend =
+                          !_showSlowingOnly ||
+                          ref
+                              .read(slowingProductIdsProvider)
+                              .contains(p.supabaseId);
+                      return matchesSearch && matchesCategory && matchesTrend;
                     }).toList();
 
                     final categoryMap = categoriesAsync.maybeWhen(
@@ -410,6 +463,44 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Chip arah tren permintaan dari hasil prediksi (§8.4).
+  /// Tersembunyi untuk produk yang tren-nya stabil atau belum terprediksi,
+  /// supaya baris produk tidak penuh badge.
+  Widget _buildTrendChip(String productSupabaseId) {
+    final forecast = ref.watch(stockForecastProvider)[productSupabaseId];
+    final trend = forecast?.demand.trend;
+    if (trend == null || trend == DemandTrend.flat) {
+      return const SizedBox.shrink();
+    }
+
+    final style = DemandTrendStyle.of(trend);
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+        decoration: BoxDecoration(
+          color: style.color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(style.icon, size: 10, color: style.color),
+            const SizedBox(width: 3),
+            Text(
+              style.label,
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: style.color,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -645,6 +736,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
+                      _buildTrendChip(product.supabaseId),
                       _buildStockIndicator(product.stockQuantity, theme),
                     ],
                   ),

@@ -301,6 +301,22 @@ Modul dashboard analitik premium yang menggabungkan Model LSTM Kustom yang dihos
   - Menampilkan skor tingkat akurasi prediksi (*confidence score*).
 * **Riwayat Analitik**: Halaman `SmartAnalyticsHistoryScreen` (rute `/smart-analytics/history`) menyimpan dan menampilkan histori hasil prediksi sebelumnya untuk ditinjau ulang.
 * **Performa Penjualan (`SalesPerformanceScreen`, rute `/sales-performance`)**: Modul tambahan yang menyajikan ringkasan performa penjualan (di luar prediksi LSTM) sebagai pelengkap dashboard analitik Owner/Kasir.
+* **Akurasi Model (`ForecastAccuracyScreen`, rute `/smart-analytics/accuracy`)**: Membandingkan setiap prediksi dengan realisasinya (MAE/RMSE/MAPE), termasuk perbandingan antar model dan akurasi per jarak prediksi (H+1, H+7). Bisa diekspor sebagai CSV.
+
+#### Status implementasi (per 28 Juli 2026)
+Rincian teknis dan sisa pekerjaan ada di [28 Juli - Improve Fitur LSTM.md](28%20Juli%20-%20Improve%20Fitur%20LSTM.md).
+
+| Kemampuan | Status | Catatan |
+| :--- | :---: | :--- |
+| Sales forecasting harian/mingguan/bulanan | ✅ | Termasuk tab kustom dengan pemilih rentang dan pita interval prediksi |
+| Smart traffic prediction per jam | ✅ | Kartu di Performa Penjualan + banner jam sibuk di POS |
+| Smart pricing → voucher | ✅ | Tombol "Terapkan" membuat baris `vouchers` sungguhan, dengan penjagaan margin dan konfirmasi manual |
+| Best-seller & deadstock | ✅ | Proyeksi permintaan, badge sisa hari stok, saran belanja, filter "Melambat" |
+| Riwayat & akurasi model | ✅ | `ai_forecast_points` + layar akurasi + ekspor CSV |
+| Prediksi dari model LSTM sungguhan | ⏳ | **Klien siap** (`/api/v2/forecast` + fallback v1). Selama server masih mengembalikan baseline, UI menampilkan label "Estimasi statistik (pola mingguan)" — bukan "Prediksi LSTM" |
+| Integrasi cuaca & confidence score | ⏳ | Menunggu server model v2; klien sudah bisa membaca `confidence` bila dikirim |
+
+> **Aturan pelabelan**: hanya `metadata.model_used` bernilai `lstm`/`lstm_finetuned` yang boleh ditampilkan sebagai "Prediksi LSTM". Baseline statistik dan estimasi lokal (mode offline) memakai labelnya sendiri, sehingga UI tidak pernah mengklaim keluaran model yang tidak benar-benar dipakai.
 
 ### 5.6 F-06: Pusat Notifikasi (Notification Hub)
 Sistem notifikasi 3-tingkat untuk menjamin kelancaran komunikasi operasional toko:

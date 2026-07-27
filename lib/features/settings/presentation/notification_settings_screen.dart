@@ -8,6 +8,8 @@ import 'package:pos_mobile/core/services/local_notification_service.dart';
 import 'package:pos_mobile/core/services/notification_scheduler_service.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/reports/data/forecast_notification_service.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 
 /// Layar pengaturan notifikasi & pengingat jam kerja.
@@ -26,6 +28,10 @@ class _NotificationSettingsScreenState
   int _startMinutes = NotificationSchedulerService.defaultStartMinutes;
   int _endMinutes = NotificationSchedulerService.defaultEndMinutes;
   int _intervalHours = NotificationSchedulerService.defaultIntervalHours;
+
+  /// Sakelar terpisah untuk notifikasi prediksi esok hari (§8.7) — pengguna
+  /// bisa mematikannya tanpa ikut mematikan pengingat jam kerja.
+  bool _forecastEnabled = ForecastNotificationService.defaultEnabled;
 
   static const List<int> _intervalOptions = [2, 3, 4, 6];
 
@@ -48,8 +54,33 @@ class _NotificationSettingsScreenState
       _intervalHours =
           prefs.getInt(NotificationSchedulerService.keyIntervalHours) ??
               NotificationSchedulerService.defaultIntervalHours;
+      _forecastEnabled = prefs.getBool(ForecastNotificationService.keyEnabled) ??
+          ForecastNotificationService.defaultEnabled;
       _loading = false;
     });
+  }
+
+  Future<void> _saveForecastPref(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(ForecastNotificationService.keyEnabled, value);
+
+    final storeId = ref.read(activeStoreProvider).value?['id']?.toString();
+    if (!value || storeId == null) {
+      await ForecastNotificationService.instance.cancel();
+    } else {
+      await LocalNotificationService.instance.requestPermissions();
+      await ForecastNotificationService.instance.syncFromCache(storeId);
+    }
+
+    if (mounted) {
+      mySnackBar(
+        context: context,
+        text: value
+            ? 'Notifikasi prediksi diaktifkan.'
+            : 'Notifikasi prediksi dimatikan.',
+        status: ToastStatus.success,
+      );
+    }
   }
 
   Future<void> _savePrefsAndReschedule() async {
@@ -202,6 +233,60 @@ class _NotificationSettingsScreenState
                                   .requestPermissions();
                             }
                             await _savePrefsAndReschedule();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ===== Notifikasi prediksi (§8.7) =====
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.muted.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.colorScheme.border),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Warna.primary.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(TablerIcons.brain,
+                              color: Colors.black, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Notifikasi Prediksi',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w900, fontSize: 14),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Ringkasan prakiraan penjualan & stok untuk '
+                                'besok, dikirim pukul '
+                                '${ForecastNotificationService.defaultHour}.00 '
+                                'dari data yang tersimpan di perangkat.',
+                                style: theme.textTheme.muted
+                                    .copyWith(fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ShadSwitch(
+                          value: _forecastEnabled,
+                          onChanged: (v) async {
+                            setState(() => _forecastEnabled = v);
+                            await _saveForecastPref(v);
                           },
                         ),
                       ],

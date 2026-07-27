@@ -10,6 +10,7 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
+import 'package:pos_mobile/features/reports/presentation/widgets/restock_suggestion_card.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,13 +38,18 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     super.dispose();
   }
 
-  void _openStockEditModal(BuildContext context, Product product) {
+  void _openStockEditModal(
+    BuildContext context,
+    Product product, {
+    int? initialStock,
+  }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _StockEditSheet(
         product: product,
+        initialStock: initialStock,
         onSave: (newStock) => _updateStock(product, newStock),
       ),
     );
@@ -291,6 +297,16 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Saran pembelian dari prediksi permintaan (§8.3). Menyembunyikan
+            // diri bila belum ada analisis atau tidak ada produk yang kurang.
+            RestockSuggestionCard(
+              onApply: (product, suggestedStock) => _openStockEditModal(
+                context,
+                product,
+                initialStock: suggestedStock,
+              ),
+            ),
+
             Expanded(
               child: productsAsync.when(
                 data: (products) {
@@ -432,7 +448,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Row(
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 6,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -457,6 +475,10 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                                                     : Colors.green.shade700),
                                           ),
                                         ),
+                                      ),
+                                      // Sisa hari stok menurut prediksi permintaan.
+                                      StockForecastBadge(
+                                        productSupabaseId: product.supabaseId,
                                       ),
                                     ],
                                   ),
@@ -507,9 +529,14 @@ class _StockEditSheet extends StatefulWidget {
   final Product product;
   final Function(int) onSave;
 
+  /// Nilai awal kolom stok. Dipakai saran belanja berbasis prediksi agar
+  /// pengguna tinggal mengonfirmasi; stok tidak pernah berubah otomatis.
+  final int? initialStock;
+
   const _StockEditSheet({
     required this.product,
     required this.onSave,
+    this.initialStock,
   });
 
   @override
@@ -523,7 +550,7 @@ class _StockEditSheetState extends State<_StockEditSheet> {
   @override
   void initState() {
     super.initState();
-    _currentStock = widget.product.stockQuantity;
+    _currentStock = widget.initialStock ?? widget.product.stockQuantity;
     _controller = TextEditingController(text: _currentStock.toString());
   }
 
