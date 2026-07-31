@@ -119,6 +119,11 @@ class LstmApiClient {
         );
       } on _EndpointMissing {
         rethrow;
+      } on LstmApiException {
+        // Galat 4xx berarti permintaannya sendiri yang ditolak — mengulang
+        // request yang sama tidak akan menolong, dan alasan aslinya harus
+        // sampai ke `fallback_reason` apa adanya.
+        rethrow;
       } on TimeoutException {
         lastError = const LstmApiException(
           'timeout',

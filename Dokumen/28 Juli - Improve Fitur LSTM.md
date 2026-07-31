@@ -12,7 +12,7 @@
 | :--- | :---: | :--- |
 | **M1** Fondasi & kejujuran data | ✅ Selesai | Refactor 4 lapisan, T-02/T-03/T-09/T-11/T-14/T-16 diperbaiki, 55 unit test |
 | **M2** Pipa data & cache | ✅ Selesai | Migrasi `20260728_lstm_forecast.sql` **sudah dijalankan** ke project `nolawradcdkemdyumoqs` (28 Jul 2026, versi `lstm_forecast_v2`) dan diverifikasi fungsional. Cache offline memakai JSON `SharedPreferences` (mitigasi §13, bukan koleksi Isar) |
-| **M3** Model LSTM v2 | ⚠️ Sisi klien selesai, server belum | `LstmApiClient` sudah bicara v2 + fallback otomatis ke v1. Training & endpoint Python berada di repo terpisah |
+| **M3** Model LSTM v2 | ⚠️ Sisi klien selesai, server belum | `LstmApiClient` sudah bicara v2 + fallback otomatis ke v1. Sisa pekerjaan server dirinci di **[28 Juli - M3.md](28%20Juli%20-%20M3.md)** |
 | **M4** Penerapan ke fitur | ✅ Selesai (8/8) | Smart Analitik, Dashboard, Stok, Katalog Produk, Performa & POS, Notifikasi, Smart Pricing→voucher, Pengaturan Toko |
 | **M5** Evaluasi & transparansi | ✅ Selesai | Layar `/smart-analytics/accuracy`, ekspor CSV, label mode §10 |
 | **M6** Opsional | ⛔ Belum | Cuaca & fine-tune per toko — menunggu hasil backtest M3 |
@@ -526,6 +526,8 @@ Grafik menampilkan pita interval prediksi; tooltip menyertakan `confidence`. Ist
 - [x] Smart Analitik dapat dibuka offline dari cache dengan penanda mode.
 
 ### 📋 M3 — Model LSTM v2 (server)
+> Dipindahkan ke dokumen tersendiri: **[28 Juli - M3.md](28%20Juli%20-%20M3.md)** — memuat kontrak API final, realita data produksi per 28 Juli, protokol backtest, dan cara uji end-to-end.
+
 - [ ] Skrip training: praproses (§9.1), fitur (§9.2), arsitektur (§9.3).
 - [ ] Endpoint `/api/health`, `/api/v2/forecast`, `/api/v2/backtest` (§5).
 - [ ] Fallback berjenjang di server: LSTM → seasonal naive → naive, selalu dengan `fallback_reason`.
