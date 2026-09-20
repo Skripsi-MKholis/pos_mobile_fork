@@ -230,11 +230,8 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                       state.isLoading || _isLoading
                           ? _buildShimmerChartCard()
                           : _buildSalesChartCard(theme, state),
-                      const SizedBox(height: 24),
-                      state.isLoading || _isLoading
-                          ? _buildShimmerSection(130)
-                          : _buildRecommendationCarousel(theme, state),
-                      const SizedBox(height: 24),
+                      // Smart Pricing & Rekomendasi: disembunyikan sementara dari UI.
+                      const SizedBox.shrink(),
                       state.isLoading || _isLoading
                           ? _buildShimmerSection(240)
                           : _buildBestSellers(theme, state),
@@ -341,9 +338,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  state.apiOnline
-                      ? 'Server: ${state.apiServerLabel}'
-                      : 'Server: ${state.apiServerLabel} (tidak terhubung)',
+                  'Server: ${state.apiServerLabel}',
                   style: TextStyle(fontSize: 9.5, color: Colors.grey.shade500),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,

@@ -520,7 +520,6 @@ class SmartAnalyticsNotifier extends StateNotifier<SmartAnalyticsState> {
       );
     }
 
-    if (apiWarning.isNotEmpty) parts.add(apiWarning);
     return parts.join('\n\n');
   }
 
