@@ -1,16 +1,25 @@
 ### **Versi Sekarang**
 
-**1.10.0+14**
+**1.10.1+15**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS AdMob Monetization & 16 KB Compatibility**
+**ZelloPOS Android 16 (API 36) Target SDK Update**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.10.1+15 (Android 16 / API 36 Target SDK Update)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Pembaruan Target SDK Android 16 (API level 36)**: Memperbarui `targetSdk` ke API level 36 untuk mematuhi kebijakan Google Play Console terbaru serta memastikan kompatibilitas dan keamanan optimal pada Android 16+.
+* **Peningkatan Kompatibilitas Build**: Menyelaraskan konfigurasi build Gradle untuk seluruh modul dan plugin agar mendukung compile & target SDK level 36 secara stabil.
+
+---
 
 **Versi 1.10.0+14 (AdMob Monetization & 16 KB Compatibility)**
 
