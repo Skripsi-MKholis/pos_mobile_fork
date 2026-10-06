@@ -560,7 +560,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get cash => 'Tunai';
 
   @override
-  String get change => 'KEMBALIAN';
+  String get change => 'Kembalian';
 
   @override
   String get insufficientCash => 'Uang Kurang';

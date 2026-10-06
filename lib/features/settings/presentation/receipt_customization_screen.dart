@@ -1318,6 +1318,7 @@ class _ReceiptCustomizationScreenState
 
                 // Premium QR Code & Store info section
                 if (showQrCode) ...[
+                  const SizedBox(height: 20),
                   Center(
                     child: Column(
                       children: [
@@ -1343,7 +1344,20 @@ class _ReceiptCustomizationScreenState
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text(
+                            'https://parzello-pos.vercel.app/receipt/demo',
+                            style: TextStyle(
+                              fontSize: 7.5,
+                              color: Colors.grey.shade400,
+                              fontFamily: 'monospace',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
 
                         // Small store logo and name
                         Row(
@@ -1406,9 +1420,9 @@ class _ReceiptCustomizationScreenState
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   _buildDottedDivider(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                 ],
 
                 // Footer Message

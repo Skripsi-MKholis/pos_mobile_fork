@@ -152,6 +152,11 @@ class PrinterService {
         180,
         1,
       );
+      await bluetooth.printCustom(
+        "https://parzello-pos.vercel.app/receipt/${transaction['id']}",
+        0,
+        1,
+      );
       await bluetooth.printNewLine();
 
       // Print Store name again

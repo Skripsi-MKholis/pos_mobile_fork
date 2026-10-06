@@ -447,6 +447,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
 
                         // QR Code & Branding Section
                         if (showQrCode) ...[
+                          const SizedBox(height: 24),
                           Center(
                             child: Column(
                               children: [
@@ -482,7 +483,20 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 4),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'https://parzello-pos.vercel.app/receipt/${widget.transaction['id']}',
+                                    style: TextStyle(
+                                      fontSize: 8.5,
+                                      color: Colors.grey.shade500,
+                                      fontFamily: 'monospace',
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
 
                                 // Store Icon and Store Name again
                                 Row(
@@ -548,7 +562,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           Row(
                             children: List.generate(
                               20,
@@ -562,7 +576,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                         ],
                         const SizedBox(height: 24),
                         if (showFooterMsg && footerMsg.isNotEmpty) ...[
