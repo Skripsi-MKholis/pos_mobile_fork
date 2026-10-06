@@ -165,7 +165,7 @@ class _ReceiptCustomizationScreenState
         'show_payment_method': receipt['show_payment_method'] ?? true,
         'free_text': receipt['free_text'] ?? '',
         'cashier_name': receipt['cashier_name'] ?? '',
-        'receipt_number_prefix': receipt['receipt_number_prefix'] ?? 'PRZ',
+        'receipt_number_prefix': receipt['receipt_number_prefix'] ?? '',
         'paper_width': receipt['paper_width'] ?? '58',
       };
 
@@ -516,8 +516,8 @@ class _ReceiptCustomizationScreenState
                     ),
                     const SizedBox(height: 16),
                     _buildLockedToggleRow(
-                      'Tampilkan Watermark Parzello POS',
-                      'Menghilangkan tulisan "Powered by Parzello POS" di bagian bawah struk.',
+                      'Tampilkan Watermark ZelloPOS',
+                      'Menghilangkan tulisan "Powered by ZelloPOS" di bagian bawah struk.',
                       true,
                     ),
                     const SizedBox(height: 24),
@@ -533,7 +533,7 @@ class _ReceiptCustomizationScreenState
                     _buildInputRow(
                       label: 'Prefix No. Struk',
                       controller: _receiptPrefixController,
-                      placeholder: 'Contoh: PRZ',
+                      placeholder: 'Opsional (misal: INV)',
                       maxLines: 1,
                       onChanged: (val) => setState(
                         () => _settings['receipt_number_prefix'] = val,
@@ -610,7 +610,7 @@ class _ReceiptCustomizationScreenState
       onTap: () {
       mySnackBar(
         context: context,
-        text: 'Menghilangkan watermark Parzello POS memerlukan langganan Premium. Fitur berlangganan akan segera hadir!',
+        text: 'Menghilangkan watermark ZelloPOS memerlukan langganan Premium. Fitur berlangganan akan segera hadir!',
         status: ToastStatus.warning,
         icon: TablerIcons.crown,
       );
@@ -1089,6 +1089,7 @@ class _ReceiptCustomizationScreenState
     final showQrCode = config.showQrCode;
     final freeText = config.freeText;
     final receiptPrefix = config.receiptNumberPrefix;
+    final showPaymentMethod = config.showPaymentMethod;
 
     return Container(
       width: 290,
@@ -1218,7 +1219,9 @@ class _ReceiptCustomizationScreenState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'No. Struk: #$receiptPrefix-98B2',
+                      receiptPrefix.isNotEmpty
+                          ? 'No. Struk: #$receiptPrefix-98B2'
+                          : 'No. Struk: #98B2',
                       style: const TextStyle(
                         fontSize: 9,
                         fontFamily: 'monospace',
@@ -1233,6 +1236,7 @@ class _ReceiptCustomizationScreenState
                     ),
                   ],
                 ),
+
                 if (showCashier) ...[
                   const SizedBox(height: 3),
                   Row(
@@ -1276,8 +1280,12 @@ class _ReceiptCustomizationScreenState
                 _buildTotalRow('Subtotal', 'Rp 51.000', isBold: false),
                 const SizedBox(height: 4),
                 _buildTotalRow('Total Tagihan', 'Rp 51.000', isBold: true),
+                if (showPaymentMethod) ...[
+                  const SizedBox(height: 4),
+                  _buildTotalRow('Metode Pembayaran', 'Tunai', isBold: false),
+                ],
                 const SizedBox(height: 4),
-                _buildTotalRow('Metode Tunai', 'Rp 100.000', isBold: false),
+                _buildTotalRow('Bayar', 'Rp 100.000', isBold: false),
                 const SizedBox(height: 4),
                 _buildTotalRow(
                   'Kembalian',
@@ -1427,7 +1435,7 @@ class _ReceiptCustomizationScreenState
                   const SizedBox(height: 8),
                 ],
                 const Text(
-                  'Powered by Parzello POS',
+                  'Powered by ZelloPOS',
                   style: TextStyle(
                     fontSize: 8,
                     color: Colors.grey,

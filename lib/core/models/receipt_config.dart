@@ -83,7 +83,7 @@ class ReceiptConfig {
       websiteUrl: pick('website_url'),
       freeText: pick('free_text'),
       cashierNameOverride: pick('cashier_name'),
-      receiptNumberPrefix: pick('receipt_number_prefix', fallback: 'PRZ'),
+      receiptNumberPrefix: pick('receipt_number_prefix', fallback: ''),
       paperWidth: pick('paper_width', fallback: '58'),
       logoUrl: (store?['logo_url'] as String?) ?? '',
       showLogo: receipt['show_logo'] ?? true,

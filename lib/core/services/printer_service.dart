@@ -62,9 +62,12 @@ class PrinterService {
     }
     await bluetooth.printNewLine();
 
+    final receiptNoStr = receiptPrefix.isNotEmpty
+        ? "#$receiptPrefix-${transaction['id'].toString().substring(0, 6).toUpperCase()}"
+        : "#${transaction['id'].toString().substring(0, 6).toUpperCase()}";
     await bluetooth.printLeftRight(
       "No:",
-      "#$receiptPrefix-${transaction['id'].toString().substring(0, 6).toUpperCase()}",
+      receiptNoStr,
       1,
     );
     await bluetooth.printLeftRight(
@@ -95,6 +98,16 @@ class PrinterService {
       currencyFormat.format(transaction['total_amount']),
       2,
     );
+    if (showPaymentMethod) {
+      final method = (transaction['payment_method']?.toString().isNotEmpty ?? false)
+          ? transaction['payment_method'].toString()
+          : 'Tunai';
+      await bluetooth.printLeftRight(
+        "METODE:",
+        method,
+        1,
+      );
+    }
     await bluetooth.printLeftRight(
       "BAYAR:",
       currencyFormat.format(transaction['cash_paid']),
@@ -106,15 +119,6 @@ class PrinterService {
       1,
     );
     await bluetooth.printNewLine();
-
-    if (showPaymentMethod) {
-      await bluetooth.printCustom(
-        "Metode: ${transaction['payment_method']}",
-        1,
-        1,
-      );
-      await bluetooth.printNewLine();
-    }
 
     if (showFooterMsg && footerMsg.isNotEmpty) {
       await bluetooth.printCustom(footerMsg, 1, 1);
@@ -161,7 +165,7 @@ class PrinterService {
 
     await bluetooth.printCustom(separator, 1, 1);
     await bluetooth.printNewLine();
-    await bluetooth.printCustom("Powered by Parzello POS", 0, 1);
+    await bluetooth.printCustom("Powered by ZelloPOS", 0, 1);
     await bluetooth.printNewLine();
     await bluetooth.printNewLine();
     await bluetooth.paperCut();

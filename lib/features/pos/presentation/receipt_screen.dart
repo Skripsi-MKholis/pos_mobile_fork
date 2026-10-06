@@ -311,7 +311,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         const SizedBox(height: 16),
                         _buildRow(
                           l10n.transactionNo,
-                          '#$receiptPrefix-${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}',
+                          receiptPrefix.isNotEmpty
+                              ? '#$receiptPrefix-${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}'
+                              : '#${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}',
                         ),
                         _buildRow(
                           l10n.date,
@@ -319,12 +321,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                             DateTime.parse(widget.transaction['created_at']).toLocal(),
                           ),
                         ),
-                        if (showPaymentMethod) ...[
-                          _buildRow(
-                            l10n.method,
-                            widget.transaction['payment_method'],
-                          ),
-                        ],
+
                         if (showCashier) ...[
                           _buildRow(l10n.cashier, cashierName),
                         ],
@@ -378,6 +375,14 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                           ),
                           isBold: true,
                         ),
+                        if (showPaymentMethod) ...[
+                          _buildRow(
+                            l10n.method,
+                            (widget.transaction['payment_method']?.toString().isNotEmpty ?? false)
+                                ? widget.transaction['payment_method'].toString()
+                                : 'Tunai',
+                          ),
+                        ],
                         _buildRow(
                           l10n.paid,
                           // Bisa null pada data dari server (non-tunai):
@@ -581,7 +586,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                           const SizedBox(height: 12),
                         ],
                         Text(
-                          'Powered by Parzello POS',
+                          'Powered by ZelloPOS',
                           style: theme.textTheme.muted.copyWith(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -608,9 +613,9 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
       ${storeName.toUpperCase()}       
 =================================
 ${showHeaderMsg && headerMsg.isNotEmpty ? '$headerMsg\n' : ''}${showAddress && address.isNotEmpty ? '$address\n' : ''}${showPhone && phone.isNotEmpty ? 'Telp: $phone\n' : ''}---------------------------------
-${l10n.transactionNo}: #$receiptPrefix-${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
+${l10n.transactionNo}: ${receiptPrefix.isNotEmpty ? '#$receiptPrefix-' : '#'}${widget.transaction['id'].toString().substring(0, 8).toUpperCase()}
 ${l10n.date}: ${dateFormat.format(DateTime.parse(widget.transaction['created_at']).toLocal())}
-${showPaymentMethod ? '${l10n.method}: ${widget.transaction['payment_method']}\n' : ''}${showCashier ? '${l10n.cashier}: $cashierName\n' : ''}---------------------------------
+${showPaymentMethod ? '${l10n.method}: ${widget.transaction['payment_method'] ?? 'Tunai'}\n' : ''}${showCashier ? '${l10n.cashier}: $cashierName\n' : ''}---------------------------------
 ${widget.items.map((item) => "${item['product_name']}\n${item['quantity'] ?? 1} x ${currencyFormat.format(item['unit_price'] ?? 0)}   ${currencyFormat.format(item['subtotal'] ?? 0)}").join('\n---------------------------------\n')}
 ---------------------------------
 ${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'] ?? 0)}
