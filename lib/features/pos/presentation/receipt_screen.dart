@@ -588,12 +588,12 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 6),
-                        ] else ...[
+                        ] else if (showFooterMsg) ...[
                           Text(
-                            '--- SELESAI ---',
+                            'Terima Kasih Telah Berbelanja',
                             style: theme.textTheme.muted.copyWith(
-                              fontSize: 10,
-                              letterSpacing: 2,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -635,9 +635,7 @@ ${widget.items.map((item) => "${item['product_name']}\n${item['quantity'] ?? 1} 
 ${l10n.totalBelanja}: ${currencyFormat.format(widget.transaction['total_amount'] ?? 0)}
 ${l10n.paid}: ${currencyFormat.format(widget.transaction['cash_paid'] ?? widget.transaction['total_amount'] ?? 0)}
 ${l10n.change}: ${currencyFormat.format(widget.transaction['change_amount'] ?? 0)}
----------------------------------
-${showFooterMsg && footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih'}
-=================================
+${showFooterMsg ? '${footerMsg.isNotEmpty ? footerMsg : 'Terima Kasih Telah Berbelanja'}\n' : ''}=================================
 ''';
                         await Share.share(
                           shareText,

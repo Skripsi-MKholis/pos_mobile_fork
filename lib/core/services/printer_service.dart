@@ -118,12 +118,13 @@ class PrinterService {
       1,
     );
 
-    if (showFooterMsg && footerMsg.isNotEmpty) {
+    if (showFooterMsg) {
       await bluetooth.printNewLine();
-      await bluetooth.printCustom(footerMsg, 1, 1);
-    } else {
-      await bluetooth.printNewLine();
-      await bluetooth.printCustom("Terima Kasih", 1, 1);
+      if (footerMsg.isNotEmpty) {
+        await bluetooth.printCustom(footerMsg, 1, 1);
+      } else {
+        await bluetooth.printCustom("Terima Kasih Telah Berbelanja", 1, 1);
+      }
     }
 
     // Free Text Section
