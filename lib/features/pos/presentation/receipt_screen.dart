@@ -225,16 +225,16 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                 RepaintBoundary(
                   key: _receiptKey,
                   child: ShadCard(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 350),
                     child: Column(
                       children: [
                         if (showLogo) ...[
                           Container(
-                            height: 60,
-                            width: 60,
-                            margin: const EdgeInsets.only(bottom: 12),
+                            height: 48,
+                            width: 48,
+                            margin: const EdgeInsets.only(bottom: 8),
                             clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
                               color: Warna.primary.withOpacity(0.1),
@@ -253,62 +253,61 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                     errorWidget: (context, url, error) =>
                                         const Icon(
                                           TablerIcons.building_store,
-                                          size: 28,
+                                          size: 24,
                                         ),
                                   )
                                 : const Icon(
                                     TablerIcons.building_store,
-                                    size: 28,
+                                    size: 24,
                                   ),
                           ),
                         ],
                         Text(
                           storeName,
-                          style: theme.textTheme.h3,
+                          style: theme.textTheme.h4,
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 4),
                         if (showAddress && address.isNotEmpty) ...[
+                          const SizedBox(height: 2),
                           Text(
                             address,
-                            style: theme.textTheme.muted.copyWith(fontSize: 12),
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 2),
                         ],
                         if (showPhone && phone.isNotEmpty) ...[
+                          const SizedBox(height: 1),
                           Text(
                             'Telp: $phone',
-                            style: theme.textTheme.muted.copyWith(fontSize: 12),
+                            style: theme.textTheme.muted.copyWith(fontSize: 11),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 4),
                         ],
                         if (showHeaderMsg && headerMsg.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
+                              horizontal: 8,
+                              vertical: 2,
                             ),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.muted,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               headerMsg,
                               style: const TextStyle(
                                 fontStyle: FontStyle.italic,
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: Colors.black54,
                               ),
                               textAlign: TextAlign.center,
                             ),
                           ),
                         ],
-                        const SizedBox(height: 24),
-                        const Divider(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
                         _buildRow(
                           l10n.transactionNo,
                           receiptPrefix.isNotEmpty
@@ -325,12 +324,12 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         if (showCashier) ...[
                           _buildRow(l10n.cashier, cashierName),
                         ],
-                        const SizedBox(height: 16),
-                        const Divider(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 10),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
                         ...widget.items.map(
                           (item) => Padding(
-                            padding: const EdgeInsets.only(bottom: 12.0),
+                            padding: const EdgeInsets.only(bottom: 8.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -343,12 +342,13 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                         item['product_name'],
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
+                                          fontSize: 13,
                                         ),
                                       ),
                                       Text(
                                         '${item['quantity'] ?? 1} x ${currencyFormat.format(item['unit_price'] ?? 0)}',
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 11,
                                           color: Colors.grey.shade600,
                                         ),
                                       ),
@@ -359,15 +359,16 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                   currencyFormat.format(item['subtotal'] ?? 0),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        const Divider(),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 4),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
                         _buildRow(
                           l10n.totalBelanja,
                           currencyFormat.format(
@@ -399,7 +400,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                             widget.transaction['change_amount'] ?? 0,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Row(
                           children: List.generate(
                             20,
@@ -415,20 +416,20 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                         ),
                         // Free Text Section
                         if (freeText.isNotEmpty) ...[
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
                           Center(
                             child: Text(
                               freeText,
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontFamily: 'monospace',
                                 color: Colors.black87,
-                                height: 1.4,
+                                height: 1.3,
                               ),
                               textAlign: TextAlign.center,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
                           Row(
                             children: List.generate(
                               20,
@@ -442,27 +443,26 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
                         ],
 
                         // QR Code & Branding Section
                         if (showQrCode) ...[
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
                           Center(
                             child: Column(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
                                     border: Border.all(
                                       color: Colors.grey.shade200,
                                     ),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(10),
                                     color: Colors.white,
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.02),
-                                        blurRadius: 8,
+                                        blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
@@ -471,40 +471,40 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                     data:
                                         'https://parzello-pos.vercel.app/receipt/${widget.transaction['id']}',
                                     version: QrVersions.auto,
-                                    size: 110.0,
+                                    size: 96.0,
                                     gapless: false,
                                   ),
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 6),
                                 Text(
                                   l10n.scanToViewOnlineReceipt,
                                   style: theme.textTheme.muted.copyWith(
-                                    fontSize: 10,
+                                    fontSize: 9.5,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16),
                                   child: Text(
                                     'https://parzello-pos.vercel.app/receipt/${widget.transaction['id']}',
                                     style: TextStyle(
-                                      fontSize: 8.5,
+                                      fontSize: 8,
                                       color: Colors.grey.shade500,
                                       fontFamily: 'monospace',
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
-                                const SizedBox(height: 18),
+                                const SizedBox(height: 10),
 
                                 // Store Icon and Store Name again
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Container(
-                                      width: 20,
-                                      height: 20,
+                                      width: 16,
+                                      height: 16,
                                       clipBehavior: Clip.antiAlias,
                                       decoration: BoxDecoration(
                                         color: Warna.primary.withOpacity(0.1),
@@ -522,15 +522,15 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                                             )
                                           : const Icon(
                                               TablerIcons.building_store,
-                                              size: 12,
+                                              size: 10,
                                               color: Warna.primary,
                                             ),
                                     ),
-                                    const SizedBox(width: 6),
+                                    const SizedBox(width: 4),
                                     Text(
                                       storeName,
                                       style: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -539,20 +539,20 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
 
                                 // Website / Sosmed URL
                                 if (websiteUrl.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Icon(
                                         TablerIcons.world,
-                                        size: 12,
+                                        size: 10,
                                         color: Colors.grey,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         websiteUrl,
                                         style: theme.textTheme.muted.copyWith(
-                                          fontSize: 11,
+                                          fontSize: 10,
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -562,7 +562,7 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
                           Row(
                             children: List.generate(
                               20,
@@ -576,33 +576,33 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
                         ],
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
                         if (showFooterMsg && footerMsg.isNotEmpty) ...[
                           Text(
                             footerMsg,
                             style: theme.textTheme.muted.copyWith(
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
                         ] else ...[
                           Text(
                             '--- SELESAI ---',
                             style: theme.textTheme.muted.copyWith(
+                              fontSize: 10,
                               letterSpacing: 2,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
                         ],
                         Text(
                           'Powered by ZelloPOS',
                           style: theme.textTheme.muted.copyWith(
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,
                           ),

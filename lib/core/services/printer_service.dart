@@ -60,7 +60,6 @@ class PrinterService {
     if (showHeaderMsg && headerMsg.isNotEmpty) {
       await bluetooth.printCustom(headerMsg, 1, 1);
     }
-    await bluetooth.printNewLine();
 
     final receiptNoStr = receiptPrefix.isNotEmpty
         ? "#$receiptPrefix-${transaction['id'].toString().substring(0, 6).toUpperCase()}"
@@ -118,14 +117,14 @@ class PrinterService {
       currencyFormat.format(transaction['change_amount']),
       1,
     );
-    await bluetooth.printNewLine();
 
     if (showFooterMsg && footerMsg.isNotEmpty) {
+      await bluetooth.printNewLine();
       await bluetooth.printCustom(footerMsg, 1, 1);
     } else {
+      await bluetooth.printNewLine();
       await bluetooth.printCustom("Terima Kasih", 1, 1);
     }
-    await bluetooth.printNewLine();
 
     // Free Text Section
     if (freeText.isNotEmpty) {
@@ -136,20 +135,17 @@ class PrinterService {
           await bluetooth.printCustom(line, 1, 1);
         }
       }
-      await bluetooth.printNewLine();
     }
 
     // QR Code Section
     if (showQrCode) {
       await bluetooth.printCustom(separator, 1, 1);
-      await bluetooth.printNewLine();
-
       // Print QR code for receipt link
       await bluetooth.printCustom("Scan untuk Struk Online:", 1, 1);
       await bluetooth.printQRcode(
         "https://parzello-pos.vercel.app/receipt/${transaction['id']}",
-        180,
-        180,
+        160,
+        160,
         1,
       );
       await bluetooth.printCustom(
@@ -157,7 +153,6 @@ class PrinterService {
         0,
         1,
       );
-      await bluetooth.printNewLine();
 
       // Print Store name again
       await bluetooth.printCustom(storeName, 1, 1);
@@ -169,9 +164,7 @@ class PrinterService {
     }
 
     await bluetooth.printCustom(separator, 1, 1);
-    await bluetooth.printNewLine();
     await bluetooth.printCustom("Powered by ZelloPOS", 0, 1);
-    await bluetooth.printNewLine();
     await bluetooth.printNewLine();
     await bluetooth.paperCut();
   }

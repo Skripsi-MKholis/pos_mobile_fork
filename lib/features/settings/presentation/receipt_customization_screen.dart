@@ -1210,9 +1210,9 @@ class _ReceiptCustomizationScreenState
                   ),
                 ],
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 _buildDottedDivider(),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
 
                 // Meta Info (Date, No, Cashier)
                 Row(
@@ -1238,7 +1238,7 @@ class _ReceiptCustomizationScreenState
                 ),
 
                 if (showCashier) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -1255,9 +1255,9 @@ class _ReceiptCustomizationScreenState
                   ),
                 ],
 
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _buildDottedDivider(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Items Mock list
                 _buildMockItem(
@@ -1265,28 +1265,28 @@ class _ReceiptCustomizationScreenState
                   '2 x Rp 18.000',
                   'Rp 36.000',
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _buildMockItem(
                   'Roti Bakar Cokelat',
                   '1 x Rp 15.000',
                   'Rp 15.000',
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _buildDottedDivider(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // Totals
                 _buildTotalRow('Subtotal', 'Rp 51.000', isBold: false),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 _buildTotalRow('Total Tagihan', 'Rp 51.000', isBold: true),
                 if (showPaymentMethod) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   _buildTotalRow('Metode Pembayaran', 'Tunai', isBold: false),
                 ],
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 _buildTotalRow('Bayar', 'Rp 100.000', isBold: false),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 _buildTotalRow(
                   'Kembalian',
                   'Rp 49.000',
@@ -1294,78 +1294,76 @@ class _ReceiptCustomizationScreenState
                   color: Warna.primary,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 _buildDottedDivider(),
-                const SizedBox(height: 16),
 
                 // Free Text Section
                 if (freeText.isNotEmpty) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Text(
                     freeText,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 9.5,
                       fontFamily: 'monospace',
                       color: Colors.black87,
-                      height: 1.4,
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   _buildDottedDivider(),
-                  const SizedBox(height: 16),
                 ],
 
                 // Premium QR Code & Store info section
                 if (showQrCode) ...[
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   Center(
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             color: Colors.white,
                           ),
                           child: const Icon(
                             TablerIcons.qrcode,
-                            size: 48,
+                            size: 42,
                             color: Colors.black87,
                           ),
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Text(
                           'Pindai QR untuk struk online',
                           style: TextStyle(
-                            fontSize: 8,
+                            fontSize: 7.5,
                             color: Colors.grey.shade500,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             'https://parzello-pos.vercel.app/receipt/demo',
                             style: TextStyle(
-                              fontSize: 7.5,
+                              fontSize: 7,
                               color: Colors.grey.shade400,
                               fontFamily: 'monospace',
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(height: 14),
+                        const SizedBox(height: 8),
 
                         // Small store logo and name
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
-                              width: 16,
-                              height: 16,
+                              width: 14,
+                              height: 14,
                               decoration: BoxDecoration(
                                 color: Warna.primary.withOpacity(0.1),
                                 shape: BoxShape.circle,
@@ -1379,7 +1377,7 @@ class _ReceiptCustomizationScreenState
                                     )
                                   : const Icon(
                                       TablerIcons.building_store,
-                                      size: 10,
+                                      size: 9,
                                       color: Warna.primary,
                                     ),
                             ),
@@ -1387,7 +1385,7 @@ class _ReceiptCustomizationScreenState
                             Text(
                               storeName,
                               style: const TextStyle(
-                                fontSize: 10,
+                                fontSize: 9.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -1396,20 +1394,20 @@ class _ReceiptCustomizationScreenState
 
                         // Website / Sosmed URL
                         if (websiteUrl.isNotEmpty) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 3),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(
                                 TablerIcons.world,
-                                size: 10,
+                                size: 9,
                                 color: Colors.grey,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 3),
                               Text(
                                 websiteUrl,
                                 style: const TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 8.5,
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -1420,38 +1418,38 @@ class _ReceiptCustomizationScreenState
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   _buildDottedDivider(),
-                  const SizedBox(height: 20),
                 ],
 
+                const SizedBox(height: 10),
                 // Footer Message
                 if (showFooterMsg && footerMsg.isNotEmpty) ...[
                   Text(
                     footerMsg,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 9,
-                      color: Colors.grey.shade500,
+                      fontSize: 8.5,
+                      color: Colors.grey.shade600,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                 ] else ...[
                   const Text(
                     'Terima Kasih Telah Berbelanja',
                     style: TextStyle(
-                      fontSize: 9,
+                      fontSize: 8.5,
                       color: Colors.grey,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                 ],
                 const Text(
                   'Powered by ZelloPOS',
                   style: TextStyle(
-                    fontSize: 8,
+                    fontSize: 7.5,
                     color: Colors.grey,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
