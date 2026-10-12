@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
@@ -35,6 +34,13 @@ enum AppFeature {
     'customer_catalog',
     'Katalog Pelanggan Mandiri (QR)',
     'Akses layar katalog digital khusus pelanggan untuk melihat produk toko.',
+  ),
+
+  /// Bebas Iklan (Tanpa Iklan Banner)
+  removeAds(
+    'remove_ads',
+    'Bebas Iklan',
+    'Nikmati pengalaman kasir dan laporan tanpa gangguan iklan banner.',
   );
 
   final String key;

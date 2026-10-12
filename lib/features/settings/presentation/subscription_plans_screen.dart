@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -21,14 +22,106 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
   bool _isLoading = false;
 
   void _handleSelectPlan(SubscriptionPlan plan) async {
-    if (plan.id == 'free') {
+    final currentSub = ref.read(currentSubscriptionProvider).value;
+    final userRole = ref.read(userRoleProvider);
+
+    // SECURITY CHECK: Hanya Store Owner yang diizinkan mengubah paket langganan toko
+    if (userRole != null && userRole.toLowerCase() != 'owner') {
       mySnackBar(
         context: context,
-        text: 'Anda sedang menggunakan paket Free Starter.',
+        text: 'Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.',
+        status: ToastStatus.error,
+      );
+      return;
+    }
+
+    // KETENTUAN 1: Klik pada paket yang saat ini sedang aktif
+    if (currentSub?.planId == plan.id) {
+      mySnackBar(
+        context: context,
+        text: 'Toko Anda sudah aktif menggunakan paket ${plan.name}.',
         status: ToastStatus.info,
       );
       return;
     }
+
+    // KETENTUAN 2: ANTI-LOSS DOWNGRADE (User sedang memiliki paket berbayar aktif dan mengklik paket Lite/Gratis)
+    if (plan.price == 0) {
+      if (currentSub != null && currentSub.isPaidActive) {
+        final formattedExpiry = currentSub.expiresAt != null
+            ? DateFormat('dd MMMM yyyy', 'id_ID').format(currentSub.expiresAt!)
+            : 'periode aktif selesai';
+
+        showDialog(
+          context: context,
+          builder: (dialogCtx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Row(
+              children: [
+                Icon(TablerIcons.shield_check, color: Colors.blue, size: 28),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Paket Berbayar Masih Aktif',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Toko Anda saat ini masih berlangganan ${currentSub.planName} aktif hingga $formattedExpiry.',
+                  style: const TextStyle(fontSize: 13, height: 1.4),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(TablerIcons.info_circle, size: 18, color: Colors.amber),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Untuk melindungi sisa masa aktif yang telah Anda bayar, paket Anda akan otomatis kembali ke paket Lite setelah masa berlaku berakhir.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey[800], height: 1.3),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx),
+                child: const Text('Mengerti', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      // Jika user memang di paket gratis dan klik paket gratis
+      mySnackBar(
+        context: context,
+        text: 'Toko Anda saat ini sudah menggunakan paket gratis.',
+        status: ToastStatus.info,
+      );
+      return;
+    }
+
+    // KETENTUAN 3: Jika user sedang aktif paket berbayar lain dan mau ganti/upgrade ke paket berbayar baru
+    final isChangingPaidPlan = currentSub != null && currentSub.isPaidActive;
 
     // Modal dialog konfirmasi pembelian via Google Play Store
     showModalBottomSheet(
@@ -71,9 +164,9 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Google Play Billing',
-                        style: TextStyle(
+                      Text(
+                        isChangingPaidPlan ? 'Ganti Paket Langganan' : 'Google Play Billing',
+                        style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,
@@ -91,6 +184,29 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                 ),
               ],
             ),
+            if (isChangingPaidPlan) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(TablerIcons.arrows_exchange, color: Colors.blue, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Mengganti dari "${currentSub.planName}" ke "${plan.name}". Google Play akan menyesuaikan prorata tagihan Anda secara otomatis.',
+                        style: const TextStyle(fontSize: 12, height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -146,7 +262,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                   const Icon(TablerIcons.brand_google_play, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Langganan via Google Play (Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)})',
+                    'Konfirmasi via Google Play (Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)})',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
@@ -488,7 +604,13 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                                       child: Text(
                                         isCurrentPlan
                                             ? 'Sedang Digunakan'
-                                            : (plan.price == 0 ? 'Pilih Paket' : 'Langganan Sekarang'),
+                                            : (plan.price == 0
+                                                ? (currentSub != null && currentSub.isPaidActive
+                                                    ? 'Tersedia Otomatis Saat Expired'
+                                                    : 'Pilih Paket')
+                                                : (currentSub != null && currentSub.isPaidActive
+                                                    ? 'Ganti ke Paket Ini'
+                                                    : 'Langganan Sekarang')),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 14,

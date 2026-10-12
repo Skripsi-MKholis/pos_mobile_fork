@@ -161,7 +161,7 @@ class _DrawerMenuContent extends ConsumerWidget {
         ),
         _DrawerItem(
           icon: TablerIcons.users,
-          title: l10n.manageStaff,
+          title: l10n.employeeManagement,
           route: '/staff-management',
           requiredFeature: AppFeature.staffManagement,
         ),

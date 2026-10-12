@@ -62,6 +62,9 @@ class SubscriptionPlan {
         if (rawFeatures['customer_catalog'] == true) {
           featureList.add('Katalog mandiri pelanggan (Self-Order QR)');
         }
+        if (rawFeatures['remove_ads'] == true) {
+          featureList.add('Bebas Iklan (Tanpa Iklan Banner)');
+        }
       } else if (rawFeatures is List) {
         featureList = rawFeatures.map((e) => e.toString()).toList();
       }
@@ -155,6 +158,17 @@ class UserSubscriptionInfo {
     if (expiresAt == null) return false; // Lifetime / free
     return DateTime.now().isAfter(expiresAt!);
   }
+
+  /// Menandakan user sedang memiliki paket berbayar yang masih aktif (belum expired)
+  bool get isPaidActive {
+    final isFreeOrLite = planId == 'b29dcf1a-4c25-4abc-9e98-d562746e0294' ||
+        planId == 'lite' ||
+        planId == 'free' ||
+        status == 'free';
+    return !isFreeOrLite && !isExpired;
+  }
+
+  bool get isFree => !isPaidActive;
 
   bool canAccess(String featureKey) {
     if (isExpired) return false;

@@ -22,6 +22,7 @@ Setiap fitur dikendalikan oleh boolean flag yang tersimpan pada kolom `subscript
 | `advanced_reports` | `AppFeature.advancedReports` | Laporan Analisis Advance | Grafik tren performa penjualan dan ekspor rekapan data |
 | `staff_management` | `AppFeature.staffManagement` | Manajemen Staf & Karyawan | Tambah staf toko, hak akses peran (Kasir/Manajer), dan pantau kinerja tim |
 | `customer_catalog` | `AppFeature.customerCatalog` | Katalog Mandiri Pelanggan | Akses layar pemesanan/katalog belanja digital mandiri pelanggan via QR |
+| `remove_ads` | `AppFeature.removeAds` | Bebas Iklan (No Ads) | Menghilangkan seluruh iklan banner di dashboard, transaksi, kasir, dan pengaturan |
 
 ---
 
@@ -35,6 +36,7 @@ Berikut adalah status default tiap paket yang saat ini tersimpan di tabel `subsc
 | `advanced_reports` | ❌ **Locked** | ✅ **Unlocked** | ✅ **Unlocked** |
 | `staff_management` | ❌ **Locked** | ✅ **Unlocked** | ✅ **Unlocked** |
 | `customer_catalog` | ✅ **Unlocked** | ✅ **Unlocked** | ✅ **Unlocked** |
+| `remove_ads` | ❌ **Locked (Ada Iklan)** | ✅ **Unlocked (Bebas Iklan)** | ✅ **Unlocked (Bebas Iklan)** |
 | **Maksimal Cabang/Outlet** | `1 Outlet` | `2 Outlet` | `5 Outlet` |
 | **Maksimal Transaksi** | `500 Transaksi/Bulan` | `Unlimited` | `Unlimited` |
 
@@ -59,6 +61,7 @@ Semua poin teks keuntungan yang tampil di kartu paket langganan tersimpan di tab
 - Manajemen staf & karyawan toko
 - Kustomisasi logo & struk kasir
 - Katalog belanja mandiri pelanggan (QR)
+- Bebas Iklan (Tanpa Iklan Banner)
 
 ### C. Paket **Bisnis Skalabel**
 - Transaksi Tanpa Batas (Unlimited)
@@ -69,6 +72,7 @@ Semua poin teks keuntungan yang tampil di kartu paket langganan tersimpan di tab
 - Audit log aktivitas kasir & riwayat stok
 - Sinkronisasi real-time multi-perangkat
 - Prioritas dukungan teknis WhatsApp 24/7
+- Bebas Iklan (Tanpa Iklan Banner)
 
 ---
 

@@ -4,6 +4,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
+import 'package:pos_mobile/core/widgets/app_snackbar.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -244,7 +246,18 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.push('/subscription-plans'),
+                      onPressed: () {
+                        final userRole = ref.read(userRoleProvider);
+                        if (userRole != null && userRole.toLowerCase() != 'owner') {
+                          mySnackBar(
+                            context: context,
+                            text: 'Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.',
+                            status: ToastStatus.error,
+                          );
+                          return;
+                        }
+                        context.push('/subscription-plans');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Warna.primary,
                         foregroundColor: Colors.black,
