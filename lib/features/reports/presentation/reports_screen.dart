@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -42,7 +43,7 @@ class ReportsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSmartAnalyticsButton(context, theme),
+            _buildSmartAnalyticsButton(context, ref, theme),
             const SizedBox(height: 24),
             _buildTimeFilter(context, ref, theme),
             const SizedBox(height: 24),
@@ -66,8 +67,16 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSmartAnalyticsButton(BuildContext context, ShadThemeData theme) {
+  Widget _buildSmartAnalyticsButton(
+    BuildContext context,
+    WidgetRef ref,
+    ShadThemeData theme,
+  ) {
     final l10n = AppLocalizations.of(context)!;
+    final isLocked = !ref.watch(
+      canAccessFeatureProvider(AppFeature.smartAnalytics),
+    );
+
     return Container(
           padding: const EdgeInsets.all(1.5), // Border thickness
           decoration: BoxDecoration(
@@ -91,7 +100,13 @@ class ReportsScreen extends ConsumerWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () => context.push('/smart-analytics'),
+                onTap: () {
+                  if (isLocked) {
+                    showFeatureLockedDialog(context, AppFeature.smartAnalytics);
+                    return;
+                  }
+                  context.push('/smart-analytics');
+                },
                 borderRadius: BorderRadius.circular(22.5),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -108,8 +123,8 @@ class ReportsScreen extends ConsumerWidget {
                             Color(0xFFD96570),
                           ],
                         ).createShader(bounds),
-                        child: const Icon(
-                          TablerIcons.sparkles,
+                        child: Icon(
+                          isLocked ? TablerIcons.lock : TablerIcons.sparkles,
                           color: Colors.white,
                           size: 24,
                         ),
@@ -119,13 +134,49 @@ class ReportsScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              l10n.smartAnalytics,
-                              style: theme.textTheme.h4.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                letterSpacing: -0.5,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  l10n.smartAnalytics,
+                                  style: theme.textTheme.h4.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                if (isLocked) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: Colors.amber.withValues(alpha: 0.4),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(TablerIcons.lock, size: 10, color: Colors.amber),
+                                        SizedBox(width: 3),
+                                        Text(
+                                          'PRO',
+                                          style: TextStyle(
+                                            fontSize: 8.5,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             Text(
                               l10n.smartAnalyticsDesc,
@@ -137,8 +188,8 @@ class ReportsScreen extends ConsumerWidget {
                         ),
                       ),
                       Icon(
-                        TablerIcons.chevron_right,
-                        color: theme.colorScheme.mutedForeground,
+                        isLocked ? TablerIcons.lock : TablerIcons.chevron_right,
+                        color: isLocked ? Colors.amber : theme.colorScheme.mutedForeground,
                         size: 18,
                       ),
                     ],

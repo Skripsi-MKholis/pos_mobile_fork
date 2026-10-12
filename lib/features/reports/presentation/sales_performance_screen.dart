@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/reports/presentation/widgets/hourly_forecast_card.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart'
@@ -47,6 +49,9 @@ class _SalesPerformanceScreenState
     final perfAsync = ref.watch(salesPerformanceProvider);
     final range = perfAsync.value?.timeRange ?? AnalyticsTimeRange.week;
 
+    final canAccess = ref.watch(canAccessFeatureProvider(AppFeature.advancedReports));
+    final isLocked = !canAccess;
+
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
@@ -62,42 +67,48 @@ class _SalesPerformanceScreenState
         ),
         centerTitle: true,
       ),
-      body: RefreshIndicator(
-        color: Warna.primary,
-        onRefresh: () =>
-            ref.read(salesPerformanceProvider.notifier).fetch(range),
-        child: ListView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-          children: [
-            _buildTimeFilter(l10n, theme, range),
-            const SizedBox(height: 16),
-            perfAsync.when(
-              data: (state) => _buildContent(
-                context,
-                state,
-                l10n,
-                theme,
-                currency,
-                compact,
-                locale,
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            color: Warna.primary,
+            onRefresh: isLocked
+                ? () async {}
+                : () => ref.read(salesPerformanceProvider.notifier).fetch(range),
+            child: ListView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
-              loading: () => _buildSkeleton(theme),
-              error: (err, _) => Padding(
-                padding: const EdgeInsets.only(top: 80),
-                child: Center(
-                  child: Text(
-                    l10n.failedToLoad(err.toString()),
-                    style: theme.textTheme.muted,
-                    textAlign: TextAlign.center,
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+              children: [
+                _buildTimeFilter(l10n, theme, range),
+                const SizedBox(height: 16),
+                perfAsync.when(
+                  data: (state) => _buildContent(
+                    context,
+                    state,
+                    l10n,
+                    theme,
+                    currency,
+                    compact,
+                    locale,
+                  ),
+                  loading: () => _buildSkeleton(theme),
+                  error: (err, _) => Padding(
+                    padding: const EdgeInsets.only(top: 80),
+                    child: Center(
+                      child: Text(
+                        l10n.failedToLoad(err.toString()),
+                        style: theme.textTheme.muted,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+          if (isLocked) _buildLockOverlay(theme),
+        ],
       ),
     );
   }
@@ -978,5 +989,133 @@ class _SalesPerformanceScreenState
           ),
         );
     return Column(children: [box(220), box(120), box(240), box(200)]);
+  }
+
+  Widget _buildLockOverlay(ShadThemeData theme) {
+    return Positioned.fill(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            color: Colors.white.withValues(alpha: 0.35),
+            child: Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Warna.primary.withValues(alpha: 0.15),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: const BoxDecoration(
+                        color: Warna.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        TablerIcons.lock,
+                        color: Warna.black,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Laporan Performa Penjualan',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.h4.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Warna.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Warna.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            TablerIcons.sparkles,
+                            color: Warna.black,
+                            size: 12,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'FITUR PRO (ADVANCED REPORTS)',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Warna.black,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Akses grafik tren omzet lengkap, distribusi penjualan per jam, metode pembayaran, dan top produk memerlukan paket berlangganan UMKM Hebat atau Bisnis Skalabel.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          context.push('/subscription-plans');
+                        },
+                        icon: const Icon(TablerIcons.crown, size: 18),
+                        label: const Text(
+                          'Upgrade Paket Sekarang',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Warna.primary,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

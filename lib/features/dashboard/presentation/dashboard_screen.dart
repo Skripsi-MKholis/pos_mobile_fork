@@ -13,6 +13,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -556,33 +557,69 @@ class DashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
           // Tombol menuju halaman Performa Penjualan lengkap
-          SizedBox(
-            width: double.infinity,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: () => context.push('/sales-performance'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.15),
+          Consumer(
+            builder: (context, ref, _) {
+              final canAccess = ref.watch(canAccessFeatureProvider(AppFeature.advancedReports));
+              return SizedBox(
+                width: double.infinity,
+                child: InkWell(
                   borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l10n.viewDetails,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  onTap: () {
+                    if (!canAccess) {
+                      showFeatureLockedDialog(context, AppFeature.advancedReports);
+                    } else {
+                      context.push('/sales-performance');
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: canAccess
+                          ? Warna.primary.withValues(alpha: 0.15)
+                          : Colors.grey.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: !canAccess
+                          ? Border.all(color: Colors.grey.withValues(alpha: 0.2))
+                          : null,
                     ),
-                    const SizedBox(width: 4),
-                    const Icon(TablerIcons.chevron_right, size: 16),
-                  ],
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!canAccess) ...[
+                          const Icon(TablerIcons.lock, size: 14, color: Colors.grey),
+                          const SizedBox(width: 6),
+                        ],
+                        Text(
+                          l10n.viewDetails,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: canAccess ? null : Colors.grey[700],
+                          ),
+                        ),
+                        if (!canAccess) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Warna.primary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
+                          ),
+                        ] else ...[
+                          const SizedBox(width: 4),
+                          const Icon(TablerIcons.chevron_right, size: 16),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

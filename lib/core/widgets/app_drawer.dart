@@ -160,6 +160,12 @@ class _DrawerMenuContent extends ConsumerWidget {
           route: '/receipt-customization',
         ),
         _DrawerItem(
+          icon: TablerIcons.users,
+          title: l10n.manageStaff,
+          route: '/staff-management',
+          requiredFeature: AppFeature.staffManagement,
+        ),
+        _DrawerItem(
           icon: TablerIcons.building_store,
           title: l10n.storeInformation,
           route: '/settings',

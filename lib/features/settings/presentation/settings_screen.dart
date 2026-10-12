@@ -14,6 +14,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -120,6 +121,8 @@ class SettingsScreen extends ConsumerWidget {
                 TablerIcons.users,
                 l10n.employeeManagement,
                 () => context.push('/staff-management'),
+                requiredFeature: AppFeature.staffManagement,
+                ref: ref,
               ),
             ],
           ]),
@@ -319,26 +322,70 @@ class SettingsScreen extends ConsumerWidget {
     VoidCallback onTap, {
     Color? color,
     String? trailingText,
+    AppFeature? requiredFeature,
+    WidgetRef? ref,
   }) {
+    final bool isLocked = requiredFeature != null &&
+        ref != null &&
+        !ref.watch(canAccessFeatureProvider(requiredFeature));
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color:
-              color?.withOpacity(0.1) ??
-              theme.colorScheme.muted.withOpacity(0.5),
+          color: isLocked
+              ? Colors.black.withValues(alpha: 0.05)
+              : (color?.withValues(alpha: 0.1) ??
+                  theme.colorScheme.muted.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon, color: color ?? Colors.black, size: 18),
-      ),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: color ?? Colors.black,
+        child: Icon(
+          icon,
+          color: isLocked ? Colors.black38 : (color ?? Colors.black),
+          size: 18,
         ),
+      ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: isLocked ? Colors.black38 : (color ?? Colors.black),
+              ),
+            ),
+          ),
+          if (isLocked)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: Colors.amber.withValues(alpha: 0.4),
+                  width: 0.8,
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(TablerIcons.lock, size: 10, color: Colors.amber),
+                  SizedBox(width: 3),
+                  Text(
+                    'PRO',
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -356,11 +403,17 @@ class SettingsScreen extends ConsumerWidget {
           Icon(
             TablerIcons.chevron_right,
             size: 16,
-            color: color?.withOpacity(0.5) ?? Colors.black26,
+            color: color?.withValues(alpha: 0.5) ?? Colors.black26,
           ),
         ],
       ),
-      onTap: onTap,
+      onTap: () {
+        if (isLocked) {
+          showFeatureLockedDialog(context, requiredFeature);
+          return;
+        }
+        onTap();
+      },
     );
   }
 

@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -25,6 +27,9 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
 
+    final canAccess = ref.watch(canAccessFeatureProvider(AppFeature.staffManagement));
+    final isLocked = !canAccess;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -40,28 +45,35 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
           style: theme.textTheme.h4.copyWith(fontWeight: FontWeight.w900),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(activeStoreProvider.future),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(theme),
-                const SizedBox(height: 24),
-                _buildInviteCodeCard(theme),
-                const SizedBox(height: 32),
-                _buildSearchAndAdd(theme),
-                const SizedBox(height: 16),
-                _buildStaffList(theme),
-              ],
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: isLocked
+                ? () async {}
+                : () => ref.refresh(activeStoreProvider.future),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeader(theme),
+                    const SizedBox(height: 24),
+                    _buildInviteCodeCard(theme),
+                    const SizedBox(height: 32),
+                    _buildSearchAndAdd(theme),
+                    const SizedBox(height: 16),
+                    _buildStaffList(theme),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+          if (isLocked) _buildLockOverlay(theme),
+        ],
       ),
     );
   }
@@ -856,6 +868,134 @@ class _StaffManagementScreenState extends ConsumerState<StaffManagementScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLockOverlay(ShadThemeData theme) {
+    return Positioned.fill(
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Container(
+            color: Colors.white.withValues(alpha: 0.35),
+            child: Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Warna.primary.withValues(alpha: 0.15),
+                      blurRadius: 30,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: const BoxDecoration(
+                        color: Warna.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        TablerIcons.lock,
+                        color: Warna.black,
+                        size: 32,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Manajemen Staf & Hak Akses',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.h4.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: Colors.black,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Warna.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Warna.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            TablerIcons.sparkles,
+                            color: Warna.black,
+                            size: 12,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'FITUR PRO (STAFF MANAGEMENT)',
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              color: Warna.black,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Tambah kasir, undang anggota tim via kode OTP, dan kelola peran hak akses staf memerlukan paket berlangganan UMKM Hebat atau Bisnis Skalabel.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          context.push('/subscription-plans');
+                        },
+                        icon: const Icon(TablerIcons.crown, size: 18),
+                        label: const Text(
+                          'Upgrade Paket Sekarang',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Warna.primary,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
