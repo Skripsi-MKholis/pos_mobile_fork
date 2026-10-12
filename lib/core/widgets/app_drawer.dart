@@ -573,6 +573,12 @@ class _UserFooter extends ConsumerWidget {
       );
     }
 
+    final role = ref.watch(userRoleProvider) ?? 'Staff';
+    final roleFormatted = role.isNotEmpty
+        ? role[0].toUpperCase() + role.substring(1).toLowerCase()
+        : 'Staff';
+    final isOwner = role.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
@@ -627,13 +633,49 @@ class _UserFooter extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            user?.email?.split('@')[0] ?? 'User',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  user?.email?.split('@')[0] ?? 'User',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isOwner
+                                      ? Warna.primary.withValues(alpha: 0.2)
+                                      : Colors.grey.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: isOwner
+                                        ? Warna.primary.withValues(alpha: 0.4)
+                                        : Colors.grey.withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  roleFormatted,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: isOwner ? Colors.black87 : Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 2),
                           Text(
                             user?.email ?? '',
                             style: const TextStyle(
