@@ -186,7 +186,7 @@ class _TransactionHistoryScreenState
                     if (index == grouped.length) {
                       return state.isLoadingMore
                           ? _buildLoadingIndicator()
-                          : const SizedBox(height: 85);
+                          : const SizedBox(height: 110); // Jarak aman agar item paling bawah tidak tertutup floating bottom bar
                     }
 
                     final date = grouped.keys.elementAt(index);

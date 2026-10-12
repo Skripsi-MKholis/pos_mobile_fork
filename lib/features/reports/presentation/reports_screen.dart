@@ -58,9 +58,6 @@ class ReportsScreen extends ConsumerWidget {
               loading: () => _buildLoadingState(theme),
               error: (err, _) => Center(child: Text(l10n.failedToLoad(err.toString()))),
             ),
-            const Center(
-              child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
-            ),
           ],
         ),
       ),
@@ -252,9 +249,13 @@ class ReportsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         _buildSalesChartCard(context, state, format, theme, trendLabel),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
+        const Center(
+          child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 8)),
+        ),
+        const SizedBox(height: 16),
         _buildTopProductsCard(context, state, format, theme, productsAsync),
-        const SizedBox(height: 85),
+        const SizedBox(height: 100), // Spasi aman agar tidak tertutup Floating Bottom Bar
       ],
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.05, end: 0);
   }

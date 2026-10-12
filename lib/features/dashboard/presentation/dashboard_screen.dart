@@ -66,7 +66,11 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             const TodayForecastCard(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            const Center(
+              child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
+            ),
+            const SizedBox(height: 16),
             _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
             const SizedBox(height: 24),
             Text(
@@ -79,10 +83,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildQuickAccessGrid(context, l10n, theme, ref),
-            const Center(
-              child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
-            ),
-            const SizedBox(height: 85),
+            const SizedBox(height: 110), // Jarak aman agar tidak tertutup floating bottom bar
           ],
         ),
       ),

@@ -126,7 +126,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ]),
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          const Center(
+            child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
+          ),
+          const SizedBox(height: 24),
           _buildMenuSection(theme, l10n.accountAndSecurity, [
             _buildMenuItem(
               context,
@@ -167,16 +171,13 @@ class SettingsScreen extends ConsumerWidget {
                 color: Colors.redAccent,
               ),
           ]),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
           ShadButton.destructive(
             width: double.infinity,
             onPressed: () => _handleLogout(context, ref, l10n),
             child: Text(l10n.logoutApp),
           ).animate().fadeIn(delay: 400.ms),
-          const Center(
-            child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Center(
             child: FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
@@ -193,7 +194,7 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(height: 85),
+          const SizedBox(height: 110), // Jarak aman agar tidak tertutup floating bottom bar
         ],
       ),
     );
