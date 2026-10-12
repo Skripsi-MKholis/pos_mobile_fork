@@ -136,7 +136,7 @@ class SettingsScreen extends ConsumerWidget {
                       theme,
                       TablerIcons.lock,
                       l10n.changePassword,
-                      () => context.push('/setup-password'),
+                      () => context.push('/change-password'),
                     ),
                     _buildMenuItem(
                       context,

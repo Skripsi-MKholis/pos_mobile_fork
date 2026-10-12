@@ -32,6 +32,7 @@ import 'package:pos_mobile/features/reports/presentation/sales_performance_scree
 import 'package:pos_mobile/features/reports/presentation/smart_analytics_history_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/forecast_accuracy_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
+import 'package:pos_mobile/features/auth/presentation/change_password_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/receipt_customization_screen.dart';
@@ -433,6 +434,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
         path: '/notifications',
