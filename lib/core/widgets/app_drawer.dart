@@ -10,6 +10,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
+import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -85,6 +87,10 @@ class _DrawerMenuContent extends ConsumerWidget {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
+        // PRO / SUBSCRIPTION PROMO CARD
+        const _SubscriptionDrawerBanner(),
+        const _SectionSpacing(),
+
         _SectionHeader(title: l10n.analytics),
         _DrawerItem(
           icon: TablerIcons.layout_dashboard,
@@ -100,6 +106,7 @@ class _DrawerMenuContent extends ConsumerWidget {
           icon: TablerIcons.brain,
           title: l10n.smartAnalytics,
           route: '/smart-analytics',
+          requiredFeature: AppFeature.smartAnalytics,
         ),
 
         const _SectionSpacing(),
@@ -426,18 +433,24 @@ class _DrawerItem extends ConsumerWidget {
   final String title;
   final String route;
   final bool isSoon;
+  final AppFeature? requiredFeature;
 
   const _DrawerItem({
     required this.icon,
     required this.title,
     required this.route,
     this.isSoon = false,
+    this.requiredFeature,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final bool isActive = route.isNotEmpty && location.startsWith(route);
+
+    // Cek apakah fitur di-lock oleh paket langganan
+    final bool isLocked = requiredFeature != null &&
+        !ref.watch(canAccessFeatureProvider(requiredFeature!));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
@@ -449,19 +462,53 @@ class _DrawerItem extends ConsumerWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           selected: isActive,
-          selectedTileColor: Warna.primary.withOpacity(0.1),
+          selectedTileColor: Warna.primary.withValues(alpha: 0.1),
           leading: Icon(
             icon,
             size: 20,
-            color: isActive ? Warna.primary : Colors.black45,
+            color: isLocked
+                ? Colors.black26
+                : (isActive ? Warna.primary : Colors.black45),
           ),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: isActive ? Colors.black : Colors.black87,
-              fontSize: 14,
-              fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
-            ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isLocked
+                        ? Colors.black38
+                        : (isActive ? Colors.black : Colors.black87),
+                    fontSize: 14,
+                    fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (isLocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.4), width: 0.8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(TablerIcons.lock, size: 10, color: Colors.amber),
+                      SizedBox(width: 3),
+                      Text(
+                        'PRO',
+                        style: TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
           trailing: isSoon
               ? Container(
@@ -482,6 +529,11 @@ class _DrawerItem extends ConsumerWidget {
           onTap: isSoon
               ? null
               : () {
+                  if (isLocked) {
+                    showFeatureLockedDialog(context, requiredFeature!);
+                    return;
+                  }
+
                   Navigator.pop(context);
                   if ([
                     '/dashboard',
@@ -773,3 +825,167 @@ class _StoreIcon extends StatelessWidget {
     );
   }
 }
+
+class _SubscriptionDrawerBanner extends ConsumerWidget {
+  const _SubscriptionDrawerBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentSubAsync = ref.watch(currentSubscriptionProvider);
+    final plansAsync = ref.watch(availablePlansProvider);
+
+    final currentSub = currentSubAsync.value;
+    final plans = plansAsync.value ?? [];
+
+    final isPro = currentSub != null &&
+        currentSub.planId != 'b29dcf1a-4c25-4abc-9e98-d562746e0294' &&
+        currentSub.planId != 'lite' &&
+        currentSub.planId != 'free';
+
+    final activePlan = plans.where((p) => p.id == currentSub?.planId).firstOrNull;
+    final planName = activePlan?.name ?? currentSub?.planName ?? 'Upgrade ke PRO';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+            context.push('/subscription');
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              gradient: isPro
+                  ? const LinearGradient(
+                      colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : const LinearGradient(
+                      colors: [Color(0xFF18181B), Color(0xFF27272A)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isPro
+                    ? Warna.primary.withValues(alpha: 0.6)
+                    : Warna.primary.withValues(alpha: 0.35),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isPro
+                      ? Warna.primary.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Warna.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Warna.primary.withValues(alpha: 0.4),
+                      width: 1,
+                    ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      TablerIcons.crown,
+                      color: Warna.primary,
+                      size: 22,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              isPro ? planName : 'Upgrade ke PRO',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                letterSpacing: 0.2,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Warna.primary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isPro ? 'AKTIF' : 'PREMIUM',
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        isPro
+                            ? 'Kelola paket & fitur langganan'
+                            : 'Buka semua fitur & AI Analytics',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.65),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  width: 26,
+                  height: 26,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    TablerIcons.chevron_right,
+                    size: 16,
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

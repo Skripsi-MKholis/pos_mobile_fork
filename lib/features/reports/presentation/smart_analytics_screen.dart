@@ -20,6 +20,7 @@ import 'package:pos_mobile/features/reports/models/tab_analytics_data.dart';
 import 'package:pos_mobile/features/reports/presentation/widgets/apply_recommendation_sheet.dart';
 import 'package:pos_mobile/features/reports/presentation/widgets/recommendation_style.dart';
 import 'package:pos_mobile/features/reports/providers/smart_analytics_provider.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 
 export 'package:pos_mobile/features/reports/models/forecast_tab.dart';
@@ -37,12 +38,6 @@ class SmartAnalyticsScreen extends ConsumerStatefulWidget {
 }
 
 class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
-  // ==========================================
-  // CONFIGURATION: Lock Halaman / Coming Soon
-  // ==========================================
-  static const bool _isLocked = false;
-  // ==========================================
-
   ForecastTab _selectedTab = ForecastTab.daily;
   bool _isLoading = false;
 
@@ -149,6 +144,8 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final state = ref.watch(smartAnalyticsProvider);
+    final canAccess = ref.watch(canAccessFeatureProvider(AppFeature.smartAnalytics));
+    final isLocked = !canAccess;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -173,7 +170,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
           ],
         ),
         actions: [
-          if (!_isLocked && widget.snapshotId == null) ...[
+          if (!isLocked && widget.snapshotId == null) ...[
             IconButton(
               icon: const Icon(TablerIcons.target_arrow, color: Warna.primary),
               tooltip: 'Akurasi Model',
@@ -192,7 +189,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
         child: Stack(
           children: [
             RefreshIndicator(
-              onRefresh: _syncLatest,
+              onRefresh: isLocked ? () async {} : _syncLatest,
               color: Warna.primary,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(
@@ -241,7 +238,7 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                 ),
               ),
             ),
-            if (_isLocked) _buildLockOverlay(theme),
+            if (isLocked) _buildLockOverlay(theme),
           ],
         ),
       ),
@@ -1710,6 +1707,29 @@ class _SmartAnalyticsScreenState extends ConsumerState<SmartAnalyticsScreen> {
                                 fontSize: 11.5,
                                 color: Colors.grey.shade600,
                                 height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  context.push('/subscription-plans');
+                                },
+                                icon: const Icon(TablerIcons.crown, size: 18),
+                                label: const Text(
+                                  'Upgrade Paket Sekarang',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Warna.primary,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  elevation: 0,
+                                ),
                               ),
                             ),
                           ],

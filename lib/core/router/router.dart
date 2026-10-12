@@ -34,6 +34,9 @@ import 'package:pos_mobile/features/reports/presentation/forecast_accuracy_scree
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/change_password_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/manage_subscription_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/subscription_plans_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/subscription_history_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/staff_management_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/receipt_customization_screen.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
@@ -438,6 +441,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/change-password',
         builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: '/subscription',
+        builder: (context, state) => const ManageSubscriptionScreen(),
+      ),
+      GoRoute(
+        path: '/subscription-plans',
+        builder: (context, state) => const SubscriptionPlansScreen(),
+      ),
+      GoRoute(
+        path: '/subscription-history',
+        builder: (context, state) => const SubscriptionHistoryScreen(),
       ),
       GoRoute(
         path: '/notifications',

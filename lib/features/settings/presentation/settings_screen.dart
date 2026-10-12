@@ -36,164 +36,165 @@ class SettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (activeStore.value != null)
-                    _buildStoreHeader(context, theme, activeStore.value!)
-                        .animate()
-                        .fadeIn(duration: 400.ms)
-                        .slideX(begin: 0.1, end: 0),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(theme, l10n.catalogAndStock, [
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.package,
-                      l10n.productList,
-                      () => context.push('/products'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.packages,
-                      l10n.manageStock,
-                      () => context.push('/stock'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.category,
-                      l10n.productCategory,
-                      () => context.push('/categories'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.history,
-                      Localizations.localeOf(context).languageCode == 'id'
-                          ? 'Riwayat Stok'
-                          : 'Stock History',
-                      () => context.push('/stock/history'),
-                    ),
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(theme, l10n.storeSettings, [
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.printer,
-                      l10n.printerConnection,
-                      () => context.push('/printer-settings'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.bell_ringing,
-                      l10n.notificationSettings,
-                      () => context.push('/notification-settings'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.receipt,
-                      l10n.receiptCustomization,
-                      () => context.push('/receipt-customization'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.speakerphone,
-                      l10n.broadcastNotification,
-                      () => context.push('/broadcast-notification'),
-                    ),
-                    if (isAdmin) ...[
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.building_store,
-                        l10n.storeInformation,
-                        () => context.push('/store-info'),
-                      ),
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.users,
-                        l10n.employeeManagement,
-                        () => context.push('/staff-management'),
-                      ),
-                    ],
-                  ]),
-                  const SizedBox(height: 32),
-                  _buildMenuSection(theme, l10n.accountAndSecurity, [
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.user,
-                      l10n.myProfile,
-                      () => context.push('/profile'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.lock,
-                      l10n.changePassword,
-                      () => context.push('/change-password'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.refresh,
-                      l10n.dataSynchronization,
-                      () => context.push('/settings/sync-monitoring'),
-                    ),
-                    _buildMenuItem(
-                      context,
-                      theme,
-                      TablerIcons.language,
-                      l10n.language,
-                      () => _showLanguageSelector(context, ref, currentLocale),
-                      trailingText: l10n.languageName,
-                    ),
-                    if (role?.toLowerCase() == 'karyawan')
-                      _buildMenuItem(
-                        context,
-                        theme,
-                        TablerIcons.logout,
-                        l10n.logoutStore,
-                        () => _handleLeaveStore(context, ref, l10n),
-                        color: Colors.redAccent,
-                      ),
-                  ]),
-                  const SizedBox(height: 48),
-                  ShadButton.destructive(
-                    width: double.infinity,
-                    onPressed: () => _handleLogout(context, ref, l10n),
-                    child: Text(l10n.logoutApp),
-                  ).animate().fadeIn(delay: 400.ms),
-                  const Center(
-                    child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: FutureBuilder<PackageInfo>(
-                      future: PackageInfo.fromPlatform(),
-                      builder: (context, snapshot) {
-                        final appVersion = snapshot.data?.version ?? '';
-                        return Text(
-                          'Zello POS • ${l10n.version} $appVersion',
-                          style: theme.textTheme.muted.copyWith(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 85),
-                ],
+        children: [
+          if (activeStore.value != null)
+            _buildStoreHeader(
+              context,
+              theme,
+              activeStore.value!,
+            ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0),
+          const SizedBox(height: 32),
+          _buildMenuSection(theme, l10n.catalogAndStock, [
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.package,
+              l10n.productList,
+              () => context.push('/products'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.packages,
+              l10n.manageStock,
+              () => context.push('/stock'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.category,
+              l10n.productCategory,
+              () => context.push('/categories'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.history,
+              Localizations.localeOf(context).languageCode == 'id'
+                  ? 'Riwayat Stok'
+                  : 'Stock History',
+              () => context.push('/stock/history'),
+            ),
+          ]),
+          const SizedBox(height: 32),
+          _buildMenuSection(theme, l10n.storeSettings, [
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.printer,
+              l10n.printerConnection,
+              () => context.push('/printer-settings'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.bell_ringing,
+              l10n.notificationSettings,
+              () => context.push('/notification-settings'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.receipt,
+              l10n.receiptCustomization,
+              () => context.push('/receipt-customization'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.speakerphone,
+              l10n.broadcastNotification,
+              () => context.push('/broadcast-notification'),
+            ),
+            if (isAdmin) ...[
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.building_store,
+                l10n.storeInformation,
+                () => context.push('/store-info'),
               ),
-            );
-          }
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.users,
+                l10n.employeeManagement,
+                () => context.push('/staff-management'),
+              ),
+            ],
+          ]),
+          const SizedBox(height: 32),
+          _buildMenuSection(theme, l10n.accountAndSecurity, [
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.user,
+              l10n.myProfile,
+              () => context.push('/profile'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.lock,
+              l10n.changePassword,
+              () => context.push('/change-password'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.refresh,
+              l10n.dataSynchronization,
+              () => context.push('/settings/sync-monitoring'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
+              TablerIcons.language,
+              l10n.language,
+              () => _showLanguageSelector(context, ref, currentLocale),
+              trailingText: l10n.languageName,
+            ),
+            if (role?.toLowerCase() == 'karyawan')
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.logout,
+                l10n.logoutStore,
+                () => _handleLeaveStore(context, ref, l10n),
+                color: Colors.redAccent,
+              ),
+          ]),
+          const SizedBox(height: 48),
+          ShadButton.destructive(
+            width: double.infinity,
+            onPressed: () => _handleLogout(context, ref, l10n),
+            child: Text(l10n.logoutApp),
+          ).animate().fadeIn(delay: 400.ms),
+          const Center(
+            child: BannerAdWidget(padding: EdgeInsets.only(top: 24)),
+          ),
+          const SizedBox(height: 16),
+          Center(
+            child: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                final appVersion = snapshot.data?.version ?? '';
+                return Text(
+                  'Zello POS • ${l10n.version} $appVersion',
+                  style: theme.textTheme.muted.copyWith(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 85),
+        ],
+      ),
+    );
+  }
 
   Widget _buildStoreHeader(
     BuildContext context,
@@ -390,7 +391,9 @@ class SettingsScreen extends ConsumerWidget {
                   isSelected: currentLocale.languageCode == 'id',
                   theme: theme,
                   onTap: () {
-                    ref.read(localeNotifierProvider.notifier).changeLocale('id');
+                    ref
+                        .read(localeNotifierProvider.notifier)
+                        .changeLocale('id');
                     Navigator.of(context).pop();
                   },
                 ),
@@ -401,7 +404,9 @@ class SettingsScreen extends ConsumerWidget {
                   isSelected: currentLocale.languageCode == 'en',
                   theme: theme,
                   onTap: () {
-                    ref.read(localeNotifierProvider.notifier).changeLocale('en');
+                    ref
+                        .read(localeNotifierProvider.notifier)
+                        .changeLocale('en');
                     Navigator.of(context).pop();
                   },
                 ),
@@ -475,9 +480,7 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => ShadDialog(
         title: Text(l10n.logoutStore),
-        description: Text(
-          l10n.confirmLeaveStore(activeStore['name'] ?? ''),
-        ),
+        description: Text(l10n.confirmLeaveStore(activeStore['name'] ?? '')),
         actions: [
           ShadButton.outline(
             child: Text(l10n.cancel),
