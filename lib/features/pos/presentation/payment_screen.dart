@@ -23,6 +23,8 @@ import 'package:pos_mobile/core/providers/sync_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'package:isar_community/isar.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
+import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -402,6 +404,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         status: ToastStatus.warning,
       );
       return;
+    }
+
+    // Cek kuota transaksi bulanan berdasarkan paket langganan aktif
+    final subInfo = ref.read(currentSubscriptionProvider).value;
+    if (subInfo != null && subInfo.maxTransactions > 0) {
+      final monthlyCount = ref.read(monthlyTransactionCountProvider).value ?? 0;
+      if (monthlyCount >= subInfo.maxTransactions) {
+        if (!mounted) return;
+        showQuotaExceededDialog(
+          context,
+          title: 'Batas Transaksi Tercapai',
+          message:
+              'Toko Anda telah mencapai batas kuota ${subInfo.maxTransactions} transaksi untuk bulan ini pada paket ${subInfo.planName}.\n\nUpgrade ke paket Pro untuk menikmati transaksi kasir tanpa batas.',
+          currentLimit: '${subInfo.maxTransactions} Transaksi / Bulan',
+        );
+        return;
+      }
     }
 
     setState(() => _isLoading = true);

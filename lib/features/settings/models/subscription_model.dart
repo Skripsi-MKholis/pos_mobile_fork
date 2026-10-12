@@ -170,6 +170,20 @@ class UserSubscriptionInfo {
 
   bool get isFree => !isPaidActive;
 
+  /// Jumlah sisa hari aktif paket langganan (null jika gratis/lifetime)
+  int? get remainingDays {
+    if (expiresAt == null) return null;
+    final diff = expiresAt!.difference(DateTime.now()).inDays;
+    return diff < 0 ? 0 : diff;
+  }
+
+  /// Menandakan paket berbayar akan kedaluwarsa dalam waktu dekat (≤ 7 hari dan > 0)
+  bool get isExpiringSoon {
+    if (!isPaidActive || expiresAt == null) return false;
+    final days = remainingDays ?? 999;
+    return days <= 7;
+  }
+
   bool canAccess(String featureKey) {
     if (isExpired) return false;
     return featureFlags[featureKey] == true;
@@ -199,8 +213,12 @@ class UserSubscriptionInfo {
       planId: json['plan_id'] as String? ?? '',
       planName: planName,
       status: json['status'] as String? ?? 'active',
-      startDate: json['start_date'] != null ? DateTime.tryParse(json['start_date'].toString()) : null,
-      expiresAt: json['end_date'] != null ? DateTime.tryParse(json['end_date'].toString()) : null,
+      startDate: json['start_date'] != null
+          ? DateTime.tryParse(json['start_date'].toString())?.toLocal()
+          : null,
+      expiresAt: json['end_date'] != null
+          ? DateTime.tryParse(json['end_date'].toString())?.toLocal()
+          : null,
       autoRenew: json['auto_renew'] as bool? ?? false,
       featureFlags: flags,
       maxOutlets: maxOutlets,
@@ -256,7 +274,7 @@ class SubscriptionTransaction {
       planName: planName,
       amount: (json['amount'] as num?)?.toInt() ?? 0,
       purchaseDate: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          ? (DateTime.tryParse(json['created_at'].toString())?.toLocal() ?? DateTime.now())
           : DateTime.now(),
       status: json['status'] as String? ?? 'success',
       paymentMethod: paymentMethod,

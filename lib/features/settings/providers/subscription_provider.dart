@@ -44,7 +44,7 @@ final availablePlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) asyn
         slug: 'umkm-hebat',
         name: 'UMKM Hebat',
         tagline: 'Fitur lengkap dengan harga paling bersahabat.',
-        price: 49000,
+        price: 19000,
         period: '/bulan',
         googlePlayProductId: 'com.posmobile.subscription.umkm-hebat',
         features: [
@@ -62,7 +62,7 @@ final availablePlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) asyn
         slug: 'bisnis-skalabel',
         name: 'Bisnis Skalabel',
         tagline: 'Untuk rantai bisnis yang siap ekspansi.',
-        price: 149000,
+        price: 49000,
         period: '/bulan',
         googlePlayProductId: 'com.posmobile.subscription.bisnis-skalabel',
         features: [
@@ -138,6 +138,30 @@ final subscriptionTransactionsProvider = FutureProvider<List<SubscriptionTransac
         .toList();
   } catch (e) {
     return [];
+  }
+});
+
+/// Menghitung jumlah transaksi toko pada bulan kalender berjalan (untuk pengecekan kuota)
+final monthlyTransactionCountProvider = FutureProvider<int>((ref) async {
+  final activeStore = ref.watch(activeStoreProvider).value;
+  if (activeStore == null || activeStore['id'] == null) {
+    return 0;
+  }
+
+  final storeId = activeStore['id'];
+  final now = DateTime.now();
+  final startOfMonth = DateTime(now.year, now.month, 1).toUtc().toIso8601String();
+
+  try {
+    final response = await Supabase.instance.client
+        .from('transactions')
+        .select('id')
+        .eq('store_id', storeId)
+        .gte('created_at', startOfMonth);
+
+    return (response as List).length;
+  } catch (e) {
+    return 0;
   }
 });
 

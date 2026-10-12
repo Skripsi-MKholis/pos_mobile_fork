@@ -173,6 +173,95 @@ void showFeatureLockedDialog(BuildContext context, AppFeature feature) {
   );
 }
 
+/// Modal Dialog peringatan ketika kuota (transaksi / outlet toko) paket telah tercapai
+void showQuotaExceededDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String currentLimit,
+}) {
+  showShadDialog(
+    context: context,
+    builder: (dialogContext) => ShadDialog(
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(TablerIcons.alert_triangle, color: Colors.amber, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+      description: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message,
+              style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(TablerIcons.chart_pie, size: 16, color: Colors.black87),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Batas Paket Anda: $currentLimit. Upgrade untuk mendapatkan kuota tanpa batas (unlimited).',
+                      style: const TextStyle(fontSize: 11.5, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        ShadButton.outline(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Tutup'),
+        ),
+        ShadButton(
+          backgroundColor: Warna.primary,
+          foregroundColor: Colors.black,
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.push('/subscription-plans');
+          },
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(TablerIcons.crown, size: 16),
+              SizedBox(width: 6),
+              Text('Upgrade Paket'),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 class _DefaultLockedCard extends StatelessWidget {
   final AppFeature feature;
   const _DefaultLockedCard({required this.feature});

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SubscriptionHistoryScreen extends ConsumerWidget {
   const SubscriptionHistoryScreen({super.key});
@@ -196,16 +197,38 @@ class _TransactionItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(bottomSheetContext),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Warna.primary,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          _shareInvoice(transaction);
+                        },
+                        icon: const Icon(TablerIcons.share, size: 18),
+                        label: const Text('Bagikan Bukti'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(bottomSheetContext),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Warna.primary,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -213,6 +236,27 @@ class _TransactionItemCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _shareInvoice(SubscriptionTransaction transaction) {
+    final dateFormat = DateFormat('dd MMMM yyyy, HH:mm', 'id_ID');
+    final amountFormatted = 'Rp ${NumberFormat('#,###', 'id_ID').format(transaction.amount)}';
+    final invoiceText = '''
+====================================
+      BUKTI PEMBAYARAN LANGGANAN
+====================================
+ID Pesanan    : ${transaction.orderId}
+Paket         : ${transaction.planName}
+Status        : ${transaction.status.toUpperCase()}
+Metode        : ${transaction.paymentMethod}
+Tanggal       : ${dateFormat.format(transaction.purchaseDate)}
+Total Biaya   : $amountFormatted
+====================================
+Terima kasih telah berlangganan!
+Layanan POS Anda kini aktif dengan fitur terbaik.
+''';
+
+    Share.share(invoiceText, subject: 'Bukti Pembayaran Langganan - ${transaction.orderId}');
   }
 
   Widget _detailRow(String label, String value, {bool isBold = false, bool isSuccessStatus = false}) {

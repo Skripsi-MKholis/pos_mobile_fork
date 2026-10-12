@@ -14,6 +14,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 import 'package:pos_mobile/core/guards/feature_guard.dart';
+import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -53,7 +54,9 @@ class DashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(l10n, theme),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            _buildExpiringBanner(context, ref, theme),
+            const SizedBox(height: 8),
             _buildTimeFilter(ref, l10n, theme),
             const SizedBox(height: 16),
             _buildStatsGrid(
@@ -675,6 +678,100 @@ class DashboardScreen extends ConsumerWidget {
         maxY: maxY * 1.2,
       ),
     ).animate().fadeIn(duration: 800.ms);
+  }
+
+  Widget _buildExpiringBanner(
+    BuildContext context,
+    WidgetRef ref,
+    ShadThemeData theme,
+  ) {
+    final subInfo = ref.watch(currentSubscriptionProvider).value;
+    if (subInfo == null || !subInfo.isExpiringSoon) {
+      return const SizedBox.shrink();
+    }
+
+    final days = subInfo.remainingDays ?? 0;
+    final textDays = days <= 0
+        ? 'berakhir hari ini'
+        : 'tersisa $days hari lagi';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEF2F2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFCA5A5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.red.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEE2E2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              TablerIcons.clock_hour_4,
+              color: Color(0xFFDC2626),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Masa Langganan Segera Berakhir',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF991B1B),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Paket ${subInfo.planName} Anda $textDays. Perpanjang agar operasional toko tetap lancar tanpa kendala.',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF7F1D1D),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: () => context.push('/subscription-plans'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFDC2626),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              textStyle: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            child: const Text('Perpanjang'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildChartSkeleton(ShadThemeData theme) {
