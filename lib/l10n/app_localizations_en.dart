@@ -232,7 +232,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyTab => 'History';
 
   @override
-  String get reportsTab => 'Reports';
+  String get reportsTab => 'Profit';
 
   @override
   String get menuTab => 'Menu';
@@ -241,10 +241,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardTitle => 'Dashboard';
 
   @override
-  String get transactionHistoryTitle => 'Transaction History';
+  String get transactionHistoryTitle => 'History & Analytics';
 
   @override
-  String get reportsTitle => 'Analytics Report';
+  String get reportsTitle => 'Profit & COGS';
 
   @override
   String get settingsTitle => 'Settings';

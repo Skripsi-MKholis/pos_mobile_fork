@@ -233,7 +233,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get historyTab => 'Riwayat';
 
   @override
-  String get reportsTab => 'Laporan';
+  String get reportsTab => 'Keuntungan';
 
   @override
   String get menuTab => 'Menu';
@@ -242,10 +242,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get dashboardTitle => 'Dashboard';
 
   @override
-  String get transactionHistoryTitle => 'Riwayat Transaksi';
+  String get transactionHistoryTitle => 'Riwayat & Analitik';
 
   @override
-  String get reportsTitle => 'Laporan Analitik';
+  String get reportsTitle => 'Keuntungan & HPP';
 
   @override
   String get settingsTitle => 'Pengaturan';

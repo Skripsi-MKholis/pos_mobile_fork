@@ -315,14 +315,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/reports',
-                builder: (context, state) => const ReportsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
               ),
@@ -410,6 +402,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/smart-analytics',
         builder: (context, state) => const SmartAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
       ),
       GoRoute(
         path: '/sales-performance',

@@ -124,6 +124,13 @@ class SettingsScreen extends ConsumerWidget {
                 _buildMenuItem(
                   context,
                   theme,
+                  TablerIcons.calculator,
+                  isIndonesian ? 'Laba & HPP Toko' : 'Profit & COGS Report',
+                  () => context.push('/reports'),
+                ),
+                _buildMenuItem(
+                  context,
+                  theme,
                   TablerIcons.building_store,
                   l10n.storeInformation,
                   () => context.push('/store-info'),

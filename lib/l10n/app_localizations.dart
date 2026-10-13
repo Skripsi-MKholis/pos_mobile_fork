@@ -521,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @reportsTab.
   ///
   /// In en, this message translates to:
-  /// **'Reports'**
+  /// **'Profit'**
   String get reportsTab;
 
   /// No description provided for @menuTab.
@@ -539,13 +539,13 @@ abstract class AppLocalizations {
   /// No description provided for @transactionHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Transaction History'**
+  /// **'History & Analytics'**
   String get transactionHistoryTitle;
 
   /// No description provided for @reportsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Analytics Report'**
+  /// **'Profit & COGS'**
   String get reportsTitle;
 
   /// No description provided for @settingsTitle.

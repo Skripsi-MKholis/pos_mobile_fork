@@ -115,7 +115,12 @@ class _DrawerMenuContent extends ConsumerWidget {
 
         // 2. KECERDASAN BISNIS & ANALITIK LANJUTAN
         const _SectionSpacing(),
-        _SectionHeader(title: isIndonesian ? 'ANALITIK LANJUTAN' : 'ADVANCED ANALYTICS'),
+        _SectionHeader(title: isIndonesian ? 'ANALITIK & KEUANGAN' : 'ANALYTICS & FINANCE'),
+        _DrawerItem(
+          icon: TablerIcons.calculator,
+          title: isIndonesian ? 'Laba & HPP Toko' : 'Profit & COGS Report',
+          route: '/reports',
+        ),
         _DrawerItem(
           icon: TablerIcons.brain,
           title: l10n.smartAnalytics,

@@ -124,10 +124,10 @@ class DashboardScreen extends ConsumerWidget {
         ),
         _buildAccessCard(
           theme,
-          TablerIcons.chart_dots,
-          l10n.reports,
-          l10n.performanceAnalysis,
-          onTap: () => context.go('/reports'),
+          TablerIcons.calculator,
+          'Laba & HPP',
+          'Analisis Keuntungan',
+          onTap: () => context.push('/reports'),
         ),
         _buildAccessCard(
           theme,

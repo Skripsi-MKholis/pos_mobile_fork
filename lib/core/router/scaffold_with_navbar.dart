@@ -114,7 +114,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
       }
     });
 
-    // Item navigasi bottom-nav sama untuk semua role
+    // Item navigasi bottom-nav (4 tab utama)
     final List<Map<String, dynamic>> navItems = [
       {'icon': TablerIcons.chart_pie, 'label': l10n.homeTab, 'branch': 0},
       {
@@ -128,14 +128,9 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         'branch': 2,
       },
       {
-        'icon': TablerIcons.report_money,
-        'label': l10n.reportsTab,
-        'branch': 3,
-      },
-      {
         'icon': TablerIcons.layout_grid,
         'label': l10n.menuTab,
-        'branch': 4,
+        'branch': 3,
       },
     ];
 
@@ -152,9 +147,6 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
         pageTitle = l10n.transactionHistoryTitle;
         break;
       case 3:
-        pageTitle = l10n.reportsTitle;
-        break;
-      case 4:
         pageTitle = l10n.settingsTitle;
         break;
       default:
