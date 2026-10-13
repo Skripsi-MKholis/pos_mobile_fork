@@ -9,6 +9,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:pos_mobile/features/settings/services/in_app_purchase_service.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class SubscriptionPlansScreen extends ConsumerStatefulWidget {
@@ -26,11 +27,13 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
     final currentSub = ref.read(currentSubscriptionProvider).value;
     final userRole = ref.read(userRoleProvider);
 
+    final l10n = AppLocalizations.of(context)!;
+
     // SECURITY CHECK: Hanya Store Owner yang diizinkan mengubah paket langganan toko
     if (userRole != null && userRole.toLowerCase() != 'owner') {
       mySnackBar(
         context: context,
-        text: 'Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.',
+        text: l10n.accessDeniedOwnerOnly,
         status: ToastStatus.error,
       );
       return;
@@ -40,7 +43,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
     if (currentSub?.planId == plan.id) {
       mySnackBar(
         context: context,
-        text: 'Toko Anda sudah aktif menggunakan paket ${plan.name}.',
+        text: l10n.subscriptionSuccess(plan.name),
         status: ToastStatus.info,
       );
       return;
@@ -50,21 +53,21 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
     if (plan.price == 0) {
       if (currentSub != null && currentSub.isPaidActive) {
         final formattedExpiry = currentSub.expiresAt != null
-            ? DateFormat('dd MMMM yyyy', 'id_ID').format(currentSub.expiresAt!)
-            : 'periode aktif selesai';
+            ? DateFormat('dd MMMM yyyy', Localizations.localeOf(context).languageCode).format(currentSub.expiresAt!)
+            : '-';
 
         showDialog(
           context: context,
           builder: (dialogCtx) => AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(TablerIcons.shield_check, color: Colors.blue, size: 28),
-                SizedBox(width: 10),
+                const Icon(TablerIcons.shield_check, color: Colors.blue, size: 28),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Paket Berbayar Masih Aktif',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    l10n.stillOnPaidPlanTitle,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
               ],
@@ -74,7 +77,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Toko Anda saat ini masih berlangganan ${currentSub.planName} aktif hingga $formattedExpiry.',
+                  l10n.stillOnPaidPlanDesc(currentSub.planName, formattedExpiry),
                   style: const TextStyle(fontSize: 13, height: 1.4),
                 ),
                 const SizedBox(height: 12),
@@ -92,7 +95,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Untuk melindungi sisa masa aktif yang telah Anda bayar, paket Anda akan otomatis kembali ke paket Lite setelah masa berlaku berakhir.',
+                          l10n.stillOnPaidPlanNotice,
                           style: TextStyle(fontSize: 12, color: Colors.grey[800], height: 1.3),
                         ),
                       ),
@@ -104,7 +107,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogCtx),
-                child: const Text('Mengerti', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(l10n.understood, style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -115,7 +118,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
       // Jika user memang di paket gratis dan klik paket gratis
       mySnackBar(
         context: context,
-        text: 'Toko Anda saat ini sudah menggunakan paket gratis.',
+        text: l10n.alreadyOnFreePlan,
         status: ToastStatus.info,
       );
       return;
@@ -200,7 +203,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Mengganti dari "${currentSub.planName}" ke "${plan.name}". Google Play akan menyesuaikan prorata tagihan Anda secara otomatis.',
+                        l10n.changingPlanNotice(currentSub.planName, plan.name),
                         style: const TextStyle(fontSize: 12, height: 1.3),
                       ),
                     ),
@@ -221,7 +224,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Biaya Langganan', style: TextStyle(color: Colors.black54)),
+                      Text(l10n.subscriptionFee, style: const TextStyle(color: Colors.black54)),
                       Text(
                         'Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)} ${plan.period}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -235,7 +238,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Pembayaran aman & terintegrasi dengan akun Google Play Anda. Dapat dibatalkan kapan saja.',
+                          l10n.secureGooglePlayPayment,
                           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                         ),
                       ),
@@ -263,7 +266,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                   const Icon(TablerIcons.brand_google_play, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Konfirmasi via Google Play (Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)})',
+                    l10n.confirmViaGooglePlay('Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)}'),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
@@ -272,7 +275,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.pop(bottomSheetContext),
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+              child: Text(l10n.cancel, style: const TextStyle(color: Colors.grey)),
             ),
           ],
         ),
@@ -308,9 +311,10 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
       if (!mounted) return;
       setState(() => _isLoading = false);
 
+      final l10n = AppLocalizations.of(context)!;
       mySnackBar(
         context: context,
-        text: 'Selamat! Toko Anda berhasil berlangganan paket ${plan.name}.',
+        text: l10n.subscriptionSuccess(plan.name),
         status: ToastStatus.success,
       );
 
@@ -319,9 +323,10 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
       if (!mounted) return;
       setState(() => _isLoading = false);
 
+      final l10n = AppLocalizations.of(context)!;
       mySnackBar(
         context: context,
-        text: 'Gagal memproses langganan: $e',
+        text: l10n.subscriptionFailed(e.toString()),
         status: ToastStatus.error,
       );
     }
@@ -329,6 +334,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final plansAsync = ref.watch(availablePlansProvider);
     final currentSubAsync = ref.watch(currentSubscriptionProvider);
 
@@ -343,9 +349,9 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
           icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Pilihan Paket Langganan',
-          style: TextStyle(
+        title: Text(
+          l10n.chooseSubscriptionPlan,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -354,7 +360,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
         centerTitle: true,
         actions: [
           IconButton(
-            tooltip: 'Pulihkan Pembelian',
+            tooltip: l10n.restorePurchases,
             icon: const Icon(TablerIcons.refresh, color: Colors.black),
             onPressed: () async {
               try {
@@ -362,14 +368,14 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                 if (!context.mounted) return;
                 mySnackBar(
                   context: context,
-                  text: 'Permintaan pemulihan pembelian telah dikirim ke Google Play.',
+                  text: l10n.restorePurchasesSent,
                   status: ToastStatus.info,
                 );
               } catch (e) {
                 if (!context.mounted) return;
                 mySnackBar(
                   context: context,
-                  text: 'Gagal memulihkan pembelian: $e',
+                  text: l10n.restorePurchasesFailed(e.toString()),
                   status: ToastStatus.error,
                 );
               }
@@ -378,13 +384,13 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
         ],
       ),
       body: _isLoading
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(color: Colors.black),
-                  SizedBox(height: 16),
-                  Text('Memproses langganan ke Supabase & Google Play...', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const CircularProgressIndicator(color: Colors.black),
+                  const SizedBox(height: 16),
+                  Text(l10n.processingSubscription, style: const TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
             )

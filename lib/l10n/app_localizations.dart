@@ -350,6 +350,12 @@ abstract class AppLocalizations {
   /// **'Yes, Leave'**
   String get yesLeave;
 
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get retry;
+
   /// No description provided for @leaveSuccess.
   ///
   /// In en, this message translates to:
@@ -2041,6 +2047,318 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration Failed: {error}'**
   String registrationFailed(String error);
+
+  /// No description provided for @manageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscription;
+
+  /// No description provided for @subscriptionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Status'**
+  String get subscriptionStatus;
+
+  /// No description provided for @activeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get activeStatus;
+
+  /// No description provided for @freeStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get freeStatus;
+
+  /// No description provided for @validUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Validity Period'**
+  String get validUntil;
+
+  /// No description provided for @lifetimeFree.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime (Free)'**
+  String get lifetimeFree;
+
+  /// No description provided for @googlePlayBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play Billing'**
+  String get googlePlayBilling;
+
+  /// No description provided for @changeOrUpgradePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Change / Upgrade Plan'**
+  String get changeOrUpgradePlan;
+
+  /// No description provided for @upgradeToPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Pro'**
+  String get upgradeToPro;
+
+  /// No description provided for @subscriptionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription History'**
+  String get subscriptionHistory;
+
+  /// No description provided for @currentPlanFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Current Plan Features'**
+  String get currentPlanFeatures;
+
+  /// No description provided for @aboutGooglePlaySubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'About Google Play Subscriptions'**
+  String get aboutGooglePlaySubscription;
+
+  /// No description provided for @aboutGooglePlaySubscriptionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions are managed directly by your Google Play Store account. You can cancel or modify auto-renewal at any time via the Subscriptions menu in the Google Play Store app.'**
+  String get aboutGooglePlaySubscriptionDesc;
+
+  /// No description provided for @accessDeniedOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Denied: Only the Store Owner is authorized to manage subscription plans.'**
+  String get accessDeniedOwnerOnly;
+
+  /// No description provided for @failedToLoadSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load subscription status: {error}'**
+  String failedToLoadSubscription(String error);
+
+  /// No description provided for @chooseSubscriptionPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Subscription Plan'**
+  String get chooseSubscriptionPlan;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @restorePurchasesSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases request has been sent to Google Play.'**
+  String get restorePurchasesSent;
+
+  /// No description provided for @restorePurchasesFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restore purchases: {error}'**
+  String restorePurchasesFailed(String error);
+
+  /// No description provided for @processingSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing subscription with Supabase & Google Play...'**
+  String get processingSubscription;
+
+  /// No description provided for @subscriptionSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! Your store is now subscribed to {planName}.'**
+  String subscriptionSuccess(String planName);
+
+  /// No description provided for @subscriptionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to process subscription: {error}'**
+  String subscriptionFailed(String error);
+
+  /// No description provided for @alreadyOnFreePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your store is already using the free plan.'**
+  String get alreadyOnFreePlan;
+
+  /// No description provided for @confirmGooglePlayPurchase.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Subscription Payment'**
+  String get confirmGooglePlayPurchase;
+
+  /// No description provided for @subscriptionFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Fee'**
+  String get subscriptionFee;
+
+  /// No description provided for @secureGooglePlayPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure payment integrated with your Google Play account. Can be canceled anytime.'**
+  String get secureGooglePlayPayment;
+
+  /// No description provided for @confirmViaGooglePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm via Google Play ({price})'**
+  String confirmViaGooglePlay(String price);
+
+  /// No description provided for @changingPlanNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Changing from \"{oldPlan}\" to \"{newPlan}\". Google Play will prorate your billing automatically.'**
+  String changingPlanNotice(String oldPlan, String newPlan);
+
+  /// No description provided for @stillOnPaidPlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Subscription Remaining'**
+  String get stillOnPaidPlanTitle;
+
+  /// No description provided for @stillOnPaidPlanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your store currently has an active {planName} subscription valid until {expiryDate}.'**
+  String stillOnPaidPlanDesc(String planName, String expiryDate);
+
+  /// No description provided for @stillOnPaidPlanNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'To protect the remaining paid period, your plan will automatically revert to Lite once this billing cycle ends.'**
+  String get stillOnPaidPlanNotice;
+
+  /// No description provided for @understood.
+  ///
+  /// In en, this message translates to:
+  /// **'Understood'**
+  String get understood;
+
+  /// No description provided for @shareReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Receipt'**
+  String get shareReceipt;
+
+  /// No description provided for @subscriptionPaymentDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Payment Details'**
+  String get subscriptionPaymentDetail;
+
+  /// No description provided for @orderIdGooglePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Order ID (Google Play)'**
+  String get orderIdGooglePlay;
+
+  /// No description provided for @transactionTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Time'**
+  String get transactionTime;
+
+  /// No description provided for @statusSuccessPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Success (Paid)'**
+  String get statusSuccessPaid;
+
+  /// No description provided for @totalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cost'**
+  String get totalCost;
+
+  /// No description provided for @noSubscriptionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No Transaction History'**
+  String get noSubscriptionHistory;
+
+  /// No description provided for @noSubscriptionHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription purchase transactions will appear here.'**
+  String get noSubscriptionHistoryDesc;
+
+  /// No description provided for @subscriptionReceiptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SUBSCRIPTION PAYMENT RECEIPT'**
+  String get subscriptionReceiptTitle;
+
+  /// No description provided for @thankYouSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for subscribing! Your POS service is now active with premium features.'**
+  String get thankYouSubscription;
+
+  /// No description provided for @subscriptionExpiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Expiring Soon'**
+  String get subscriptionExpiringSoon;
+
+  /// No description provided for @subscriptionExpiringDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {planName} plan {remainingDays}. Renew now to keep store operations running smoothly.'**
+  String subscriptionExpiringDesc(String planName, String remainingDays);
+
+  /// No description provided for @expiresToday.
+  ///
+  /// In en, this message translates to:
+  /// **'expires today'**
+  String get expiresToday;
+
+  /// No description provided for @daysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days remaining'**
+  String daysRemaining(int count);
+
+  /// No description provided for @renewNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Renew'**
+  String get renewNow;
+
+  /// No description provided for @quotaExceededTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Limit Reached'**
+  String get quotaExceededTitle;
+
+  /// No description provided for @quotaExceededDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your store has reached the limit of {quota} transactions for this month on the {planName} plan.\n\nUpgrade to Pro to enjoy unlimited cashier transactions.'**
+  String quotaExceededDesc(int quota, String planName);
+
+  /// No description provided for @unlimitedTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited Transactions'**
+  String get unlimitedTransactions;
+
+  /// No description provided for @monthlyTransactionsLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Max {quota} transactions/month'**
+  String monthlyTransactionsLimit(int quota);
+
+  /// No description provided for @outletsSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support for up to {count} stores/outlets'**
+  String outletsSupport(int count);
 }
 
 class _AppLocalizationsDelegate

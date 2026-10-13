@@ -56,6 +56,7 @@
     }
   },
   "yesLeave": "Yes, Leave",
+  "retry": "Try Again",
   "leaveSuccess": "You have left the store.",
   "leaveFailed": "Failed to leave the store: {error}",
   "@leaveFailed": {
@@ -582,6 +583,155 @@
     "placeholders": {
       "error": {
         "type": "String"
+      }
+    }
+  },
+  "manageSubscription": "Manage Subscription",
+  "subscriptionStatus": "Subscription Status",
+  "activeStatus": "ACTIVE",
+  "freeStatus": "FREE",
+  "validUntil": "Validity Period",
+  "lifetimeFree": "Lifetime (Free)",
+  "paymentMethod": "Payment Method",
+  "googlePlayBilling": "Google Play Billing",
+  "changeOrUpgradePlan": "Change / Upgrade Plan",
+  "upgradeToPro": "Upgrade to Pro",
+  "subscriptionHistory": "Subscription History",
+  "currentPlanFeatures": "Your Current Plan Features",
+  "aboutGooglePlaySubscription": "About Google Play Subscriptions",
+  "aboutGooglePlaySubscriptionDesc": "Subscriptions are managed directly by your Google Play Store account. You can cancel or modify auto-renewal at any time via the Subscriptions menu in the Google Play Store app.",
+  "accessDeniedOwnerOnly": "Access Denied: Only the Store Owner is authorized to manage subscription plans.",
+  "failedToLoadSubscription": "Failed to load subscription status: {error}",
+  "@failedToLoadSubscription": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseSubscriptionPlan": "Choose Subscription Plan",
+  "restorePurchases": "Restore Purchases",
+  "restorePurchasesSent": "Restore purchases request has been sent to Google Play.",
+  "restorePurchasesFailed": "Failed to restore purchases: {error}",
+  "@restorePurchasesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "processingSubscription": "Processing subscription with Supabase & Google Play...",
+  "subscriptionSuccess": "Congratulations! Your store is now subscribed to {planName}.",
+  "@subscriptionSuccess": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailed": "Failed to process subscription: {error}",
+  "@subscriptionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyOnFreePlan": "Your store is already using the free plan.",
+  "confirmGooglePlayPurchase": "Confirm Subscription Payment",
+  "subscriptionFee": "Subscription Fee",
+  "secureGooglePlayPayment": "Secure payment integrated with your Google Play account. Can be canceled anytime.",
+  "confirmViaGooglePlay": "Confirm via Google Play ({price})",
+  "@confirmViaGooglePlay": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "changingPlanNotice": "Changing from \"{oldPlan}\" to \"{newPlan}\". Google Play will prorate your billing automatically.",
+  "@changingPlanNotice": {
+    "placeholders": {
+      "oldPlan": {
+        "type": "String"
+      },
+      "newPlan": {
+        "type": "String"
+      }
+    }
+  },
+  "stillOnPaidPlanTitle": "Active Subscription Remaining",
+  "stillOnPaidPlanDesc": "Your store currently has an active {planName} subscription valid until {expiryDate}.",
+  "@stillOnPaidPlanDesc": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      },
+      "expiryDate": {
+        "type": "String"
+      }
+    }
+  },
+  "stillOnPaidPlanNotice": "To protect the remaining paid period, your plan will automatically revert to Lite once this billing cycle ends.",
+  "understood": "Understood",
+  "shareReceipt": "Share Receipt",
+  "subscriptionPaymentDetail": "Subscription Payment Details",
+  "orderIdGooglePlay": "Order ID (Google Play)",
+  "transactionTime": "Transaction Time",
+  "statusSuccessPaid": "Success (Paid)",
+  "totalCost": "Total Cost",
+  "noSubscriptionHistory": "No Transaction History",
+  "noSubscriptionHistoryDesc": "Your subscription purchase transactions will appear here.",
+  "subscriptionReceiptTitle": "SUBSCRIPTION PAYMENT RECEIPT",
+  "thankYouSubscription": "Thank you for subscribing! Your POS service is now active with premium features.",
+  "subscriptionExpiringSoon": "Subscription Expiring Soon",
+  "subscriptionExpiringDesc": "Your {planName} plan {remainingDays}. Renew now to keep store operations running smoothly.",
+  "@subscriptionExpiringDesc": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      },
+      "remainingDays": {
+        "type": "String"
+      }
+    }
+  },
+  "expiresToday": "expires today",
+  "daysRemaining": "{count} days remaining",
+  "@daysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "renewNow": "Renew",
+  "quotaExceededTitle": "Transaction Limit Reached",
+  "quotaExceededDesc": "Your store has reached the limit of {quota} transactions for this month on the {planName} plan.\n\nUpgrade to Pro to enjoy unlimited cashier transactions.",
+  "@quotaExceededDesc": {
+    "placeholders": {
+      "quota": {
+        "type": "int"
+      },
+      "planName": {
+        "type": "String"
+      }
+    }
+  },
+  "unlimitedTransactions": "Unlimited Transactions",
+  "monthlyTransactionsLimit": "Max {quota} transactions/month",
+  "@monthlyTransactionsLimit": {
+    "placeholders": {
+      "quota": {
+        "type": "int"
+      }
+    }
+  },
+  "outletsSupport": "Support for up to {count} stores/outlets",
+  "@outletsSupport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   }

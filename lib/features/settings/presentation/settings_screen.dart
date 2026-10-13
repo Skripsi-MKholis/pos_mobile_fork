@@ -111,6 +111,13 @@ class SettingsScreen extends ConsumerWidget {
               _buildMenuItem(
                 context,
                 theme,
+                TablerIcons.crown,
+                l10n.manageSubscription,
+                () => context.push('/subscription'),
+              ),
+              _buildMenuItem(
+                context,
+                theme,
                 TablerIcons.building_store,
                 l10n.storeInformation,
                 () => context.push('/store-info'),

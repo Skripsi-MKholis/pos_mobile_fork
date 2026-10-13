@@ -56,6 +56,7 @@
     }
   },
   "yesLeave": "Ya, Keluar",
+  "retry": "Coba Lagi",
   "leaveSuccess": "Anda telah keluar dari toko.",
   "leaveFailed": "Gagal keluar dari toko: {error}",
   "@leaveFailed": {
@@ -582,6 +583,155 @@
     "placeholders": {
       "error": {
         "type": "String"
+      }
+    }
+  },
+  "manageSubscription": "Kelola Langganan",
+  "subscriptionStatus": "Status Langganan",
+  "activeStatus": "AKTIF",
+  "freeStatus": "GRATIS",
+  "validUntil": "Masa Berlaku",
+  "lifetimeFree": "Selamanya (Free)",
+  "paymentMethod": "Metode Pembayaran",
+  "googlePlayBilling": "Google Play Billing",
+  "changeOrUpgradePlan": "Ganti / Upgrade Paket",
+  "upgradeToPro": "Upgrade ke Pro",
+  "subscriptionHistory": "Riwayat Transaksi Langganan",
+  "currentPlanFeatures": "Fitur Paket Anda Saat Ini",
+  "aboutGooglePlaySubscription": "Tentang Langganan Google Play",
+  "aboutGooglePlaySubscriptionDesc": "Langganan dikelola langsung oleh akun Google Play Store Anda. Anda dapat menghentikan atau mengubah perpanjangan otomatis kapan saja melalui menu Langganan di aplikasi Google Play Store.",
+  "accessDeniedOwnerOnly": "Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.",
+  "failedToLoadSubscription": "Gagal memuat status langganan: {error}",
+  "@failedToLoadSubscription": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseSubscriptionPlan": "Pilihan Paket Langganan",
+  "restorePurchases": "Pulihkan Pembelian",
+  "restorePurchasesSent": "Permintaan pemulihan pembelian telah dikirim ke Google Play.",
+  "restorePurchasesFailed": "Gagal memulihkan pembelian: {error}",
+  "@restorePurchasesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "processingSubscription": "Memproses langganan ke Supabase & Google Play...",
+  "subscriptionSuccess": "Selamat! Toko Anda berhasil berlangganan paket {planName}.",
+  "@subscriptionSuccess": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      }
+    }
+  },
+  "subscriptionFailed": "Gagal memproses langganan: {error}",
+  "@subscriptionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyOnFreePlan": "Toko Anda saat ini sudah menggunakan paket gratis.",
+  "confirmGooglePlayPurchase": "Konfirmasi Pembayaran Langganan",
+  "subscriptionFee": "Biaya Langganan",
+  "secureGooglePlayPayment": "Pembayaran aman & terintegrasi dengan akun Google Play Anda. Dapat dibatalkan kapan saja.",
+  "confirmViaGooglePlay": "Konfirmasi via Google Play ({price})",
+  "@confirmViaGooglePlay": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "changingPlanNotice": "Mengganti dari \"{oldPlan}\" ke \"{newPlan}\". Google Play akan menyesuaikan prorata tagihan Anda secara otomatis.",
+  "@changingPlanNotice": {
+    "placeholders": {
+      "oldPlan": {
+        "type": "String"
+      },
+      "newPlan": {
+        "type": "String"
+      }
+    }
+  },
+  "stillOnPaidPlanTitle": "Masih Dalam Masa Berlangganan",
+  "stillOnPaidPlanDesc": "Toko Anda saat ini masih berlangganan {planName} aktif hingga {expiryDate}.",
+  "@stillOnPaidPlanDesc": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      },
+      "expiryDate": {
+        "type": "String"
+      }
+    }
+  },
+  "stillOnPaidPlanNotice": "Untuk melindungi sisa masa aktif yang telah Anda bayar, paket Anda akan otomatis kembali ke paket Lite setelah masa berlaku berakhir.",
+  "understood": "Mengerti",
+  "shareReceipt": "Bagikan Bukti",
+  "subscriptionPaymentDetail": "Detail Pembayaran Langganan",
+  "orderIdGooglePlay": "Order ID (Google Play)",
+  "transactionTime": "Waktu Transaksi",
+  "statusSuccessPaid": "Berhasil (Lunas)",
+  "totalCost": "Total Biaya",
+  "noSubscriptionHistory": "Belum Ada Riwayat Transaksi",
+  "noSubscriptionHistoryDesc": "Transaksi pembelian paket langganan Anda akan tercatat di sini.",
+  "subscriptionReceiptTitle": "BUKTI PEMBAYARAN LANGGANAN",
+  "thankYouSubscription": "Terima kasih telah berlangganan! Layanan POS Anda kini aktif dengan fitur terbaik.",
+  "subscriptionExpiringSoon": "Masa Langganan Segera Berakhir",
+  "subscriptionExpiringDesc": "Paket {planName} Anda {remainingDays}. Perpanjang agar operasional toko tetap lancar tanpa kendala.",
+  "@subscriptionExpiringDesc": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      },
+      "remainingDays": {
+        "type": "String"
+      }
+    }
+  },
+  "expiresToday": "berakhir hari ini",
+  "daysRemaining": "tersisa {count} hari lagi",
+  "@daysRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "renewNow": "Perpanjang",
+  "quotaExceededTitle": "Batas Transaksi Tercapai",
+  "quotaExceededDesc": "Toko Anda telah mencapai batas kuota {quota} transaksi untuk bulan ini pada paket {planName}.\n\nUpgrade ke paket Pro untuk menikmati transaksi kasir tanpa batas.",
+  "@quotaExceededDesc": {
+    "placeholders": {
+      "quota": {
+        "type": "int"
+      },
+      "planName": {
+        "type": "String"
+      }
+    }
+  },
+  "unlimitedTransactions": "Transaksi Tanpa Batas (Unlimited)",
+  "monthlyTransactionsLimit": "Maksimal {quota} transaksi/bulan",
+  "@monthlyTransactionsLimit": {
+    "placeholders": {
+      "quota": {
+        "type": "int"
+      }
+    }
+  },
+  "outletsSupport": "Dukungan hingga {count} cabang/outlet",
+  "@outletsSupport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   }

@@ -414,10 +414,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         if (!mounted) return;
         showQuotaExceededDialog(
           context,
-          title: 'Batas Transaksi Tercapai',
-          message:
-              'Toko Anda telah mencapai batas kuota ${subInfo.maxTransactions} transaksi untuk bulan ini pada paket ${subInfo.planName}.\n\nUpgrade ke paket Pro untuk menikmati transaksi kasir tanpa batas.',
-          currentLimit: '${subInfo.maxTransactions} Transaksi / Bulan',
+          title: l10n.quotaExceededTitle,
+          message: l10n.quotaExceededDesc(subInfo.maxTransactions, subInfo.planName),
+          currentLimit: l10n.monthlyTransactionsLimit(subInfo.maxTransactions),
         );
         return;
       }

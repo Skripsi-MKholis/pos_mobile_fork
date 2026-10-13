@@ -143,6 +143,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yesLeave => 'Yes, Leave';
 
   @override
+  String get retry => 'Try Again';
+
+  @override
   String get leaveSuccess => 'You have left the store.';
 
   @override
@@ -1064,5 +1067,193 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String registrationFailed(String error) {
     return 'Registration Failed: $error';
+  }
+
+  @override
+  String get manageSubscription => 'Manage Subscription';
+
+  @override
+  String get subscriptionStatus => 'Subscription Status';
+
+  @override
+  String get activeStatus => 'ACTIVE';
+
+  @override
+  String get freeStatus => 'FREE';
+
+  @override
+  String get validUntil => 'Validity Period';
+
+  @override
+  String get lifetimeFree => 'Lifetime (Free)';
+
+  @override
+  String get googlePlayBilling => 'Google Play Billing';
+
+  @override
+  String get changeOrUpgradePlan => 'Change / Upgrade Plan';
+
+  @override
+  String get upgradeToPro => 'Upgrade to Pro';
+
+  @override
+  String get subscriptionHistory => 'Subscription History';
+
+  @override
+  String get currentPlanFeatures => 'Your Current Plan Features';
+
+  @override
+  String get aboutGooglePlaySubscription => 'About Google Play Subscriptions';
+
+  @override
+  String get aboutGooglePlaySubscriptionDesc =>
+      'Subscriptions are managed directly by your Google Play Store account. You can cancel or modify auto-renewal at any time via the Subscriptions menu in the Google Play Store app.';
+
+  @override
+  String get accessDeniedOwnerOnly =>
+      'Access Denied: Only the Store Owner is authorized to manage subscription plans.';
+
+  @override
+  String failedToLoadSubscription(String error) {
+    return 'Failed to load subscription status: $error';
+  }
+
+  @override
+  String get chooseSubscriptionPlan => 'Choose Subscription Plan';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get restorePurchasesSent =>
+      'Restore purchases request has been sent to Google Play.';
+
+  @override
+  String restorePurchasesFailed(String error) {
+    return 'Failed to restore purchases: $error';
+  }
+
+  @override
+  String get processingSubscription =>
+      'Processing subscription with Supabase & Google Play...';
+
+  @override
+  String subscriptionSuccess(String planName) {
+    return 'Congratulations! Your store is now subscribed to $planName.';
+  }
+
+  @override
+  String subscriptionFailed(String error) {
+    return 'Failed to process subscription: $error';
+  }
+
+  @override
+  String get alreadyOnFreePlan => 'Your store is already using the free plan.';
+
+  @override
+  String get confirmGooglePlayPurchase => 'Confirm Subscription Payment';
+
+  @override
+  String get subscriptionFee => 'Subscription Fee';
+
+  @override
+  String get secureGooglePlayPayment =>
+      'Secure payment integrated with your Google Play account. Can be canceled anytime.';
+
+  @override
+  String confirmViaGooglePlay(String price) {
+    return 'Confirm via Google Play ($price)';
+  }
+
+  @override
+  String changingPlanNotice(String oldPlan, String newPlan) {
+    return 'Changing from \"$oldPlan\" to \"$newPlan\". Google Play will prorate your billing automatically.';
+  }
+
+  @override
+  String get stillOnPaidPlanTitle => 'Active Subscription Remaining';
+
+  @override
+  String stillOnPaidPlanDesc(String planName, String expiryDate) {
+    return 'Your store currently has an active $planName subscription valid until $expiryDate.';
+  }
+
+  @override
+  String get stillOnPaidPlanNotice =>
+      'To protect the remaining paid period, your plan will automatically revert to Lite once this billing cycle ends.';
+
+  @override
+  String get understood => 'Understood';
+
+  @override
+  String get shareReceipt => 'Share Receipt';
+
+  @override
+  String get subscriptionPaymentDetail => 'Subscription Payment Details';
+
+  @override
+  String get orderIdGooglePlay => 'Order ID (Google Play)';
+
+  @override
+  String get transactionTime => 'Transaction Time';
+
+  @override
+  String get statusSuccessPaid => 'Success (Paid)';
+
+  @override
+  String get totalCost => 'Total Cost';
+
+  @override
+  String get noSubscriptionHistory => 'No Transaction History';
+
+  @override
+  String get noSubscriptionHistoryDesc =>
+      'Your subscription purchase transactions will appear here.';
+
+  @override
+  String get subscriptionReceiptTitle => 'SUBSCRIPTION PAYMENT RECEIPT';
+
+  @override
+  String get thankYouSubscription =>
+      'Thank you for subscribing! Your POS service is now active with premium features.';
+
+  @override
+  String get subscriptionExpiringSoon => 'Subscription Expiring Soon';
+
+  @override
+  String subscriptionExpiringDesc(String planName, String remainingDays) {
+    return 'Your $planName plan $remainingDays. Renew now to keep store operations running smoothly.';
+  }
+
+  @override
+  String get expiresToday => 'expires today';
+
+  @override
+  String daysRemaining(int count) {
+    return '$count days remaining';
+  }
+
+  @override
+  String get renewNow => 'Renew';
+
+  @override
+  String get quotaExceededTitle => 'Transaction Limit Reached';
+
+  @override
+  String quotaExceededDesc(int quota, String planName) {
+    return 'Your store has reached the limit of $quota transactions for this month on the $planName plan.\n\nUpgrade to Pro to enjoy unlimited cashier transactions.';
+  }
+
+  @override
+  String get unlimitedTransactions => 'Unlimited Transactions';
+
+  @override
+  String monthlyTransactionsLimit(int quota) {
+    return 'Max $quota transactions/month';
+  }
+
+  @override
+  String outletsSupport(int count) {
+    return 'Support for up to $count stores/outlets';
   }
 }

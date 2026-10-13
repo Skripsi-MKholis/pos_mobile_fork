@@ -55,7 +55,7 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _buildHeader(l10n, theme),
             const SizedBox(height: 16),
-            _buildExpiringBanner(context, ref, theme),
+            _buildExpiringBanner(context, ref, theme, l10n),
             const SizedBox(height: 8),
             _buildTimeFilter(ref, l10n, theme),
             const SizedBox(height: 16),
@@ -684,6 +684,7 @@ class DashboardScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     ShadThemeData theme,
+    AppLocalizations l10n,
   ) {
     final subInfo = ref.watch(currentSubscriptionProvider).value;
     if (subInfo == null || !subInfo.isExpiringSoon) {
@@ -692,8 +693,8 @@ class DashboardScreen extends ConsumerWidget {
 
     final days = subInfo.remainingDays ?? 0;
     final textDays = days <= 0
-        ? 'berakhir hari ini'
-        : 'tersisa $days hari lagi';
+        ? l10n.expiresToday
+        : l10n.daysRemaining(days);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -715,8 +716,8 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFEE2E2),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEE2E2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -732,7 +733,7 @@ class DashboardScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Masa Langganan Segera Berakhir',
+                  l10n.subscriptionExpiringSoon,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -741,7 +742,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Paket ${subInfo.planName} Anda $textDays. Perpanjang agar operasional toko tetap lancar tanpa kendala.',
+                  l10n.subscriptionExpiringDesc(subInfo.planName, textDays),
                   style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF7F1D1D),
@@ -767,7 +768,7 @@ class DashboardScreen extends ConsumerWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            child: const Text('Perpanjang'),
+            child: Text(l10n.renewNow),
           ),
         ],
       ),

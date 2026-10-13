@@ -8,6 +8,7 @@ import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class ManageSubscriptionScreen extends ConsumerWidget {
@@ -15,6 +16,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final currentSubAsync = ref.watch(currentSubscriptionProvider);
     final plansAsync = ref.watch(availablePlansProvider);
 
@@ -27,9 +29,9 @@ class ManageSubscriptionScreen extends ConsumerWidget {
           icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Kelola Subscription',
-          style: TextStyle(
+        title: Text(
+          l10n.manageSubscription,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -49,11 +51,11 @@ class ManageSubscriptionScreen extends ConsumerWidget {
               children: [
                 const Icon(TablerIcons.alert_circle, size: 48, color: Colors.red),
                 const SizedBox(height: 12),
-                Text('Gagal memuat status langganan: $err', textAlign: TextAlign.center),
+                Text(l10n.failedToLoadSubscription(err.toString()), textAlign: TextAlign.center),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(currentSubscriptionProvider),
-                  child: const Text('Coba Lagi'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -136,7 +138,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  'Status Langganan',
+                                  l10n.subscriptionStatus,
                                   style: TextStyle(
                                     color: isPro ? Colors.white70 : Colors.black54,
                                     fontSize: 13,
@@ -158,7 +160,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                                 ),
                               ),
                               child: Text(
-                                isPro ? 'AKTIF' : 'GRATIS',
+                                isPro ? l10n.activeStatus : l10n.freeStatus,
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
@@ -192,7 +194,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Masa Berlaku',
+                              l10n.validUntil,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isPro ? Colors.white60 : Colors.black45,
@@ -200,8 +202,8 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                             ),
                             Text(
                               currentSub.expiresAt != null
-                                  ? DateFormat('dd MMMM yyyy', 'id_ID').format(currentSub.expiresAt!)
-                                  : 'Selamanya (Free)',
+                                  ? DateFormat('dd MMMM yyyy', Localizations.localeOf(context).languageCode).format(currentSub.expiresAt!)
+                                  : l10n.lifetimeFree,
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
@@ -212,20 +214,20 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                         ),
                         if (isPro) ...[
                           const SizedBox(height: 8),
-                          const Row(
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Metode Pembayaran',
-                                style: TextStyle(fontSize: 12, color: Colors.white60),
+                                l10n.paymentMethod,
+                                style: const TextStyle(fontSize: 12, color: Colors.white60),
                               ),
                               Row(
                                 children: [
-                                  Icon(TablerIcons.brand_google_play, size: 14, color: Colors.greenAccent),
-                                  SizedBox(width: 4),
+                                  const Icon(TablerIcons.brand_google_play, size: 14, color: Colors.greenAccent),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    'Google Play Billing',
-                                    style: TextStyle(
+                                    l10n.googlePlayBilling,
+                                    style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
@@ -251,7 +253,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                         if (userRole != null && userRole.toLowerCase() != 'owner') {
                           mySnackBar(
                             context: context,
-                            text: 'Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.',
+                            text: l10n.accessDeniedOwnerOnly,
                             status: ToastStatus.error,
                           );
                           return;
@@ -271,7 +273,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                           const Icon(TablerIcons.sparkles, size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            isPro ? 'Ganti / Upgrade Paket' : 'Upgrade ke Pro',
+                            isPro ? l10n.changeOrUpgradePlan : l10n.upgradeToPro,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                         ],
@@ -290,14 +292,14 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(TablerIcons.history, size: 20),
-                          SizedBox(width: 8),
+                          const Icon(TablerIcons.history, size: 20),
+                          const SizedBox(width: 8),
                           Text(
-                            'Riwayat Transaksi Langganan',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            l10n.subscriptionHistory,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                         ],
                       ),
@@ -307,9 +309,9 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   // Benefit Info Card
-                  const Text(
-                    'Fitur Paket Anda Saat Ini',
-                    style: TextStyle(
+                  Text(
+                    l10n.currentPlanFeatures,
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -374,9 +376,9 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Tentang Langganan Google Play',
-                                style: TextStyle(
+                              Text(
+                                l10n.aboutGooglePlaySubscription,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
                                   color: Colors.blue,
@@ -384,7 +386,7 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Langganan dikelola langsung oleh akun Google Play Store Anda. Anda dapat menghentikan atau mengubah perpanjangan otomatis kapan saja melalui menu Langganan di aplikasi Google Play Store.',
+                                l10n.aboutGooglePlaySubscriptionDesc,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[800],

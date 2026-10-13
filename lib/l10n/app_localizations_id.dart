@@ -144,6 +144,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get yesLeave => 'Ya, Keluar';
 
   @override
+  String get retry => 'Coba Lagi';
+
+  @override
   String get leaveSuccess => 'Anda telah keluar dari toko.';
 
   @override
@@ -1067,5 +1070,194 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String registrationFailed(String error) {
     return 'Registrasi Gagal: $error';
+  }
+
+  @override
+  String get manageSubscription => 'Kelola Langganan';
+
+  @override
+  String get subscriptionStatus => 'Status Langganan';
+
+  @override
+  String get activeStatus => 'AKTIF';
+
+  @override
+  String get freeStatus => 'GRATIS';
+
+  @override
+  String get validUntil => 'Masa Berlaku';
+
+  @override
+  String get lifetimeFree => 'Selamanya (Free)';
+
+  @override
+  String get googlePlayBilling => 'Google Play Billing';
+
+  @override
+  String get changeOrUpgradePlan => 'Ganti / Upgrade Paket';
+
+  @override
+  String get upgradeToPro => 'Upgrade ke Pro';
+
+  @override
+  String get subscriptionHistory => 'Riwayat Transaksi Langganan';
+
+  @override
+  String get currentPlanFeatures => 'Fitur Paket Anda Saat Ini';
+
+  @override
+  String get aboutGooglePlaySubscription => 'Tentang Langganan Google Play';
+
+  @override
+  String get aboutGooglePlaySubscriptionDesc =>
+      'Langganan dikelola langsung oleh akun Google Play Store Anda. Anda dapat menghentikan atau mengubah perpanjangan otomatis kapan saja melalui menu Langganan di aplikasi Google Play Store.';
+
+  @override
+  String get accessDeniedOwnerOnly =>
+      'Akses Ditolak: Hanya Pemilik Toko (Owner) yang berwenang mengubah paket langganan.';
+
+  @override
+  String failedToLoadSubscription(String error) {
+    return 'Gagal memuat status langganan: $error';
+  }
+
+  @override
+  String get chooseSubscriptionPlan => 'Pilihan Paket Langganan';
+
+  @override
+  String get restorePurchases => 'Pulihkan Pembelian';
+
+  @override
+  String get restorePurchasesSent =>
+      'Permintaan pemulihan pembelian telah dikirim ke Google Play.';
+
+  @override
+  String restorePurchasesFailed(String error) {
+    return 'Gagal memulihkan pembelian: $error';
+  }
+
+  @override
+  String get processingSubscription =>
+      'Memproses langganan ke Supabase & Google Play...';
+
+  @override
+  String subscriptionSuccess(String planName) {
+    return 'Selamat! Toko Anda berhasil berlangganan paket $planName.';
+  }
+
+  @override
+  String subscriptionFailed(String error) {
+    return 'Gagal memproses langganan: $error';
+  }
+
+  @override
+  String get alreadyOnFreePlan =>
+      'Toko Anda saat ini sudah menggunakan paket gratis.';
+
+  @override
+  String get confirmGooglePlayPurchase => 'Konfirmasi Pembayaran Langganan';
+
+  @override
+  String get subscriptionFee => 'Biaya Langganan';
+
+  @override
+  String get secureGooglePlayPayment =>
+      'Pembayaran aman & terintegrasi dengan akun Google Play Anda. Dapat dibatalkan kapan saja.';
+
+  @override
+  String confirmViaGooglePlay(String price) {
+    return 'Konfirmasi via Google Play ($price)';
+  }
+
+  @override
+  String changingPlanNotice(String oldPlan, String newPlan) {
+    return 'Mengganti dari \"$oldPlan\" ke \"$newPlan\". Google Play akan menyesuaikan prorata tagihan Anda secara otomatis.';
+  }
+
+  @override
+  String get stillOnPaidPlanTitle => 'Masih Dalam Masa Berlangganan';
+
+  @override
+  String stillOnPaidPlanDesc(String planName, String expiryDate) {
+    return 'Toko Anda saat ini masih berlangganan $planName aktif hingga $expiryDate.';
+  }
+
+  @override
+  String get stillOnPaidPlanNotice =>
+      'Untuk melindungi sisa masa aktif yang telah Anda bayar, paket Anda akan otomatis kembali ke paket Lite setelah masa berlaku berakhir.';
+
+  @override
+  String get understood => 'Mengerti';
+
+  @override
+  String get shareReceipt => 'Bagikan Bukti';
+
+  @override
+  String get subscriptionPaymentDetail => 'Detail Pembayaran Langganan';
+
+  @override
+  String get orderIdGooglePlay => 'Order ID (Google Play)';
+
+  @override
+  String get transactionTime => 'Waktu Transaksi';
+
+  @override
+  String get statusSuccessPaid => 'Berhasil (Lunas)';
+
+  @override
+  String get totalCost => 'Total Biaya';
+
+  @override
+  String get noSubscriptionHistory => 'Belum Ada Riwayat Transaksi';
+
+  @override
+  String get noSubscriptionHistoryDesc =>
+      'Transaksi pembelian paket langganan Anda akan tercatat di sini.';
+
+  @override
+  String get subscriptionReceiptTitle => 'BUKTI PEMBAYARAN LANGGANAN';
+
+  @override
+  String get thankYouSubscription =>
+      'Terima kasih telah berlangganan! Layanan POS Anda kini aktif dengan fitur terbaik.';
+
+  @override
+  String get subscriptionExpiringSoon => 'Masa Langganan Segera Berakhir';
+
+  @override
+  String subscriptionExpiringDesc(String planName, String remainingDays) {
+    return 'Paket $planName Anda $remainingDays. Perpanjang agar operasional toko tetap lancar tanpa kendala.';
+  }
+
+  @override
+  String get expiresToday => 'berakhir hari ini';
+
+  @override
+  String daysRemaining(int count) {
+    return 'tersisa $count hari lagi';
+  }
+
+  @override
+  String get renewNow => 'Perpanjang';
+
+  @override
+  String get quotaExceededTitle => 'Batas Transaksi Tercapai';
+
+  @override
+  String quotaExceededDesc(int quota, String planName) {
+    return 'Toko Anda telah mencapai batas kuota $quota transaksi untuk bulan ini pada paket $planName.\n\nUpgrade ke paket Pro untuk menikmati transaksi kasir tanpa batas.';
+  }
+
+  @override
+  String get unlimitedTransactions => 'Transaksi Tanpa Batas (Unlimited)';
+
+  @override
+  String monthlyTransactionsLimit(int quota) {
+    return 'Maksimal $quota transaksi/bulan';
+  }
+
+  @override
+  String outletsSupport(int count) {
+    return 'Dukungan hingga $count cabang/outlet';
   }
 }

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
 class SubscriptionHistoryScreen extends ConsumerWidget {
@@ -13,6 +14,7 @@ class SubscriptionHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final transactionsAsync = ref.watch(subscriptionTransactionsProvider);
 
     return Scaffold(
@@ -24,9 +26,9 @@ class SubscriptionHistoryScreen extends ConsumerWidget {
           icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Riwayat Transaksi Langganan',
-          style: TextStyle(
+        title: Text(
+          l10n.subscriptionHistory,
+          style: const TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -46,11 +48,11 @@ class SubscriptionHistoryScreen extends ConsumerWidget {
               children: [
                 const Icon(TablerIcons.alert_circle, size: 48, color: Colors.red),
                 const SizedBox(height: 12),
-                Text('Gagal memuat riwayat: $err', textAlign: TextAlign.center),
+                Text(l10n.failedToLoadSubscription(err.toString()), textAlign: TextAlign.center),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(subscriptionTransactionsProvider),
-                  child: const Text('Coba Lagi'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -73,16 +75,16 @@ class SubscriptionHistoryScreen extends ConsumerWidget {
                           child: const Icon(TablerIcons.receipt_off, size: 48, color: Colors.grey),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Belum Ada Riwayat Transaksi',
-                          style: TextStyle(
+                        Text(
+                          l10n.noSubscriptionHistory,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Transaksi langganan toko via Google Play Store akan tercatat di sini.',
+                          l10n.noSubscriptionHistoryDesc,
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.grey[600], fontSize: 13),
                         ),
@@ -111,6 +113,7 @@ class _TransactionItemCard extends StatelessWidget {
   const _TransactionItemCard({required this.transaction});
 
   void _showDetailBottomSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -154,10 +157,10 @@ class _TransactionItemCard extends StatelessWidget {
                       child: const Icon(TablerIcons.receipt_2, color: Colors.green, size: 24),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Detail Pembayaran Langganan',
-                        style: TextStyle(
+                        l10n.subscriptionPaymentDetail,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -175,21 +178,21 @@ class _TransactionItemCard extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      _detailRow('Order ID (Google Play)', transaction.orderId),
+                      _detailRow(l10n.orderIdGooglePlay, transaction.orderId),
                       const Divider(height: 18),
-                      _detailRow('Paket', transaction.planName),
+                      _detailRow(l10n.chooseSubscriptionPlan, transaction.planName),
                       const Divider(height: 18),
                       _detailRow(
-                        'Waktu Transaksi',
-                        DateFormat('dd MMM yyyy, HH:mm', 'id_ID').format(transaction.purchaseDate),
+                        l10n.transactionTime,
+                        DateFormat('dd MMM yyyy, HH:mm', Localizations.localeOf(context).languageCode).format(transaction.purchaseDate),
                       ),
                       const Divider(height: 18),
-                      _detailRow('Metode Pembayaran', transaction.paymentMethod),
+                      _detailRow(l10n.paymentMethod, transaction.paymentMethod),
                       const Divider(height: 18),
-                      _detailRow('Status', 'Berhasil (Lunas)', isSuccessStatus: true),
+                      _detailRow(l10n.subscriptionStatus, l10n.statusSuccessPaid, isSuccessStatus: true),
                       const Divider(height: 18),
                       _detailRow(
-                        'Total Biaya',
+                        l10n.totalCost,
                         'Rp ${NumberFormat('#,###', 'id_ID').format(transaction.amount)}',
                         isBold: true,
                       ),
@@ -202,10 +205,10 @@ class _TransactionItemCard extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          _shareInvoice(transaction);
+                          _shareInvoice(context, transaction);
                         },
                         icon: const Icon(TablerIcons.share, size: 18),
-                        label: const Text('Bagikan Bukti'),
+                        label: Text(l10n.shareReceipt),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.black87,
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -225,7 +228,7 @@ class _TransactionItemCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 0,
                         ),
-                        child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+                        child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],
@@ -238,12 +241,13 @@ class _TransactionItemCard extends StatelessWidget {
     );
   }
 
-  void _shareInvoice(SubscriptionTransaction transaction) {
-    final dateFormat = DateFormat('dd MMMM yyyy, HH:mm', 'id_ID');
+  void _shareInvoice(BuildContext context, SubscriptionTransaction transaction) {
+    final l10n = AppLocalizations.of(context)!;
+    final dateFormat = DateFormat('dd MMMM yyyy, HH:mm', Localizations.localeOf(context).languageCode);
     final amountFormatted = 'Rp ${NumberFormat('#,###', 'id_ID').format(transaction.amount)}';
     final invoiceText = '''
 ====================================
-      BUKTI PEMBAYARAN LANGGANAN
+      ${l10n.subscriptionReceiptTitle}
 ====================================
 ID Pesanan    : ${transaction.orderId}
 Paket         : ${transaction.planName}
@@ -252,11 +256,10 @@ Metode        : ${transaction.paymentMethod}
 Tanggal       : ${dateFormat.format(transaction.purchaseDate)}
 Total Biaya   : $amountFormatted
 ====================================
-Terima kasih telah berlangganan!
-Layanan POS Anda kini aktif dengan fitur terbaik.
+${l10n.thankYouSubscription}
 ''';
 
-    Share.share(invoiceText, subject: 'Bukti Pembayaran Langganan - ${transaction.orderId}');
+    Share.share(invoiceText, subject: '${l10n.subscriptionReceiptTitle} - ${transaction.orderId}');
   }
 
   Widget _detailRow(String label, String value, {bool isBold = false, bool isSuccessStatus = false}) {
