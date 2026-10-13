@@ -1,5 +1,7 @@
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pos_mobile/core/models/receipt_config.dart';
 
 class PrinterService {
@@ -176,5 +178,71 @@ class PrinterService {
 
   Future<void> disconnect() async {
     await bluetooth.disconnect();
+  }
+
+  Future<bool> isBluetoothOn() async {
+    final status = await bluetooth.isOn;
+    return status ?? false;
+  }
+
+  Future<void> openBluetoothSettings() async {
+    const channel = MethodChannel('com.parzello.pos_mobile/system_settings');
+    try {
+      await channel.invokeMethod('openBluetoothSettings');
+    } catch (_) {
+      try {
+        await bluetooth.openSettings;
+      } catch (_) {
+        // Fallback ke app settings jika intent spesifik bluetooth gagal
+        await openAppSettings();
+      }
+    }
+  }
+
+  Future<void> openCashDrawer() async {
+    bool? isConnected = await bluetooth.isConnected;
+    if (isConnected == null || !isConnected) {
+      throw 'Printer tidak terhubung';
+    }
+    await bluetooth.drawerPin2();
+  }
+
+  Future<void> printTestReceipt({
+    Map<String, dynamic>? activeStore,
+    String? cashierName,
+  }) async {
+    bool? isConnected = await bluetooth.isConnected;
+    if (isConnected == null || !isConnected) {
+      throw 'Printer tidak terhubung';
+    }
+
+    final config = ReceiptConfig.fromStore(activeStore);
+    final storeName = config.storeName;
+    final separator = config.printerSeparator;
+    final dateFormat = DateFormat('dd/MM/yyyy HH:mm:ss');
+
+    await bluetooth.printNewLine();
+    await bluetooth.printCustom(storeName, 2, 1);
+    if (config.address.isNotEmpty) {
+      await bluetooth.printCustom(config.address, 1, 1);
+    }
+    await bluetooth.printCustom(separator, 1, 1);
+    await bluetooth.printCustom("** UJI COBA PRINTER **", 1, 1);
+    await bluetooth.printLeftRight(
+      "Waktu:",
+      dateFormat.format(DateTime.now()),
+      1,
+    );
+    if (cashierName != null && cashierName.isNotEmpty) {
+      await bluetooth.printLeftRight("Operator:", cashierName, 1);
+    }
+    await bluetooth.printLeftRight("Status:", "BERHASIL TERHUBUNG", 1);
+    await bluetooth.printLeftRight("Lebar Kertas:", "${config.paperWidth} mm", 1);
+    await bluetooth.printCustom(separator, 1, 1);
+    await bluetooth.printCustom("Printer thermal siap digunakan!", 1, 1);
+    await bluetooth.printCustom("Powered by ZelloPOS", 0, 1);
+    await bluetooth.printNewLine();
+    await bluetooth.printNewLine();
+    await bluetooth.paperCut();
   }
 }
