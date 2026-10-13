@@ -6,10 +6,8 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
-import 'package:pos_mobile/features/customer/providers/customer_session_provider.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 import 'package:pos_mobile/core/guards/feature_guard.dart';
 
@@ -50,11 +48,6 @@ class _DrawerMenuContent extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    final activeStoreAsync = ref.watch(activeStoreProvider);
-    final activeStore = activeStoreAsync.value;
-    final settings = activeStore?['settings'] as Map<String, dynamic>?;
-    final features = settings?['features'] as Map<String, dynamic>?;
-
     final String location = GoRouterState.of(context).matchedLocation;
     final bool isCustomerMode = location.startsWith('/customer');
 
@@ -83,51 +76,31 @@ class _DrawerMenuContent extends ConsumerWidget {
       );
     }
 
+    final role = ref.watch(userRoleProvider) ?? 'Staff';
+    final isOwnerOrAdmin = role.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
+    final isIndonesian = Localizations.localeOf(context).languageCode == 'id';
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
-        // PRO / SUBSCRIPTION PROMO CARD
-        const _SubscriptionDrawerBanner(),
-        const _SectionSpacing(),
+        // PRO / SUBSCRIPTION BANNER (Hanya ditampilkan jika owner/admin)
+        if (isOwnerOrAdmin) ...[
+          const _SubscriptionDrawerBanner(),
+          const _SectionSpacing(),
+        ],
 
-        _SectionHeader(title: l10n.analytics),
-        _DrawerItem(
-          icon: TablerIcons.layout_dashboard,
-          title: l10n.dashboard,
-          route: '/dashboard',
-        ),
-        _DrawerItem(
-          icon: TablerIcons.chart_dots,
-          title: l10n.reports,
-          route: '/reports',
-        ),
-        _DrawerItem(
-          icon: TablerIcons.brain,
-          title: l10n.smartAnalytics,
-          route: '/smart-analytics',
-          requiredFeature: AppFeature.smartAnalytics,
-        ),
-
-        const _SectionSpacing(),
-        _SectionHeader(title: l10n.cashierOperational),
-        _DrawerItem(
-          icon: TablerIcons.shopping_cart,
-          title: l10n.cashierPos,
-          route: '/pos',
-        ),
-        _DrawerItem(
-          icon: TablerIcons.history,
-          title: l10n.transactionHistory,
-          route: '/transactions',
-        ),
-
-        const _SectionSpacing(),
+        // 1. MANAJEMEN PRODUK & STOK
         _SectionHeader(title: l10n.catalogAndStock),
         _DrawerItem(
           icon: TablerIcons.box,
           title: l10n.productList,
           route: '/products',
+        ),
+        _DrawerItem(
+          icon: TablerIcons.category,
+          title: l10n.categories,
+          route: '/categories',
         ),
         _DrawerItem(
           icon: TablerIcons.packages,
@@ -136,19 +109,23 @@ class _DrawerMenuContent extends ConsumerWidget {
         ),
         _DrawerItem(
           icon: TablerIcons.history,
-          title: Localizations.localeOf(context).languageCode == 'id'
-              ? 'Riwayat Stok'
-              : 'Stock History',
+          title: isIndonesian ? 'Riwayat Stok' : 'Stock History',
           route: '/stock/history',
         ),
+
+        // 2. KECERDASAN BISNIS & ANALITIK LANJUTAN
+        const _SectionSpacing(),
+        _SectionHeader(title: isIndonesian ? 'ANALITIK LANJUTAN' : 'ADVANCED ANALYTICS'),
         _DrawerItem(
-          icon: TablerIcons.category,
-          title: l10n.categories,
-          route: '/categories',
+          icon: TablerIcons.brain,
+          title: l10n.smartAnalytics,
+          route: '/smart-analytics',
+          requiredFeature: AppFeature.smartAnalytics,
         ),
 
+        // 3. PENGATURAN OPERASIONAL & PERANGKAT
         const _SectionSpacing(),
-        _SectionHeader(title: l10n.settings),
+        _SectionHeader(title: isIndonesian ? 'OPERASIONAL & PERANGKAT' : 'DEVICES & HARDWARE'),
         _DrawerItem(
           icon: TablerIcons.printer,
           title: l10n.printAndReceipt,
@@ -159,17 +136,29 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: l10n.receiptCustomization,
           route: '/receipt-customization',
         ),
-        _DrawerItem(
-          icon: TablerIcons.users,
-          title: l10n.employeeManagement,
-          route: '/staff-management',
-          requiredFeature: AppFeature.staffManagement,
-        ),
-        _DrawerItem(
-          icon: TablerIcons.building_store,
-          title: l10n.storeInformation,
-          route: '/settings',
-        ),
+        if (isOwnerOrAdmin)
+          _DrawerItem(
+            icon: TablerIcons.users,
+            title: l10n.employeeManagement,
+            route: '/staff-management',
+            requiredFeature: AppFeature.staffManagement,
+          ),
+
+        // 4. KELOLA TOKO & ADMINISTRASI
+        if (isOwnerOrAdmin) ...[
+          const _SectionSpacing(),
+          _SectionHeader(title: isIndonesian ? 'PENGELOLAAN TOKO' : 'STORE MANAGEMENT'),
+          _DrawerItem(
+            icon: TablerIcons.building_store,
+            title: l10n.storeInformation,
+            route: '/store-info',
+          ),
+          _DrawerItem(
+            icon: TablerIcons.crown,
+            title: isIndonesian ? 'Paket Langganan' : 'Subscription',
+            route: '/subscription',
+          ),
+        ],
 
         if (user?.appMetadata['role'] == 'admin') ...[
           const _SectionSpacing(),
