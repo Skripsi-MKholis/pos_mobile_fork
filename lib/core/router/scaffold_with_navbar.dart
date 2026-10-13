@@ -215,7 +215,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                     }
                     return InkWell(
                       onTap: () {
-                        context.push('/settings/sync-monitoring');
+                        context.push('/sync-monitoring');
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Container(

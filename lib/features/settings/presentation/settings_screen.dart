@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
@@ -30,6 +27,8 @@ class SettingsScreen extends ConsumerWidget {
     final isAdmin =
         role?.toLowerCase() == 'owner' || user?.appMetadata['role'] == 'admin';
 
+    final isIndonesian = currentLocale.languageCode == 'id';
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
@@ -44,7 +43,9 @@ class SettingsScreen extends ConsumerWidget {
               theme,
               activeStore.value!,
             ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+
+          // 1. KATALOG & STOK
           _buildMenuSection(theme, l10n.catalogAndStock, [
             _buildMenuItem(
               context,
@@ -56,13 +57,6 @@ class SettingsScreen extends ConsumerWidget {
             _buildMenuItem(
               context,
               theme,
-              TablerIcons.packages,
-              l10n.manageStock,
-              () => context.push('/stock'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
               TablerIcons.category,
               l10n.productCategory,
               () => context.push('/categories'),
@@ -70,120 +64,126 @@ class SettingsScreen extends ConsumerWidget {
             _buildMenuItem(
               context,
               theme,
+              TablerIcons.packages,
+              l10n.manageStock,
+              () => context.push('/stock'),
+            ),
+            _buildMenuItem(
+              context,
+              theme,
               TablerIcons.history,
-              Localizations.localeOf(context).languageCode == 'id'
-                  ? 'Riwayat Stok'
-                  : 'Stock History',
+              isIndonesian ? 'Riwayat Stok' : 'Stock History',
               () => context.push('/stock/history'),
             ),
           ]),
-          const SizedBox(height: 32),
-          _buildMenuSection(theme, l10n.storeSettings, [
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.printer,
-              l10n.printerConnection,
-              () => context.push('/printer-settings'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.bell_ringing,
-              l10n.notificationSettings,
-              () => context.push('/notification-settings'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.receipt,
-              l10n.receiptCustomization,
-              () => context.push('/receipt-customization'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.speakerphone,
-              l10n.broadcastNotification,
-              () => context.push('/broadcast-notification'),
-            ),
-            if (isAdmin) ...[
+          const SizedBox(height: 28),
+
+          // 2. OPERASIONAL & PERANGKAT
+          _buildMenuSection(
+            theme,
+            isIndonesian ? 'OPERASIONAL & PERANGKAT' : 'DEVICES & HARDWARE',
+            [
               _buildMenuItem(
                 context,
                 theme,
-                TablerIcons.crown,
-                l10n.manageSubscription,
-                () => context.push('/subscription'),
+                TablerIcons.printer,
+                l10n.printerConnection,
+                () => context.push('/printer-settings'),
               ),
               _buildMenuItem(
                 context,
                 theme,
-                TablerIcons.building_store,
-                l10n.storeInformation,
-                () => context.push('/store-info'),
+                TablerIcons.receipt,
+                l10n.receiptCustomization,
+                () => context.push('/receipt-customization'),
               ),
               _buildMenuItem(
                 context,
                 theme,
-                TablerIcons.users,
-                l10n.employeeManagement,
-                () => context.push('/staff-management'),
-                requiredFeature: AppFeature.staffManagement,
-                ref: ref,
+                TablerIcons.bell_ringing,
+                l10n.notificationSettings,
+                () => context.push('/notification-settings'),
+              ),
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.speakerphone,
+                l10n.broadcastNotification,
+                () => context.push('/broadcast-notification'),
               ),
             ],
-          ]),
+          ),
+          const SizedBox(height: 28),
+
+          // 3. PENGELOLAAN TOKO (Owner / Admin)
+          if (isAdmin) ...[
+            _buildMenuSection(
+              theme,
+              isIndonesian ? 'PENGELOLAAN TOKO' : 'STORE MANAGEMENT',
+              [
+                _buildMenuItem(
+                  context,
+                  theme,
+                  TablerIcons.building_store,
+                  l10n.storeInformation,
+                  () => context.push('/store-info'),
+                ),
+                _buildMenuItem(
+                  context,
+                  theme,
+                  TablerIcons.users,
+                  l10n.employeeManagement,
+                  () => context.push('/staff-management'),
+                  requiredFeature: AppFeature.staffManagement,
+                  ref: ref,
+                ),
+                _buildMenuItem(
+                  context,
+                  theme,
+                  TablerIcons.crown,
+                  l10n.manageSubscription,
+                  () => context.push('/subscription'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+          ],
+
+          // 4. PENGATURAN APLIKASI & AKUN (Akses Menu Pengaturan Lengkap)
+          _buildMenuSection(
+            theme,
+            isIndonesian ? 'PENGATURAN & AKUN' : 'APP & ACCOUNT',
+            [
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.adjustments_horizontal,
+                isIndonesian
+                    ? 'Pengaturan Aplikasi & Akun'
+                    : 'App & Account Settings',
+                () => context.push('/app-settings'),
+              ),
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.refresh,
+                l10n.dataSynchronization,
+                () => context.push('/sync-monitoring'),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           const Center(
             child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
           ),
           const SizedBox(height: 24),
-          _buildMenuSection(theme, l10n.accountAndSecurity, [
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.user,
-              l10n.myProfile,
-              () => context.push('/profile'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.lock,
-              l10n.changePassword,
-              () => context.push('/change-password'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.refresh,
-              l10n.dataSynchronization,
-              () => context.push('/settings/sync-monitoring'),
-            ),
-            _buildMenuItem(
-              context,
-              theme,
-              TablerIcons.language,
-              l10n.language,
-              () => _showLanguageSelector(context, ref, currentLocale),
-              trailingText: l10n.languageName,
-            ),
-            if (role?.toLowerCase() == 'karyawan')
-              _buildMenuItem(
-                context,
-                theme,
-                TablerIcons.logout,
-                l10n.logoutStore,
-                () => _handleLeaveStore(context, ref, l10n),
-                color: Colors.redAccent,
-              ),
-          ]),
-          const SizedBox(height: 32),
+
+          // Quick Logout Button
           ShadButton.destructive(
             width: double.infinity,
             onPressed: () => _handleLogout(context, ref, l10n),
             child: Text(l10n.logoutApp),
-          ).animate().fadeIn(delay: 400.ms),
+          ).animate().fadeIn(delay: 300.ms),
           const SizedBox(height: 20),
           Center(
             child: FutureBuilder<PackageInfo>(
@@ -201,7 +201,10 @@ class SettingsScreen extends ConsumerWidget {
               },
             ),
           ),
-          const SizedBox(height: 110), // Jarak aman agar tidak tertutup floating bottom bar
+          // Jarak aman pas agar tidak tertutup floating bottom bar tanpa celah kosong berlebihan
+          SizedBox(
+            height: 80 + MediaQuery.of(context).padding.bottom,
+          ),
         ],
       ),
     );
@@ -215,9 +218,9 @@ class SettingsScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Warna.primary.withOpacity(0.05),
+        color: Warna.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Warna.primary.withOpacity(0.2)),
+        border: Border.all(color: Warna.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -304,7 +307,7 @@ class SettingsScreen extends ConsumerWidget {
               fontWeight: FontWeight.w900,
               fontSize: 10,
               letterSpacing: 1.5,
-              color: theme.colorScheme.mutedForeground.withOpacity(0.7),
+              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -313,7 +316,7 @@ class SettingsScreen extends ConsumerWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: theme.colorScheme.border.withOpacity(0.5),
+              color: theme.colorScheme.border.withValues(alpha: 0.5),
             ),
           ),
           child: Column(children: children),
@@ -423,168 +426,6 @@ class SettingsScreen extends ConsumerWidget {
         onTap();
       },
     );
-  }
-
-  Future<void> _showLanguageSelector(
-    BuildContext context,
-    WidgetRef ref,
-    Locale currentLocale,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final theme = ShadTheme.of(context);
-
-    await showShadDialog(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: Text(l10n.selectLanguage),
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: double.maxFinite,
-            constraints: const BoxConstraints(maxWidth: 320),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildLanguageOption(
-                  context: context,
-                  title: l10n.indonesian,
-                  isSelected: currentLocale.languageCode == 'id',
-                  theme: theme,
-                  onTap: () {
-                    ref
-                        .read(localeNotifierProvider.notifier)
-                        .changeLocale('id');
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const SizedBox(height: 10),
-                _buildLanguageOption(
-                  context: context,
-                  title: l10n.english,
-                  isSelected: currentLocale.languageCode == 'en',
-                  theme: theme,
-                  onTap: () {
-                    ref
-                        .read(localeNotifierProvider.notifier)
-                        .changeLocale('en');
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLanguageOption({
-    required BuildContext context,
-    required String title,
-    required bool isSelected,
-    required ShadThemeData theme,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.colorScheme.primary.withOpacity(0.08)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? theme.colorScheme.primary.withOpacity(0.3)
-                : theme.colorScheme.border.withOpacity(0.5),
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? Colors.black : Colors.black87,
-              ),
-            ),
-            if (isSelected)
-              Icon(
-                TablerIcons.check,
-                color: theme.colorScheme.primary,
-                size: 18,
-              )
-            else
-              const SizedBox(width: 18, height: 18),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleLeaveStore(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) async {
-    final activeStore = ref.read(activeStoreProvider).value;
-    final user = ref.read(currentUserProvider);
-    if (activeStore == null || user == null) return;
-
-    final confirmed = await showShadDialog<bool>(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: Text(l10n.logoutStore),
-        description: Text(l10n.confirmLeaveStore(activeStore['name'] ?? '')),
-        actions: [
-          ShadButton.outline(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ShadButton.destructive(
-            child: Text(l10n.yesLeave),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        final supabase = sb.Supabase.instance.client;
-        await supabase
-            .from('store_members')
-            .delete()
-            .eq('store_id', activeStore['id'])
-            .eq('user_id', user.id);
-
-        await ref.read(activeStoreProvider.notifier).clear();
-        ref.invalidate(userStoresProvider);
-
-        if (context.mounted) {
-          context.go('/select-store');
-          mySnackBar(
-            context: context,
-            text: l10n.leaveSuccess,
-            status: ToastStatus.success,
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          mySnackBar(
-            context: context,
-            text: l10n.leaveFailed(e.toString()),
-            status: ToastStatus.error,
-          );
-        }
-      }
-    }
   }
 
   Future<void> _handleLogout(
