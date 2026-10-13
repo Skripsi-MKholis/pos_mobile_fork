@@ -599,8 +599,12 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                                     ],
                                   ),
                                   const Divider(height: 28),
-                                  // Features
-                                  ...plan.features.map(
+                                  // Features (sembunyikan Smart Analytics sementara)
+                                  ...plan.features
+                                      .where((feature) =>
+                                          !feature.toLowerCase().contains('smart analytic') &&
+                                          !feature.toLowerCase().contains('prediksi ai'))
+                                      .map(
                                     (feature) => Padding(
                                       padding: const EdgeInsets.only(bottom: 10),
                                       child: Row(

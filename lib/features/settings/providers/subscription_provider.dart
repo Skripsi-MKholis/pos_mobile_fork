@@ -24,7 +24,7 @@ final availablePlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) asyn
         .toList();
   } catch (e) {
     // Fallback static jika offline / gagal load
-    return const [
+    return [
       SubscriptionPlan(
         id: 'b29dcf1a-4c25-4abc-9e98-d562746e0294',
         slug: 'lite',

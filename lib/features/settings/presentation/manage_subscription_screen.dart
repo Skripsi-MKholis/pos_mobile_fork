@@ -326,7 +326,11 @@ class ManageSubscriptionScreen extends ConsumerWidget {
                       border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
                     ),
                     child: Column(
-                      children: activePlan.features.map((feature) {
+                      children: activePlan.features
+                          .where((feature) =>
+                              !feature.toLowerCase().contains('smart analytic') &&
+                              !feature.toLowerCase().contains('prediksi ai'))
+                          .map((feature) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(

@@ -67,9 +67,9 @@ class DashboardScreen extends ConsumerWidget {
               currencyFormat,
               theme,
             ),
-            const SizedBox(height: 16),
-            const TodayForecastCard(),
-            const SizedBox(height: 16),
+            // Note: Kartu Prediksi Smart Analytics di-hide sementara sesuai preferensi pengguna
+            // const TodayForecastCard(),
+            // const SizedBox(height: 16),
             const Center(
               child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
             ),

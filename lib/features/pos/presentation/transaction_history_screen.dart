@@ -122,18 +122,20 @@ class _TransactionHistoryScreenState
           parent: AlwaysScrollableScrollPhysics(),
         ),
         slivers: [
-          // Banner Smart Analytics (AI)
+          // Banner Smart Analytics (AI) - disembunyikan sementara sesuai preferensi pengguna
+          /*
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: _buildSmartAnalyticsButton(context, ref, theme),
             ),
           ),
+          */
 
           // Segment Switcher: Riwayat Transaksi vs Tren & Produk Terlaris
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
               child: _buildSegmentSwitcher(isIndonesian),
             ),
           ),
@@ -1047,6 +1049,8 @@ class _TransactionHistoryScreenState
     );
   }
 
+  // Note: Tombol Smart Analytics disimpan untuk penggunaan masa depan
+  /*
   Widget _buildSmartAnalyticsButton(
     BuildContext context,
     WidgetRef ref,
@@ -1184,6 +1188,7 @@ class _TransactionHistoryScreenState
     .animate(onPlay: (c) => c.repeat())
     .shimmer(duration: 3.seconds, color: Colors.blue.withOpacity(0.05));
   }
+  */
 
   Widget _buildEmptyState(ShadThemeData theme) {
     return Center(

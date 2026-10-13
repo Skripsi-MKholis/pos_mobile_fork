@@ -121,12 +121,15 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: isIndonesian ? 'Laba & HPP Toko' : 'Profit & COGS Report',
           route: '/reports',
         ),
+        // Note: Smart Analytics disembunyikan sementara sesuai preferensi pengguna
+        /*
         _DrawerItem(
           icon: TablerIcons.brain,
           title: l10n.smartAnalytics,
           route: '/smart-analytics',
           requiredFeature: AppFeature.smartAnalytics,
         ),
+        */
 
         // 3. PENGATURAN OPERASIONAL & PERANGKAT
         const _SectionSpacing(),

@@ -50,9 +50,10 @@ class SubscriptionPlan {
     if (featureList.isEmpty) {
       final rawFeatures = json['features'];
       if (rawFeatures is Map<String, dynamic>) {
-        if (rawFeatures['smart_analytics'] == true) {
-          featureList.add('Smart Analytics & Prediksi AI Penjualan (LSTM)');
-        }
+        // Fitur Smart Analytics disembunyikan sementara dari penawaran paket
+        // if (rawFeatures['smart_analytics'] == true) {
+        //   featureList.add('Smart Analytics & Prediksi AI Penjualan (LSTM)');
+        // }
         if (rawFeatures['advanced_reports'] == true) {
           featureList.add('Analisis & Laporan advance (Excel & Grafik)');
         }
