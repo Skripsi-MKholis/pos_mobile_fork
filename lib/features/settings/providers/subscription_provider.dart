@@ -175,6 +175,8 @@ class SubscriptionActionService {
   Future<void> purchasePlan({
     required SubscriptionPlan plan,
     required String paymentMethod,
+    String? orderId,
+    String? purchaseToken,
   }) async {
     final activeStore = _ref.read(activeStoreProvider).value;
     if (activeStore == null || activeStore['id'] == null) {
@@ -189,6 +191,8 @@ class SubscriptionActionService {
         : null;
     final client = Supabase.instance.client;
 
+    final finalOrderId = orderId ?? 'GPA.${now.millisecondsSinceEpoch.toString().substring(0, 12)}';
+
     // 1. Simpan riwayat transaksi ke `subscription_history`
     await client.from('subscription_history').insert({
       'store_id': storeId,
@@ -196,12 +200,13 @@ class SubscriptionActionService {
       'amount': plan.price,
       'status': 'success',
       'payload': {
-        'order_id': 'GPA.${now.millisecondsSinceEpoch.toString().substring(0, 12)}',
+        'order_id': finalOrderId,
         'plan_name': plan.name,
         'plan_slug': plan.slug,
         'duration_days': plan.durationDays,
         'billing_period': plan.billingPeriod,
         'payment_method': paymentMethod,
+        'purchase_token': ?purchaseToken,
       },
     }).select().single();
 

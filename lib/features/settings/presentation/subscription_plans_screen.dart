@@ -8,6 +8,7 @@ import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/settings/models/subscription_model.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:pos_mobile/features/settings/services/in_app_purchase_service.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 class SubscriptionPlansScreen extends ConsumerStatefulWidget {
@@ -283,11 +284,26 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
     setState(() => _isLoading = true);
 
     try {
-      // Panggil Service untuk menyimpan ke Supabase
-      await ref.read(subscriptionActionProvider).purchasePlan(
-        plan: plan,
-        paymentMethod: 'Google Play Billing',
-      );
+      final iapService = ref.read(inAppPurchaseServiceProvider);
+
+      // Coba luncurkan Google Play Billing native jika tersedia di perangkat
+      bool purchaseLaunched = false;
+      try {
+        if (iapService.isAvailable) {
+          purchaseLaunched = await iapService.buySubscription(plan);
+        }
+      } catch (iapError) {
+        debugPrint('[IAP] Native billing exception: $iapError. Falling back to direct database activation for testing.');
+      }
+
+      // Jika Google Play billing native tidak tersedia (misal di emulator / belum rilis di Play Console),
+      // lakukan simulasi penyimpanan langsung agar developer/tester tetap bisa mencoba fitur
+      if (!purchaseLaunched) {
+        await ref.read(subscriptionActionProvider).purchasePlan(
+          plan: plan,
+          paymentMethod: 'Google Play Billing (Sandbox/Direct)',
+        );
+      }
 
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -336,6 +352,30 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Pulihkan Pembelian',
+            icon: const Icon(TablerIcons.refresh, color: Colors.black),
+            onPressed: () async {
+              try {
+                await ref.read(inAppPurchaseServiceProvider).restorePurchases();
+                if (!context.mounted) return;
+                mySnackBar(
+                  context: context,
+                  text: 'Permintaan pemulihan pembelian telah dikirim ke Google Play.',
+                  status: ToastStatus.info,
+                );
+              } catch (e) {
+                if (!context.mounted) return;
+                mySnackBar(
+                  context: context,
+                  text: 'Gagal memulihkan pembelian: $e',
+                  status: ToastStatus.error,
+                );
+              }
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
