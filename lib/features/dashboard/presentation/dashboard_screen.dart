@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/features/reports/presentation/widgets/today_forecast_card.dart';
+// import 'package:pos_mobile/features/reports/presentation/widgets/today_forecast_card.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart';
 import 'package:pos_mobile/features/reports/providers/forecast_provider.dart';
 import 'package:pos_mobile/features/reports/providers/today_revenue_provider.dart';
@@ -53,6 +53,8 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _buildHorizontalQuickAccess(context, l10n, theme),
+            const SizedBox(height: 20),
             _buildHeader(l10n, theme),
             const SizedBox(height: 16),
             _buildExpiringBanner(context, ref, theme, l10n),
@@ -75,17 +77,6 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
-            const SizedBox(height: 24),
-            Text(
-              l10n.quickAccess,
-              style: theme.textTheme.muted.copyWith(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildQuickAccessGrid(context, l10n, theme, ref),
             const SizedBox(height: 110), // Jarak aman agar tidak tertutup floating bottom bar
           ],
         ),
@@ -93,115 +84,152 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickAccessGrid(
+  Widget _buildHorizontalQuickAccess(
     BuildContext context,
     AppLocalizations l10n,
     ShadThemeData theme,
-    WidgetRef ref,
   ) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.zero,
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.5,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final quickActions = [
+      _QuickActionItem(
+        icon: TablerIcons.cash,
+        label: l10n.transaction,
+        iconColor: const Color(0xFF10B981),
+        onTap: () => context.go('/pos'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.package,
+        label: l10n.product,
+        iconColor: const Color(0xFF3B82F6),
+        onTap: () => context.push('/products'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.packages,
+        label: l10n.manageStock,
+        iconColor: const Color(0xFFF59E0B),
+        onTap: () => context.push('/stock'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.category,
+        label: l10n.categories,
+        iconColor: const Color(0xFFEC4899),
+        onTap: () => context.push('/categories'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.printer,
+        label: 'Printer',
+        iconColor: const Color(0xFF06B6D4),
+        onTap: () => context.push('/printer-settings'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.calculator,
+        label: 'Laba & HPP',
+        iconColor: const Color(0xFF8B5CF6),
+        onTap: () => context.push('/reports'),
+      ),
+      _QuickActionItem(
+        icon: TablerIcons.settings,
+        label: l10n.settings,
+        iconColor: theme.colorScheme.mutedForeground,
+        onTap: () => context.go('/settings'),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildAccessCard(
-          theme,
-          TablerIcons.cash,
-          l10n.transaction,
-          l10n.openNewCashier,
-          onTap: () => context.go('/pos'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.quickAccess.toUpperCase(),
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+          ],
         ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.package,
-          l10n.product,
-          l10n.manageProductStock,
-          onTap: () => context.push('/products'),
-        ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.calculator,
-          'Laba & HPP',
-          'Analisis Keuntungan',
-          onTap: () => context.push('/reports'),
-        ),
-        _buildAccessCard(
-          theme,
-          TablerIcons.settings,
-          l10n.settings,
-          l10n.appConfiguration,
-          onTap: () => context.go('/settings'),
+        const SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          clipBehavior: Clip.none,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: quickActions.map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: GestureDetector(
+                  onTap: item.onTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: 66,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.card,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: theme.colorScheme.border,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: item.onTap,
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: item.iconColor.withValues(alpha: 0.12),
+                              highlightColor: item.iconColor.withValues(alpha: 0.06),
+                              child: Center(
+                                child: Icon(
+                                  item.icon,
+                                  color: item.iconColor,
+                                  size: 22,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          item.label,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.foreground,
+                            height: 1.15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildAccessCard(
-    ShadThemeData theme,
-    IconData icon,
-    String title,
-    String subtitle, {
-    VoidCallback? onTap,
-  }) {
-    return ShadCard(
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 18,
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                  Icon(
-                    TablerIcons.arrow_right,
-                    size: 14,
-                    color: theme.colorScheme.mutedForeground,
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  color: theme.colorScheme.foreground,
-                ),
-              ),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: theme.colorScheme.mutedForeground,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildStatsGrid(
     BuildContext context,
@@ -789,3 +817,18 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 }
+
+class _QuickActionItem {
+  final IconData icon;
+  final String label;
+  final Color iconColor;
+  final VoidCallback onTap;
+
+  const _QuickActionItem({
+    required this.icon,
+    required this.label,
+    required this.iconColor,
+    required this.onTap,
+  });
+}
+

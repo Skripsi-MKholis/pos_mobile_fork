@@ -542,7 +542,6 @@ class _DrawerItem extends ConsumerWidget {
                     '/dashboard',
                     '/pos',
                     '/transactions',
-                    '/reports',
                     '/settings',
                   ].contains(route) || route.startsWith('/customer')) {
                     context.go(route);

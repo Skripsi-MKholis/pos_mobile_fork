@@ -52,7 +52,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(TablerIcons.chevron_left),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
         ),
         title: Text(
           isIndonesian ? 'Laba & HPP Toko' : 'Profit & COGS',
