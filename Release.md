@@ -1,16 +1,42 @@
 ### **Versi Sekarang**
 
-**1.11.0+17**
+**1.12.0+18**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Google Play In-App Purchase & Subscription System**
+**ZelloPOS Cashier Experience, Quick Custom Product & Operational Enhancements**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.12.0+18 (Cashier Experience, Quick Custom Product & Operational Enhancements)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Redesain Halaman Pembayaran (Checkout Flow Minimalis & Modern)**:
+  - Antarmuka layar pembayaran yang didesain ulang agar lebih intuitif, ringkas, dan cepat digunakan kasir.
+  - Kartu metode pembayaran (*Tunai, QRIS, Transfer Bank, Debit*) yang responsif dengan *state selector* yang jelas.
+  - Ringkasan pesanan (*Order Summary*) collapsible yang rapi beserta tombol nominal uang pas & pecahan cepat yang lebih ergonomis.
+* **Fitur Produk Kustom Cepat di Kasir (Quick Custom Product)**:
+  - Kemampuan bagi kasir untuk memasukkan item/produk manual langsung ke keranjang tanpa harus mendaftarkannya terlebih dahulu ke katalog inventaris.
+  - Mendukung input nama item custom, harga, jumlah/kuantitas, serta catatan khusus.
+  - Kompatibel penuh dengan transaksi offline/online dan sinkronisasi Isar.
+* **Akses Cepat Beranda & Optimalisasi Navigasi**:
+  - Penambahan menu *Quick Access* pada Dashboard Beranda untuk akses instan ke fitur-fitur esensial (Kasir, Transaksi, Laporan, Manajemen Meja, Pengaturan).
+  - Penataan ulang susunan menu pada *Navigation Drawer* samping dan pengaturan aplikasi agar hierarki navigasi lebih teratur dan mudah dijangkau.
+* **Peningkatan Fitur Printer Thermal & Halaman Pengaturan Printer**:
+  - Optimalisasi pencarian perangkat Bluetooth, stabilitas koneksi, dan cetak struk kasir melalui perbaikan integrasi native Android dan penyesuaian *Printer Service*.
+  - Tampilan pengaturan printer yang lebih informatif dengan opsi pengujian cetak (*test print*) yang lebih andal.
+* **Penyempurnaan Struktur Analitik, Laporan HPP & Riwayat Transaksi**:
+  - Penyesuaian tata letak laporan keuangan dan kalkulasi HPP (*Harga Pokok Penjualan*) yang diposisikan lebih strategis untuk evaluasi laba kotor.
+  - Penataan ulang tab pada riwayat transaksi dan pengelolaan visibilitas fitur *Smart Analytics*.
+* **Lokalisasi Bahasa & Pengaturan Langganan**:
+  - Dukungan pelokalan teks bahasa Indonesia dan Inggris secara menyeluruh untuk alur langganan, produk kustom kasir, dan antarmuka pengaturan toko.
+
+---
 
 **Versi 1.11.0+17 (Google Play In-App Purchase & Subscription System)**
 
