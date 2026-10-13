@@ -1260,4 +1260,37 @@ class AppLocalizationsId extends AppLocalizations {
   String outletsSupport(int count) {
     return 'Dukungan hingga $count cabang/outlet';
   }
+
+  @override
+  String get customProduct => 'Produk Kustom';
+
+  @override
+  String get addCustomProduct => 'Tambah Produk Kustom';
+
+  @override
+  String get customProductDesc =>
+      'Tambahkan item non-menu secara cepat ke keranjang';
+
+  @override
+  String get customProductName => 'Nama Produk / Item';
+
+  @override
+  String get customProductNameHint => 'Contoh: Topping Tambahan, Ongkir Titip';
+
+  @override
+  String get customProductPrice => 'Harga (Rp)';
+
+  @override
+  String get customProductPriceHint => 'Masukkan nominal harga';
+
+  @override
+  String get customProductQty => 'Jumlah';
+
+  @override
+  String get addToCart => 'Tambah ke Keranjang';
+
+  @override
+  String customProductAdded(String name) {
+    return '$name ditambahkan ke keranjang';
+  }
 }

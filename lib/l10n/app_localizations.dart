@@ -2359,6 +2359,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Support for up to {count} stores/outlets'**
   String outletsSupport(int count);
+
+  /// No description provided for @customProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Product'**
+  String get customProduct;
+
+  /// No description provided for @addCustomProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Custom Product'**
+  String get addCustomProduct;
+
+  /// No description provided for @customProductDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Quickly add an unlisted item to cart'**
+  String get customProductDesc;
+
+  /// No description provided for @customProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product / Item Name'**
+  String get customProductName;
+
+  /// No description provided for @customProductNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Extra Topping, Special Box'**
+  String get customProductNameHint;
+
+  /// No description provided for @customProductPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price (Rp)'**
+  String get customProductPrice;
+
+  /// No description provided for @customProductPriceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter price'**
+  String get customProductPriceHint;
+
+  /// No description provided for @customProductQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get customProductQty;
+
+  /// No description provided for @addToCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Cart'**
+  String get addToCart;
+
+  /// No description provided for @customProductAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} added to cart'**
+  String customProductAdded(String name);
 }
 
 class _AppLocalizationsDelegate

@@ -514,17 +514,18 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
 
       // 3. Coba sinkronisasi langsung jika online
       bool syncedSuccessfully = false;
+      TransactionLocal? updatedTx;
       final connectivity = ref.read(connectivityNotifierProvider).value;
       if (connectivity == ConnectivityStatus.online) {
         try {
           await ref.read(syncNotifierProvider.notifier).syncUnsynced();
-          
-          final updatedTx = await isar.collection<TransactionLocal>().filter().supabaseIdEqualTo(transactionId).findFirst();
-          if (updatedTx != null && updatedTx.isSynced) {
-            syncedSuccessfully = true;
-          }
         } catch (e) {
           print('DEBUG: Immediate sync failed, it will retry in background: $e');
+        }
+
+        updatedTx = await isar.collection<TransactionLocal>().filter().supabaseIdEqualTo(transactionId).findFirst();
+        if (updatedTx != null && updatedTx.isSynced) {
+          syncedSuccessfully = true;
         }
       }
 
@@ -557,7 +558,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
         
         final String toastMsg = syncedSuccessfully
             ? l10n.transactionSynced(currencyFormat.format(totalAmount))
-            : l10n.transactionSavedLocal(currencyFormat.format(totalAmount));
+            : (updatedTx?.syncError != null
+                ? '${l10n.transactionSavedLocal(currencyFormat.format(totalAmount))} (${updatedTx!.syncError})'
+                : l10n.transactionSavedLocal(currencyFormat.format(totalAmount)));
 
         mySnackBar(
           context: context,

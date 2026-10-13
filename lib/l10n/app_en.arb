@@ -734,5 +734,22 @@
         "type": "int"
       }
     }
+  },
+  "customProduct": "Custom Product",
+  "addCustomProduct": "Add Custom Product",
+  "customProductDesc": "Quickly add an unlisted item to cart",
+  "customProductName": "Product / Item Name",
+  "customProductNameHint": "e.g. Extra Topping, Special Box",
+  "customProductPrice": "Price (Rp)",
+  "customProductPriceHint": "Enter price",
+  "customProductQty": "Quantity",
+  "addToCart": "Add to Cart",
+  "customProductAdded": "{name} added to cart",
+  "@customProductAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

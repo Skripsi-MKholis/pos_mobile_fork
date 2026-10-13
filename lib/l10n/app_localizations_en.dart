@@ -1256,4 +1256,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String outletsSupport(int count) {
     return 'Support for up to $count stores/outlets';
   }
+
+  @override
+  String get customProduct => 'Custom Product';
+
+  @override
+  String get addCustomProduct => 'Add Custom Product';
+
+  @override
+  String get customProductDesc => 'Quickly add an unlisted item to cart';
+
+  @override
+  String get customProductName => 'Product / Item Name';
+
+  @override
+  String get customProductNameHint => 'e.g. Extra Topping, Special Box';
+
+  @override
+  String get customProductPrice => 'Price (Rp)';
+
+  @override
+  String get customProductPriceHint => 'Enter price';
+
+  @override
+  String get customProductQty => 'Quantity';
+
+  @override
+  String get addToCart => 'Add to Cart';
+
+  @override
+  String customProductAdded(String name) {
+    return '$name added to cart';
+  }
 }

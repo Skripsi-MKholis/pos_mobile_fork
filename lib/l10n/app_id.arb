@@ -734,5 +734,22 @@
         "type": "int"
       }
     }
+  },
+  "customProduct": "Produk Kustom",
+  "addCustomProduct": "Tambah Produk Kustom",
+  "customProductDesc": "Tambahkan item non-menu secara cepat ke keranjang",
+  "customProductName": "Nama Produk / Item",
+  "customProductNameHint": "Contoh: Topping Tambahan, Ongkir Titip",
+  "customProductPrice": "Harga (Rp)",
+  "customProductPriceHint": "Masukkan nominal harga",
+  "customProductQty": "Jumlah",
+  "addToCart": "Tambah ke Keranjang",
+  "customProductAdded": "{name} ditambahkan ke keranjang",
+  "@customProductAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   }
 }

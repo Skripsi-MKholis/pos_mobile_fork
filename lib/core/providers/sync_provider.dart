@@ -179,21 +179,30 @@ class SyncNotifier extends _$SyncNotifier {
             .transactionSupabaseIdEqualTo(tx.supabaseId)
             .findAll();
 
-        final itemsToProcess = localItems.map((item) => {
-          'product_id': item.productId,
-          'product_name': item.productName,
-          'unit_price': item.unitPrice,
-          'quantity': item.quantity,
-          'subtotal': item.subtotal,
-        }).toList();
+        final itemsToProcess = <Map<String, dynamic>>[];
+        for (final item in localItems) {
+          // Cek apakah item adalah produk nyata di katalog lokal
+          final isRealProduct = await _isar.collection<Product>()
+              .filter()
+              .supabaseIdEqualTo(item.productId)
+              .findFirst() != null;
+
+          itemsToProcess.add({
+            'product_id': isRealProduct ? item.productId : null,
+            'product_name': item.productName,
+            'unit_price': item.unitPrice,
+            'quantity': item.quantity,
+            'subtotal': item.subtotal,
+          });
+        }
 
         // Check if transaction already exists in Supabase
         final existing = await _supabase.retryWithFreshSession(() => _supabase.from('transactions').select().eq('id', tx.supabaseId).maybeSingle());
 
         if (existing == null) {
-          // Call create_transaction_v4 on Supabase via RPC
+          // Call sync_pos_transaction on Supabase via RPC
           final response = await _supabase.retryWithFreshSession(() => _supabase.rpc(
-            'create_transaction_v4',
+            'sync_pos_transaction',
             params: {
               'p_transaction_id': tx.supabaseId,
               'p_store_id': tx.storeId,
@@ -210,8 +219,16 @@ class SyncNotifier extends _$SyncNotifier {
             },
           ));
 
-          if (response == null || (response is Map && response['success'] == false)) {
-            throw response?['error'] ?? 'Gagal membuat transaksi di server.';
+          dynamic parsed = response;
+          if (parsed is String) {
+            try {
+              parsed = jsonDecode(parsed);
+            } catch (_) {}
+          }
+
+          if (parsed == null || (parsed is Map && parsed['success'] == false)) {
+            final errMsg = (parsed is Map ? parsed['error'] : null) ?? 'Gagal membuat transaksi di server.';
+            throw errMsg;
           }
         }
 

@@ -11,6 +11,8 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
+import 'package:pos_mobile/features/pos/presentation/widgets/quick_custom_product_sheet.dart';
 
 class CartDetailSheet extends ConsumerStatefulWidget {
   const CartDetailSheet({super.key});
@@ -125,43 +127,73 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.orderDetail,
-                      style: theme.textTheme.h3.copyWith(fontSize: 22),
-                    ),
-                    if (cartState.selectedTable != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
-                          children: [
-                            Icon(
-                              TablerIcons.armchair,
-                              size: 14,
-                              color: theme.colorScheme.mutedForeground,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              l10n.tableWithColon(cartState.selectedTable!.name),
-                              style: TextStyle(
-                                color: theme.colorScheme.mutedForeground,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.orderDetail,
+                        style: theme.textTheme.h3.copyWith(fontSize: 22),
                       ),
-                  ],
+                      if (cartState.selectedTable != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              Icon(
+                                TablerIcons.armchair,
+                                size: 14,
+                                color: theme.colorScheme.mutedForeground,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  l10n.tableWithColon(cartState.selectedTable!.name),
+                                  style: TextStyle(
+                                    color: theme.colorScheme.mutedForeground,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                ShadButton.ghost(
-                  size: ShadButtonSize.sm,
+                const SizedBox(width: 8),
+                Tooltip(
+                  message: l10n.addCustomProduct,
+                  child: ShadIconButton.outline(
+                    width: 38,
+                    height: 38,
+                    onPressed: () {
+                      final activeStore = ref.read(activeStoreProvider).value;
+                      final storeId = (activeStore?['id'] as String?) ?? '';
+                      QuickCustomProductSheet.show(
+                        context: context,
+                        cartNotifier: ref.read(cartNotifierProvider.notifier),
+                        storeId: storeId,
+                      );
+                    },
+                    icon: const Icon(TablerIcons.sparkles, size: 18),
+                    decoration: ShadDecoration(
+                      border: ShadBorder.all(
+                        color: Warna.primary,
+                        radius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                ShadIconButton.ghost(
+                  width: 38,
+                  height: 38,
                   onPressed: () => Navigator.pop(context),
-                  leading: const Icon(TablerIcons.x),
+                  icon: const Icon(TablerIcons.x, size: 20),
                 ),
               ],
             ),

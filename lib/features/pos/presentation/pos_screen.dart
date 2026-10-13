@@ -24,6 +24,7 @@ import 'package:pos_mobile/features/pos/providers/table_monitoring_provider.dart
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
+import 'package:pos_mobile/features/pos/presentation/widgets/quick_custom_product_sheet.dart';
 
 class POSScreen extends ConsumerStatefulWidget {
   const POSScreen({super.key});
@@ -100,6 +101,19 @@ class _POSScreenState extends ConsumerState<POSScreen> {
           decimalDigits: 0,
         ),
       ),
+    ).then((_) {
+      _searchFocusNode.unfocus();
+    });
+  }
+
+  void _openQuickCustomProduct() {
+    FocusScope.of(context).unfocus();
+    final activeStore = ref.read(activeStoreProvider).value;
+    final storeId = (activeStore?['id'] as String?) ?? '';
+    QuickCustomProductSheet.show(
+      context: context,
+      cartNotifier: ref.read(cartNotifierProvider.notifier),
+      storeId: storeId,
     ).then((_) {
       _searchFocusNode.unfocus();
     });
@@ -412,6 +426,22 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                Tooltip(
+                  message: l10n.addCustomProduct,
+                  child: ShadIconButton.outline(
+                    onPressed: _openQuickCustomProduct,
+                    icon: const Icon(TablerIcons.sparkles, size: 20),
+                    width: 48,
+                    height: 48,
+                    decoration: ShadDecoration(
+                      border: ShadBorder.all(
+                        color: theme.colorScheme.border.withValues(alpha: 0.5),
+                        radius: BorderRadius.circular(24),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 productsAsync.when(
                   data: (products) {
                     final activeStoreAsync = ref.watch(activeStoreProvider);
@@ -584,6 +614,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     );
                   }
 
+                  final isAllCategory = _selectedCategoryId == null;
+                  final isNotSearching = _searchQuery.trim().isEmpty;
+                  final showCustomCard = isAllCategory && isNotSearching;
+                  final totalGridCount = filteredProducts.length + (showCustomCard ? 1 : 0);
+
                   return GridView.builder(
                     physics: const BouncingScrollPhysics(
                       parent: AlwaysScrollableScrollPhysics(),
@@ -601,9 +636,14 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                    itemCount: filteredProducts.length,
+                    itemCount: totalGridCount,
                     itemBuilder: (context, index) {
-                      final product = filteredProducts[index];
+                      if (showCustomCard && index == 0) {
+                        return _buildQuickCustomProductCard(context, l10n);
+                      }
+
+                      final productIndex = showCustomCard ? index - 1 : index;
+                      final product = filteredProducts[productIndex];
                       final cartItem = cartItems.firstWhere(
                         (item) => item.product.supabaseId == product.supabaseId,
                         orElse: () => CartItem(product: product, quantity: 0),
@@ -981,6 +1021,96 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickCustomProductCard(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) {
+    final theme = ShadTheme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Warna.primary.withValues(alpha: 0.6),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Warna.primary.withValues(alpha: 0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: _openQuickCustomProduct,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Container(
+                  color: Warna.primary.withValues(alpha: 0.08),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Warna.primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        TablerIcons.sparkles,
+                        size: 28,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.customProduct,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.addCustomProduct,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
