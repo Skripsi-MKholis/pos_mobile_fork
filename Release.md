@@ -1,18 +1,35 @@
 ### **Versi Sekarang**
 
-**1.10.1+15**
+**1.11.0+17**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Android 16 (API 36) Target SDK Update**
+**ZelloPOS Google Play In-App Purchase & Subscription System**
 
 ---
 
 ### **Catatan Release (What's New)**
 
-**Versi 1.10.1+15 (Android 16 / API 36 Target SDK Update)**
+**Versi 1.11.0+17 (Google Play In-App Purchase & Subscription System)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Integrasi Google Play In-App Purchase (IAP)**: Menambahkan modul resmi Google Play Billing (`in_app_purchase`) dan izin manifes `com.android.vending.BILLING` untuk mendukung transaksi langganan digital secara resmi di Play Store.
+* **Sistem Paket Langganan Berbasis Toko (Store-Level Subscription)**: 
+  - Hak akses dan status paket langganan kini melekat pada entitas toko aktif, memberikan fleksibilitas penuh bagi pengguna untuk mengelola cabang gratis (Lite) dan premium secara terpisah.
+  - Penyesuaian skema harga paket langganan yang jauh lebih terjangkau bagi UMKM (**UMKM Hebat: Rp 19.000/bulan** & **Bisnis Skalabel: Rp 49.000/bulan**).
+* **Proteksi & Pembatasan Kuota Otomatis**:
+  - Penegakan kuota transaksi kasir bulanan secara dinamis berdasarkan paket langganan aktif toko.
+  - Dialog edukatif peningkatan paket (*Quota Exceeded Dialog*) saat batas penggunaan tercapai.
+* **Pengingat Masa Aktif & Bukti Pembayaran**:
+  - Banner peringatan masa kedaluwarsa langganan otomatis di Dashboard saat sisa masa aktif ≤ 7 hari.
+  - Fitur ekspor dan bagikan bukti pembayaran/invoice langganan digital via WhatsApp/media sosial.
+  - Tombol pemulihan pembelian (*Restore Purchases*) di halaman paket langganan.
+* **Koreksi Zona Waktu (Local Timezone)**: Memperbaiki sinkronisasi waktu UTC server ke waktu lokal pengguna (WIB) pada riwayat transaksi langganan.
+
+---
 
 Ringkasan perubahan pada rilis ini:
 
