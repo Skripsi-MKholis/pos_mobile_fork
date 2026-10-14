@@ -22,6 +22,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pos_mobile/core/ads/interstitial_ad_manager.dart';
+import 'package:pos_mobile/core/guards/feature_guard.dart';
+import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
 
 class ReceiptScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
@@ -87,9 +89,15 @@ class _ReceiptScreenState extends ConsumerState<ReceiptScreen> {
   }
 
   /// Keluar dari layar struk. Sesekali (frequency-capped) menampilkan
-  /// interstitial ad di titik transisi ini agar tidak mengganggu kasir.
+  /// interstitial ad di titik transisi ini hanya jika user akun gratis (tidak berbayar).
   void _finishAndExit() {
+    final canRemoveAds = ref.read(canAccessFeatureProvider(AppFeature.removeAds));
+    final currentSub = ref.read(currentSubscriptionProvider).value;
+    final isPaid = currentSub?.isPaidActive ?? false;
+    final isAdFree = canRemoveAds || isPaid;
+
     InterstitialAdManager.instance.maybeShow(
+      isAdFree: isAdFree,
       onDone: () {
         if (mounted) context.go('/transactions');
       },
