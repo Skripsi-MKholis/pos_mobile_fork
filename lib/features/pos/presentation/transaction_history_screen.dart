@@ -148,25 +148,6 @@ class _TransactionHistoryScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildDateChip(l10n.all, 'Semua'),
-                          _buildDateChip(l10n.today, 'Hari Ini'),
-                          _buildDateChip(l10n.yesterday, 'Kemarin'),
-                          _buildDateChip(
-                            _dateFilter == 'Custom' && _customDate != null
-                                ? DateFormat('dd MMM').format(_customDate!)
-                                : l10n.selectDate,
-                            'Custom',
-                            isCalendar: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     _buildSummaryCards(currencyFormat),
                     const Center(
                       child: BannerAdWidget(padding: EdgeInsets.only(top: 16)),
@@ -1300,10 +1281,10 @@ class _TransactionHistoryScreenState
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        height: 100,
+        height: 76,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
         ),
       ),
     );
@@ -1312,11 +1293,11 @@ class _TransactionHistoryScreenState
   Widget _buildStatCard(String label, String value, Color color) {
     final theme = ShadTheme.of(context);
     return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      height: 76,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.colorScheme.border.withOpacity(0.5)),
       ),
       child: Column(
@@ -1330,8 +1311,8 @@ class _TransactionHistoryScreenState
             style: theme.textTheme.small.copyWith(
               color: theme.colorScheme.mutedForeground,
               fontWeight: FontWeight.bold,
-              fontSize: 10,
-              letterSpacing: 1,
+              fontSize: 9.5,
+              letterSpacing: 0.8,
             ),
           ),
           FittedBox(
@@ -1340,16 +1321,17 @@ class _TransactionHistoryScreenState
             child: Text(
               value,
               maxLines: 1,
-              style: theme.textTheme.h4.copyWith(
+              style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: Colors.black,
+                fontSize: 18,
                 letterSpacing: -0.5,
               ),
             ),
           ),
           Container(
-            height: 4,
-            width: 24,
+            height: 3,
+            width: 20,
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(2),
@@ -1362,114 +1344,185 @@ class _TransactionHistoryScreenState
 
   Widget _buildFilters(ShadThemeData theme) {
     final l10n = AppLocalizations.of(context)!;
+    final statusList = [
+      {'label': l10n.all, 'value': 'Semua'},
+      {'label': l10n.success, 'value': 'Berhasil'},
+      {'label': l10n.pending, 'value': 'Pending'},
+      {'label': l10n.cancelled, 'value': 'Batal'},
+    ];
+
+    final currentStatusLabel = statusList.firstWhere(
+      (s) => s['value'] == _filterStatus,
+      orElse: () => {'label': l10n.all, 'value': 'Semua'},
+    )['label']!;
+
     return Container(
+      height: 112.0,
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: ShadInput(
-                  controller: _searchController,
-                  placeholder: Text(l10n.searchTransaction),
-                  leading: const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Icon(
-                      TablerIcons.search,
-                      size: 16,
-                      color: Colors.grey,
+          SizedBox(
+            height: 42,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ShadInput(
+                    controller: _searchController,
+                    placeholder: Text(l10n.searchTransaction),
+                    leading: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Icon(
+                        TablerIcons.search,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
                     ),
-                  ),
-                  onChanged: (val) =>
-                      _debouncer.run(() => setState(() => _searchQuery = val)),
-                  decoration: ShadDecoration(
-                    border: ShadBorder.all(
-                      color: theme.colorScheme.border.withOpacity(0.5),
-                      width: 1,
+                    onChanged: (val) =>
+                        _debouncer.run(() => setState(() => _searchQuery = val)),
+                    decoration: ShadDecoration(
+                      border: ShadBorder.all(
+                        color: theme.colorScheme.border.withOpacity(0.5),
+                        width: 1,
+                      ),
+                      color: theme.colorScheme.muted.withOpacity(0.2),
                     ),
-                    color: theme.colorScheme.muted.withOpacity(0.2),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _sortOrder = _sortOrder == 'desc' ? 'asc' : 'desc';
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.muted.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: theme.colorScheme.border.withOpacity(0.5),
+                const SizedBox(width: 8),
+                // Dropdown Status Filter (Semua, Berhasil, Pending, Batal)
+                SizedBox(
+                  height: 42,
+                  child: PopupMenuButton<String>(
+                    tooltip: 'Filter Status',
+                    onSelected: (val) {
+                      setState(() => _filterStatus = val);
+                      _applyFilters();
+                    },
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: theme.colorScheme.border.withOpacity(0.3),
+                      ),
+                    ),
+                    color: Colors.white,
+                    elevation: 4,
+                    itemBuilder: (context) => statusList.map((status) {
+                      final isSelected = _filterStatus == status['value'];
+                      return PopupMenuItem<String>(
+                        value: status['value'],
+                        child: Row(
+                          children: [
+                            Text(
+                              status['label']!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected ? Colors.black : Colors.grey[700],
+                              ),
+                            ),
+                            const Spacer(),
+                            if (isSelected)
+                              Icon(TablerIcons.check, size: 16, color: Warna.primary),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: _filterStatus != 'Semua'
+                            ? Warna.primary.withOpacity(0.15)
+                            : theme.colorScheme.muted.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: _filterStatus != 'Semua'
+                              ? Warna.primary
+                              : theme.colorScheme.border.withOpacity(0.5),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            currentStatusLabel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _filterStatus != 'Semua'
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: _filterStatus != 'Semua'
+                                  ? Colors.black
+                                  : theme.colorScheme.mutedForeground,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            TablerIcons.chevron_down,
+                            size: 14,
+                            color: _filterStatus != 'Semua'
+                                ? Colors.black
+                                : theme.colorScheme.mutedForeground,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Icon(
-                    _sortOrder == 'desc'
-                        ? TablerIcons.sort_descending
-                        : TablerIcons.sort_ascending,
-                    size: 20,
-                    color: Warna.primary,
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _sortOrder = _sortOrder == 'desc' ? 'asc' : 'desc';
+                    });
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.muted.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.colorScheme.border.withOpacity(0.5),
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _sortOrder == 'desc'
+                            ? TablerIcons.sort_descending
+                            : TablerIcons.sort_ascending,
+                        size: 18,
+                        color: Warna.primary,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          // Filter Tanggal di bawah search bar
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             scrollDirection: Axis.horizontal,
             child: Row(
-              children:
-                  [
-                    {'label': l10n.all, 'value': 'Semua'},
-                    {'label': l10n.success, 'value': 'Berhasil'},
-                    {'label': l10n.pending, 'value': 'Pending'},
-                    {'label': l10n.cancelled, 'value': 'Batal'},
-                  ].map((status) {
-                    final isSelected = _filterStatus == status['value'];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() => _filterStatus = status['value']!);
-                          _applyFilters();
-                        },
-                        child: AnimatedContainer(
-                          duration: 200.ms,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected ? Warna.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: isSelected
-                                  ? Warna.primary
-                                  : theme.colorScheme.border,
-                            ),
-                          ),
-                          child: Text(
-                            status['label']!,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Colors.black
-                                  : theme.colorScheme.mutedForeground,
-                              fontWeight: isSelected
-                                  ? FontWeight.w900
-                                  : FontWeight.normal,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+              children: [
+                _buildDateChip(l10n.all, 'Semua'),
+                _buildDateChip(l10n.today, 'Hari Ini'),
+                _buildDateChip(l10n.yesterday, 'Kemarin'),
+                _buildDateChip(
+                  _dateFilter == 'Custom' && _customDate != null
+                      ? DateFormat('dd MMM').format(_customDate!)
+                      : l10n.selectDate,
+                  'Custom',
+                  isCalendar: true,
+                ),
+              ],
             ),
           ),
         ],
@@ -1666,17 +1719,17 @@ class _FilterHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return child;
+    return SizedBox.expand(child: child);
   }
 
   @override
-  double get maxExtent => 130;
+  double get maxExtent => 112.0;
 
   @override
-  double get minExtent => 130;
+  double get minExtent => 112.0;
 
   @override
   bool shouldRebuild(covariant _FilterHeaderDelegate oldDelegate) {
-    return true;
+    return oldDelegate.child != child;
   }
 }
