@@ -43,7 +43,6 @@ class _TransactionHistoryScreenState
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     Future.microtask(() {
       if (mounted) {
         ref.read(transactionHistoryProvider.notifier).refresh();
@@ -73,18 +72,9 @@ class _TransactionHistoryScreenState
         );
   }
 
-  void _onScroll() {
-    if (_activeSegmentIndex == 0 &&
-        _scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent * 0.8) {
-      ref.read(transactionHistoryProvider.notifier).fetchMore();
-    }
-  }
-
   @override
   void dispose() {
     _debouncer.dispose();
-    _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -200,13 +190,196 @@ class _TransactionHistoryScreenState
 
                 return SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
-                    if (index == grouped.length) {
-                      return state.isLoadingMore
-                          ? _buildLoadingIndicator()
-                          : const SizedBox(height: 110); // Jarak aman agar item paling bawah tidak tertutup floating bottom bar
+                    if (index == 0) {
+                      final selectedDate = _selectedDate;
+                      final summaryCount = ref.watch(
+                        transactionSummaryProvider(
+                          date: selectedDate == null
+                              ? null
+                              : DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                ),
+                        ),
+                      ).value?.transactionCount;
+
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              summaryCount != null
+                                  ? '${filtered.length} / $summaryCount data'
+                                  : '${filtered.length} data',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Page Size Selector Pill
+                                PopupMenuButton<int>(
+                                  initialValue: state.pageSize,
+                                  onSelected: (int newSize) {
+                                    ref
+                                        .read(transactionHistoryProvider.notifier)
+                                        .setPageSize(newSize);
+                                    _scrollController.animateTo(
+                                      0,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeOut,
+                                    );
+                                  },
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  itemBuilder: (ctx) => [
+                                    for (final size in [20, 50, 100, 200])
+                                      PopupMenuItem<int>(
+                                        value: size,
+                                        height: 38,
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              '$size / hal',
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: state.pageSize == size
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                                color: state.pageSize == size
+                                                    ? Warna.primary
+                                                    : Colors.black87,
+                                              ),
+                                            ),
+                                            if (state.pageSize == size) ...[
+                                              const Spacer(),
+                                              const Icon(
+                                                TablerIcons.check,
+                                                size: 14,
+                                                color: Warna.primary,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                  ],
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '${state.pageSize}/hal',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.grey.shade700,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Icon(
+                                          TablerIcons.chevron_down,
+                                          size: 10,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                // Page Picker Pill
+                                InkWell(
+                                  onTap: state.isLoadingMore
+                                      ? null
+                                      : () => _showPagePickerDialog(
+                                            context,
+                                            state,
+                                            summaryCount,
+                                          ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Warna.primary.withOpacity(0.08),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Warna.primary.withOpacity(0.3),
+                                        width: 0.8,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Hal ${state.page + 1}',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: Warna.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 2),
+                                        const Icon(
+                                          TablerIcons.selector,
+                                          size: 11,
+                                          color: Warna.primary,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      );
                     }
 
-                    final date = grouped.keys.elementAt(index);
+                    if (index == grouped.length + 1) {
+                      final selectedDate = _selectedDate;
+                      final summaryCount = ref.watch(
+                        transactionSummaryProvider(
+                          date: selectedDate == null
+                              ? null
+                              : DateTime(
+                                  selectedDate.year,
+                                  selectedDate.month,
+                                  selectedDate.day,
+                                ),
+                        ),
+                      ).value?.transactionCount;
+
+                      return Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+                        child: _buildPaginationBar(
+                          state,
+                          filtered.length,
+                          summaryCount,
+                        ),
+                      );
+                    }
+
+                    final date = grouped.keys.elementAt(index - 1);
                     final dailyTransactions = grouped[date]!;
 
                     return Column(
@@ -218,16 +391,43 @@ class _TransactionHistoryScreenState
                           decoration: BoxDecoration(
                             color: theme.colorScheme.muted.withOpacity(0.3),
                           ),
-                          child: Text(
-                            date == dateFullFormat.format(DateTime.now())
-                                ? l10n.today.toUpperCase()
-                                : date.toUpperCase(),
-                            style: theme.textTheme.small.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: theme.colorScheme.mutedForeground,
-                              letterSpacing: 2.0,
-                              fontSize: 10,
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                date == dateFullFormat.format(DateTime.now())
+                                    ? l10n.today.toUpperCase()
+                                    : date.toUpperCase(),
+                                style: theme.textTheme.small.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: theme.colorScheme.mutedForeground,
+                                  letterSpacing: 2.0,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.background,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: theme.colorScheme.border.withOpacity(0.5),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  '${dailyTransactions.length} transaksi',
+                                  style: TextStyle(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: theme.colorScheme.mutedForeground,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         ...dailyTransactions.map(
@@ -240,7 +440,7 @@ class _TransactionHistoryScreenState
                         ),
                       ],
                     );
-                  }, childCount: grouped.length + 1),
+                  }, childCount: grouped.length + 2),
                 );
               },
               loading: () => _buildSkeleton(theme),
@@ -1191,19 +1391,313 @@ class _TransactionHistoryScreenState
     );
   }
 
-  Widget _buildLoadingIndicator() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 40),
-      child: Center(
-        child: SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Warna.primary,
-          ),
+  Widget _buildPaginationBar(
+    TransactionHistoryState state,
+    int currentItemCount,
+    int? totalCount,
+  ) {
+    final theme = ShadTheme.of(context);
+    final currentPage = state.page + 1;
+    final hasPrev = state.page > 0;
+    final hasNext = state.hasMore;
+    final isLoading = state.isLoadingMore;
+
+    final totalPages = (totalCount != null && totalCount > 0)
+        ? (totalCount / state.pageSize).ceil()
+        : null;
+
+    final pageText = totalPages != null
+        ? 'Hal $currentPage dari $totalPages'
+        : 'Hal $currentPage';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.border.withOpacity(0.5),
         ),
       ),
+      child: Row(
+        children: [
+          // Info Ringkas Data
+          Expanded(
+            child: Text(
+              totalCount != null
+                  ? '$currentItemCount / $totalCount'
+                  : '$currentItemCount data',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+
+          // Tombol Prev (Icon Button Minimalis)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: (!hasPrev || isLoading)
+                  ? null
+                  : () {
+                      ref
+                          .read(transactionHistoryProvider.notifier)
+                          .goToPage(state.page - 1);
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    },
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: (!hasPrev || isLoading) ? 0.3 : 1.0,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Center(
+                    child: Icon(TablerIcons.chevron_left, size: 16),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Indikator Halaman (Pill Minimalis - Bisa Diklik untuk Pilih Halaman)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: isLoading
+                  ? null
+                  : () => _showPagePickerDialog(
+                        context,
+                        state,
+                        totalCount,
+                      ),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Warna.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 13,
+                        height: 13,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Warna.primary,
+                        ),
+                      )
+                    : Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            pageText,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          const Icon(
+                            TablerIcons.selector,
+                            size: 13,
+                            color: Colors.black87,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Tombol Next (Icon Button Minimalis)
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: (!hasNext || isLoading)
+                  ? null
+                  : () {
+                      ref
+                          .read(transactionHistoryProvider.notifier)
+                          .goToPage(state.page + 1);
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    },
+              borderRadius: BorderRadius.circular(8),
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: (!hasNext || isLoading) ? 0.3 : 1.0,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Warna.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      TablerIcons.chevron_right,
+                      size: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPagePickerDialog(
+    BuildContext context,
+    TransactionHistoryState state,
+    int? totalCount,
+  ) {
+    final currentPage = state.page + 1;
+    final totalPages = (totalCount != null && totalCount > 0)
+        ? (totalCount / state.pageSize).ceil()
+        : (state.hasMore ? currentPage + 1 : currentPage);
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final bottomInset = MediaQuery.of(ctx).padding.bottom;
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.55,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header Drag Handle
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 8),
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Pilih Halaman',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '$totalPages Total Halaman',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 5,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.15,
+                  ),
+                  itemCount: totalPages,
+                  itemBuilder: (context, i) {
+                    final pageNum = i + 1;
+                    final isCurrent = pageNum == currentPage;
+
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          if (!isCurrent) {
+                            ref
+                                .read(transactionHistoryProvider.notifier)
+                                .goToPage(i);
+                            _scrollController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeOut,
+                            );
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isCurrent ? Warna.primary : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isCurrent
+                                  ? Warna.primary
+                                  : Colors.grey.shade300,
+                              width: isCurrent ? 1.5 : 1.0,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$pageNum',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: isCurrent
+                                    ? FontWeight.bold
+                                    : FontWeight.w600,
+                                color: isCurrent ? Colors.black : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: bottomInset > 0 ? bottomInset + 8 : 24),
+            ],
+          ),
+        );
+      },
     );
   }
 

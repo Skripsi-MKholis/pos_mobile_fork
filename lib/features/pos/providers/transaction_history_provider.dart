@@ -15,6 +15,7 @@ class TransactionHistoryState {
   final bool isLoadingMore;
   final bool hasMore;
   final int page;
+  final int pageSize;
   final DateTime? filterDate;
   final String filterStatus;
 
@@ -24,6 +25,7 @@ class TransactionHistoryState {
     this.isLoadingMore = false,
     this.hasMore = true,
     this.page = 0,
+    this.pageSize = 20,
     this.filterDate,
     this.filterStatus = 'Semua',
   });
@@ -34,6 +36,7 @@ class TransactionHistoryState {
     bool? isLoadingMore,
     bool? hasMore,
     int? page,
+    int? pageSize,
   }) {
     return TransactionHistoryState(
       transactions: transactions ?? this.transactions,
@@ -41,6 +44,7 @@ class TransactionHistoryState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMore: hasMore ?? this.hasMore,
       page: page ?? this.page,
+      pageSize: pageSize ?? this.pageSize,
       filterDate: filterDate,
       filterStatus: filterStatus,
     );
@@ -119,7 +123,7 @@ Future<TransactionSummary> transactionSummary(
 @riverpod
 class TransactionHistory extends _$TransactionHistory {
   final _supabase = Supabase.instance.client;
-  final int _pageSize = 20;
+  int _pageSize = 20;
 
   @override
   FutureOr<TransactionHistoryState> build() async {
@@ -127,20 +131,56 @@ class TransactionHistory extends _$TransactionHistory {
     final storeId = activeStore?['id'];
     if (storeId == null) return TransactionHistoryState(transactions: []);
 
-    final data = await _fetchFromSupabaseAndCache(storeId, 0, null, 'Semua');
+    final data = await _fetchFromSupabaseAndCache(storeId, 0, null, 'Semua', _pageSize);
     return TransactionHistoryState(
       transactions: data,
       page: 0,
+      pageSize: _pageSize,
       hasMore: data.length == _pageSize,
     );
+  }
+
+  Future<void> setPageSize(int newSize) async {
+    if (newSize <= 0 || newSize == _pageSize) return;
+    _pageSize = newSize;
+
+    final currentState = state.value;
+    final activeStore = ref.read(activeStoreProvider).value;
+    final storeId = activeStore?['id'];
+    if (storeId == null) return;
+
+    state = const AsyncLoading();
+    try {
+      final data = await _fetchFromSupabaseAndCache(
+        storeId,
+        0,
+        currentState?.filterDate,
+        currentState?.filterStatus ?? 'Semua',
+        newSize,
+      );
+      state = AsyncValue.data(
+        TransactionHistoryState(
+          transactions: data,
+          page: 0,
+          pageSize: newSize,
+          hasMore: data.length == newSize,
+          filterDate: currentState?.filterDate,
+          filterStatus: currentState?.filterStatus ?? 'Semua',
+        ),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 
   Future<List<Map<String, dynamic>>> _fetchFromSupabaseAndCache(
     String storeId,
     int page,
     DateTime? filterDate,
-    String filterStatus,
-  ) async {
+    String filterStatus, [
+    int? pageSize,
+  ]) async {
+    final effectivePageSize = pageSize ?? _pageSize;
     final isOnline = ref.read(connectivityNotifierProvider).value == ConnectivityStatus.online;
     final isar = IsarService.instance;
 
@@ -169,7 +209,7 @@ class TransactionHistory extends _$TransactionHistory {
         }
         final response = await query
             .order('created_at', ascending: false)
-            .range(page * _pageSize, (page + 1) * _pageSize - 1);
+            .range(page * effectivePageSize, (page + 1) * effectivePageSize - 1);
 
         final remoteData = List<Map<String, dynamic>>.from(response);
 
@@ -225,7 +265,7 @@ class TransactionHistory extends _$TransactionHistory {
     }
 
     return _fetchLocalTransactions(
-        storeId, page, _pageSize, start, end, filterStatus);
+        storeId, page, effectivePageSize, start, end, filterStatus);
   }
 
   Future<List<Map<String, dynamic>>> _fetchLocalTransactions(
@@ -316,6 +356,38 @@ class TransactionHistory extends _$TransactionHistory {
         currentState.copyWith(
           transactions: [...currentState.transactions, ...newData],
           page: nextPage,
+          hasMore: newData.length == _pageSize,
+          isLoadingMore: false,
+        ),
+      );
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+
+  Future<void> goToPage(int targetPage) async {
+    if (targetPage < 0) return;
+    final currentState = state.value;
+    if (currentState == null || currentState.isLoadingMore) return;
+
+    final activeStore = ref.read(activeStoreProvider).value;
+    final storeId = activeStore?['id'];
+    if (storeId == null) return;
+
+    state = AsyncValue.data(currentState.copyWith(isLoadingMore: true));
+
+    try {
+      final newData = await _fetchFromSupabaseAndCache(
+        storeId,
+        targetPage,
+        currentState.filterDate,
+        currentState.filterStatus,
+      );
+
+      state = AsyncValue.data(
+        currentState.copyWith(
+          transactions: newData,
+          page: targetPage,
           hasMore: newData.length == _pageSize,
           isLoadingMore: false,
         ),
