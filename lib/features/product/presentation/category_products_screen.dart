@@ -139,8 +139,10 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
       decimalDigits: 0,
     );
 
+    final isUncategorized = widget.category.supabaseId == 'uncategorized';
+
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,9 +161,10 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
             ),
           ],
         ),
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: Colors.white,
         elevation: 0,
-        scrolledUnderElevation: 0,
+        scrolledUnderElevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.05),
         leading: IconButton(
           icon: Container(
             padding: const EdgeInsets.all(8),
@@ -173,49 +176,53 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
           ),
           onPressed: () => context.pop(),
         ),
-        toolbarHeight: 80,
+        toolbarHeight: 76,
       ),
       body: SafeArea(
         child: Column(
           children: [
             // Search & Actions Bar
-            Padding(
+            Container(
+              color: Colors.white,
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ShadInput(
-                    placeholder: Text(l10n.searchNameOrSku),
-                    leading: const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Icon(TablerIcons.search, size: 20),
-                    ),
-                    onChanged: (value) => setState(() => _searchQuery = value),
-                    decoration: ShadDecoration(
-                      border: ShadBorder.none,
-                      color: theme.colorScheme.muted.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  productsAsync.maybeWhen(
-                    data: (products) => widget.category.supabaseId == 'uncategorized'
-                        ? const SizedBox.shrink()
-                        : SizedBox(
-                            width: double.infinity,
-                            child: ShadButton(
-                              backgroundColor: Warna.primary,
-                              onPressed: () => _showAddProductsModal(products, allCategories),
-                              leading: const Icon(TablerIcons.plus, size: 18, color: Warna.black),
-                              child: Text(
-                                isId ? 'Tambah Produk Baru ke Kategori' : 'Add New Products to Category',
-                                style: const TextStyle(
-                                  color: Warna.black,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ShadInput(
+                          placeholder: Text(l10n.searchNameOrSku),
+                          leading: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Icon(TablerIcons.search, size: 20),
+                          ),
+                          onChanged: (value) => setState(() => _searchQuery = value),
+                          decoration: ShadDecoration(
+                            border: ShadBorder.none,
+                            color: const Color(0xFFF1F5F9),
+                          ),
+                        ),
+                      ),
+                      if (!isUncategorized) ...[
+                        const SizedBox(width: 10),
+                        productsAsync.maybeWhen(
+                          data: (products) => ShadButton(
+                            backgroundColor: Warna.primary,
+                            onPressed: () => _showAddProductsModal(products, allCategories),
+                            leading: const Icon(TablerIcons.plus, size: 18, color: Warna.black),
+                            child: Text(
+                              isId ? 'Tambah' : 'Add',
+                              style: const TextStyle(
+                                color: Warna.black,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                    orElse: () => const SizedBox.shrink(),
+                          orElse: () => const SizedBox.shrink(),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),
