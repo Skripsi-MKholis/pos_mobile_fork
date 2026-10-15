@@ -421,13 +421,25 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         onRefresh: () => ref
                             .read(productNotifierProvider.notifier)
                             .syncProducts(),
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.5,
-                            alignment: Alignment.center,
-                            child: _buildEmptyState(theme),
-                          ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minHeight: constraints.maxHeight,
+                                ),
+                                child: Center(
+                                  child: _buildEmptyState(
+                                    theme,
+                                    hasActiveFilter: _searchQuery.isNotEmpty ||
+                                        _selectedCategory != null ||
+                                        _showSlowingOnly,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       );
                     }
@@ -817,49 +829,144 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     );
   }
 
-  Widget _buildEmptyState(ShadThemeData theme) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.muted.withOpacity(0.5),
-            shape: BoxShape.circle,
+  Widget _buildEmptyState(
+    ShadThemeData theme, {
+    required bool hasActiveFilter,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Decorative Illustration Container
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Warna.primary.withValues(alpha: 0.18),
+                  Warna.primary.withValues(alpha: 0.05),
+                ],
+              ),
+              border: Border.all(
+                color: Warna.primary.withValues(alpha: 0.25),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Warna.primary.withValues(alpha: 0.12),
+                  blurRadius: 28,
+                  spreadRadius: 4,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    hasActiveFilter
+                        ? TablerIcons.package_off
+                        : TablerIcons.package,
+                    size: 42,
+                    color: Warna.black,
+                  ),
+                ],
+              ),
+            ),
           ),
-          child: Icon(
-            TablerIcons.package_off,
-            size: 48,
-            color: theme.colorScheme.mutedForeground,
+          const SizedBox(height: 24),
+
+          // Title
+          Text(
+            hasActiveFilter ? l10n.productNotFound : l10n.noProductsYet,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.h4.copyWith(
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+            ),
           ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          AppLocalizations.of(context)!.productNotFound,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.foreground,
+          const SizedBox(height: 8),
+
+          // Subtitle
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 290),
+            child: Text(
+              hasActiveFilter ? l10n.productNotFoundDesc : l10n.noProductsYetDesc,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.muted.copyWith(
+                fontSize: 14,
+                height: 1.45,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          AppLocalizations.of(context)!.productNotFoundDesc,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: theme.colorScheme.mutedForeground),
-        ),
-        const SizedBox(height: 24),
-        ShadButton.outline(
-          onPressed: () {
-            _debouncer.dispose(); // Cancel pending updates
-            setState(() {
-              _searchQuery = '';
-              _selectedCategory = null;
-            });
-          },
-          child: Text(AppLocalizations.of(context)!.resetFilter),
-        ),
-      ],
+          const SizedBox(height: 28),
+
+          // Action Buttons
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 260),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (hasActiveFilter) ...[
+                  ShadButton.outline(
+                    onPressed: () {
+                      _debouncer.dispose();
+                      setState(() {
+                        _searchQuery = '';
+                        _selectedCategory = null;
+                        _showSlowingOnly = false;
+                      });
+                    },
+                    leading: const Icon(TablerIcons.filter_off, size: 18),
+                    child: Text(
+                      l10n.resetFilter,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                ShadButton(
+                  backgroundColor: Warna.primary,
+                  foregroundColor: Colors.black,
+                  onPressed: () => context.push('/products/add'),
+                  leading: const Icon(TablerIcons.plus, size: 18, color: Colors.black),
+                  child: Text(
+                    l10n.addProduct,
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

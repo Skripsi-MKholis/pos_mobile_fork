@@ -548,46 +548,156 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   }
 
                   if (products.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            TablerIcons.package,
-                            size: 80,
-                            color: Colors.grey[200],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            l10n.noProductsYet,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                    final bottomInset = MediaQuery.of(context).padding.bottom;
+                    final navBarHeight = 76.0 + 24.0 + bottomInset;
+
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                left: 28,
+                                right: 28,
+                                top: 16,
+                                bottom: navBarHeight,
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Decorative Illustration Container
+                                    Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Warna.primary.withValues(alpha: 0.18),
+                                            Warna.primary.withValues(alpha: 0.05),
+                                          ],
+                                        ),
+                                        border: Border.all(
+                                          color: Warna.primary.withValues(alpha: 0.25),
+                                          width: 1.5,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Warna.primary.withValues(alpha: 0.12),
+                                            blurRadius: 28,
+                                            spreadRadius: 4,
+                                            offset: const Offset(0, 8),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Container(
+                                              width: 72,
+                                              height: 72,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withValues(alpha: 0.04),
+                                                    blurRadius: 10,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const Icon(
+                                              TablerIcons.package,
+                                              size: 44,
+                                              color: Warna.black,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+
+                                    // Title
+                                    Text(
+                                      l10n.noProductsYet,
+                                      textAlign: TextAlign.center,
+                                      style: theme.textTheme.h4.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    // Subtitle
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 280),
+                                      child: Text(
+                                        l10n.noProductsYetDesc,
+                                        textAlign: TextAlign.center,
+                                        style: theme.textTheme.muted.copyWith(
+                                          fontSize: 14,
+                                          height: 1.45,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 28),
+
+                                    // Action Buttons
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 260),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          ShadButton(
+                                            onPressed: () => context.push('/products/add'),
+                                            leading: const Icon(
+                                              TablerIcons.plus,
+                                              size: 18,
+                                              color: Colors.black,
+                                            ),
+                                            child: Text(
+                                              l10n.addProduct,
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          ShadButton.outline(
+                                            onPressed: () => context.push('/products'),
+                                            leading: const Icon(
+                                              TablerIcons.layout_grid,
+                                              size: 18,
+                                            ),
+                                            child: Text(
+                                              l10n.manageProduct,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            l10n.noProductsYetDesc,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 24),
-                          ShadButton(
-                            onPressed: () => context.push('/products/add'),
-                            leading: const Icon(TablerIcons.plus, size: 18),
-                            child: Text(l10n.addProduct),
-                          ),
-                          const SizedBox(height: 12),
-                          ShadButton.outline(
-                            onPressed: () => context.push('/products'),
-                            leading: const Icon(
-                              TablerIcons.settings,
-                              size: 18,
-                            ),
-                            child: Text(l10n.manageProduct),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   }
 
