@@ -168,6 +168,15 @@ class _DrawerMenuContent extends ConsumerWidget {
           ),
         ],
 
+        // 5. PENGATURAN UMUM
+        const _SectionSpacing(),
+        _SectionHeader(title: isIndonesian ? 'PENGATURAN' : 'SETTINGS'),
+        _DrawerItem(
+          icon: TablerIcons.settings,
+          title: isIndonesian ? 'Pengaturan Aplikasi & Akun' : 'App & Account Settings',
+          route: '/app-settings',
+        ),
+
         if (user?.appMetadata['role'] == 'admin') ...[
           const _SectionSpacing(),
           _SectionHeader(title: l10n.superAdmin),
