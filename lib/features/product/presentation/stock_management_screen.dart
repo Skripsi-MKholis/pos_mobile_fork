@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,10 +38,18 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
   StockFilterStatus _selectedStatus = StockFilterStatus.all;
   StockSortOption _selectedSort = StockSortOption.stockAsc;
 
+  // Anti-Spam: Track pending optimistic stock changes and debounce network requests
+  final Map<String, int> _pendingLocalStock = {};
+  final Map<String, Timer> _productDebounceTimers = {};
+
   @override
   void dispose() {
     _debouncer.dispose();
     _searchController.dispose();
+    for (final timer in _productDebounceTimers.values) {
+      timer.cancel();
+    }
+    _productDebounceTimers.clear();
     super.dispose();
   }
 
@@ -49,6 +58,8 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     Product product, {
     int? initialStock,
   }) {
+    // Flush pending changes before opening modal if any
+    _flushPendingStock(product.supabaseId);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -59,6 +70,14 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
         onSave: (newStock) => _updateStock(product, newStock),
       ),
     );
+  }
+
+  void _flushPendingStock(String productId) {
+    if (_productDebounceTimers.containsKey(productId)) {
+      _productDebounceTimers[productId]?.cancel();
+      _productDebounceTimers.remove(productId);
+    }
+    _pendingLocalStock.remove(productId);
   }
 
   Future<void> _updateStock(Product product, int newStock) async {
@@ -100,12 +119,28 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     }
   }
 
+  /// Debounced Quick Stepper to prevent spamming server with rapid clicks.
+  /// Updates local UI immediately and buffers rapid clicks until user stops clicking.
   void _quickStepStock(Product product, int delta) {
     HapticFeedback.lightImpact();
-    final newStock = (product.stockQuantity + delta).clamp(0, 999999);
-    if (newStock != product.stockQuantity) {
-      _updateStock(product, newStock);
-    }
+    final id = product.supabaseId;
+    final baseStock = _pendingLocalStock[id] ?? product.stockQuantity;
+    final targetStock = (baseStock + delta).clamp(0, 999999);
+
+    if (targetStock == baseStock) return;
+
+    setState(() {
+      _pendingLocalStock[id] = targetStock;
+    });
+
+    _productDebounceTimers[id]?.cancel();
+    _productDebounceTimers[id] = Timer(const Duration(milliseconds: 600), () {
+      final finalStock = _pendingLocalStock.remove(id);
+      _productDebounceTimers.remove(id);
+      if (finalStock != null && finalStock != product.stockQuantity) {
+        _updateStock(product, finalStock);
+      }
+    });
   }
 
   @override
@@ -659,8 +694,9 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
     required NumberFormat format,
     required bool isId,
   }) {
-    final isOut = product.stockQuantity == 0;
-    final isLow = product.stockQuantity > 0 && product.stockQuantity <= 10;
+    final displayStock = _pendingLocalStock[product.supabaseId] ?? product.stockQuantity;
+    final isOut = displayStock == 0;
+    final isLow = displayStock > 0 && displayStock <= 10;
 
     final badgeColor = isOut
         ? const Color(0xFFEF4444)
@@ -794,7 +830,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                   borderRadius: BorderRadius.circular(8),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: product.stockQuantity > 0
+                    onTap: displayStock > 0
                         ? () => _quickStepStock(product, -1)
                         : null,
                     child: Padding(
@@ -802,7 +838,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                       child: Icon(
                         TablerIcons.minus,
                         size: 14,
-                        color: product.stockQuantity > 0
+                        color: displayStock > 0
                             ? const Color(0xFF334155)
                             : Colors.grey.shade300,
                       ),
@@ -821,7 +857,7 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                     border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
-                    product.stockQuantity.toString(),
+                    displayStock.toString(),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13.5,
