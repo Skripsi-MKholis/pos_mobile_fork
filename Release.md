@@ -1,16 +1,45 @@
 ### **Versi Sekarang**
 
-**1.12.0+18**
+**1.13.0+19**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Cashier Experience, Quick Custom Product & Operational Enhancements**
+**ZelloPOS Inventory Redesign, Scanner Camera Switch & Operational Polish**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.13.0+19 (Inventory Redesign, Scanner Camera Switch & Operational Polish)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Redesain Antarmuka Manajemen Inventaris & Stok (Minimalis & Modern)**:
+  - Tampilan baru halaman *Manajemen Stok* dan *Riwayat Stok* yang lebih bersih, modern, dan informatif.
+  - Implementasi *debounce* pada pencarian dan filter stok untuk responsivitas yang lebih cepat tanpa jeda.
+  - Tampilan empty state data stok dan katalog produk yang lebih interaktif dan ramah pengguna.
+* **Redesain & Optimalisasi Manajemen Kategori Produk**:
+  - Tampilan daftar dan detail kategori produk diperbarui dengan antarmuka yang lebih rapi dan konsisten.
+  - Kemudahan navigasi dan pengelompokan produk per kategori yang lebih cepat dan intuitif.
+* **Fitur Pemindai Barcode & Pemilihan Kamera (Switch Camera)**:
+  - Peningkatan fungsionalitas pemindai barcode / QR scanner pada formulir produk dan halaman kasir.
+  - Penambahan kemampuan beralih kamera (kamera depan / belakang) secara fleksibel saat memindai kode produk atau barcode.
+* **Kompresi Gambar Otomatis & Perbaikan Upload Supabase Storage**:
+  - Penambahan kompresi gambar otomatis saat upload foto profil, toko, dan foto produk guna menghemat ruang penyimpanan, mempercepat unggahan, dan mengurangi konsumsi bandwidth.
+  - Perbaikan resolusi URL Supabase Storage bucket untuk memastikan gambar dan thumbnail produk selalu tampil dengan benar.
+* **Peningkatan Navigasi Drawer & Akses Pengaturan**:
+  - Penambahan menu Pengaturan (*Settings*) langsung di navigasi samping (*App Drawer*) untuk mempermudah akses konfigurasi toko, printer, dan akun kasir.
+  - Perbaikan visibilitas tombol aksi dan ikon produk kustom di kasir.
+* **Pengalaman Scroll yang Mulus (BouncingScrollPhysics)**:
+  - Penerapan *BouncingScrollPhysics* di berbagai layar utama (Kasir, Katalog Produk, Stok, Pelanggan, Kategori, dan Riwayat) untuk pengalaman navigasi yang lebih halus (*fluid*).
+* **Perbaikan Tampilan Iklan Interstisial pada Pengguna Berlangganan (Paid Plan)**:
+  - Memperbaiki logika penayangan iklan agar iklan interstisial tidak muncul bagi pengguna atau toko dengan paket berbayar aktif saat menyelesaikan transaksi di layar struk (*Receipt Screen*).
+* **Carousel & Tata Letak Riwayat Transaksi**:
+  - Tampilan ringkasan metrik transaksi dalam bentuk carousel yang interaktif dan tata letak riwayat transaksi yang lebih rapi.
+
+---
 
 **Versi 1.12.0+18 (Cashier Experience, Quick Custom Product & Operational Enhancements)**
 
