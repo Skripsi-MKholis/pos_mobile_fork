@@ -160,9 +160,11 @@ class ProductNotifier extends _$ProductNotifier {
     }
   }
 
-  Future<String?> uploadImage(File imageFile) async {
+  Future<String?> uploadImage(File imageFile, {String? storeId, String? productId}) async {
     try {
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final rand = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      final idPrefix = storeId ?? ref.read(activeStoreProvider).value?['id']?.toString() ?? 'store';
+      final fileName = productId != null ? 'prod_${idPrefix}_${productId}_$rand.jpg' : 'prod_${idPrefix}_$rand.jpg';
       final path = 'product_images/$fileName';
 
       await _supabase.storage.from('product-images').upload(path, imageFile);
@@ -277,7 +279,7 @@ class ProductNotifier extends _$ProductNotifier {
 
     if (imageFile != null) {
       if (isOnline) {
-        imageUrl = await uploadImage(imageFile);
+        imageUrl = await uploadImage(imageFile, storeId: storeId, productId: localId);
       } else {
         // Save locally if offline
         localImagePath = await _saveImageLocally(imageFile);

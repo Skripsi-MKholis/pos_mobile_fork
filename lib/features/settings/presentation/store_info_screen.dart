@@ -1158,11 +1158,12 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
       if (_logoRemoved) {
         logoUrl = null;
       } else if (_imageFile != null) {
-        final fileName = 'logo_${activeStore['id']}_${DateTime.now().millisecondsSinceEpoch}.png';
-        final path = 'logos/$fileName';
+        final rand = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+        final fileName = 'store_${activeStore['id']}_$rand.png';
+        final path = 'store_logos/$fileName';
 
-        await supabase.storage.from('store_assets').upload(path, _imageFile!);
-        logoUrl = supabase.storage.from('store_assets').getPublicUrl(path);
+        await supabase.storage.from('product-images').upload(path, _imageFile!);
+        logoUrl = supabase.storage.from('product-images').getPublicUrl(path);
       }
 
       // Gabungkan profil operasional ke `settings` tanpa menghapus kunci lain

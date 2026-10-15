@@ -127,13 +127,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       setState(() => _isSavingAvatar = true);
 
       final file = File(pickedFile.path);
-      final fileName = 'avatar_${user.id}_${DateTime.now().millisecondsSinceEpoch}.png';
+      final rand = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      final fileName = 'user_${user.id}_$rand.png';
       final path = 'avatars/$fileName';
       final supabase = Supabase.instance.client;
 
       // Upload to storage
-      await supabase.storage.from('store_assets').upload(path, file);
-      final newUrl = supabase.storage.from('store_assets').getPublicUrl(path);
+      await supabase.storage.from('product-images').upload(path, file);
+      final newUrl = supabase.storage.from('product-images').getPublicUrl(path);
 
       // Update profiles table & user metadata
       await supabase.from('profiles').update({'avatar_url': newUrl}).eq('id', user.id);

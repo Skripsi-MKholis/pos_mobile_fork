@@ -123,7 +123,9 @@ class SyncNotifier extends _$SyncNotifier {
           if (prod.localImagePath != null) {
             final file = File(prod.localImagePath!);
             if (await file.exists()) {
-              final newUrl = await ref.read(productNotifierProvider.notifier).uploadImage(file);
+              final newUrl = await ref
+                  .read(productNotifierProvider.notifier)
+                  .uploadImage(file, storeId: prod.storeId, productId: prod.supabaseId);
               if (newUrl != null) {
                 imageUrl = newUrl;
               }
