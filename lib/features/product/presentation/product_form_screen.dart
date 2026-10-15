@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:pos_mobile/core/utils/image_picker_helper.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
@@ -126,8 +127,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await AppImagePicker.pickProductImage(source: ImageSource.gallery);
     if (pickedFile != null) setState(() => _imageFile = File(pickedFile.path));
   }
 

@@ -13,6 +13,7 @@ import 'package:pos_mobile/features/reports/models/forecast_input.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:pos_mobile/core/utils/image_picker_helper.dart';
 
 class StoreInfoScreen extends ConsumerStatefulWidget {
   const StoreInfoScreen({super.key});
@@ -27,7 +28,6 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   bool _isDeleting = false;
   File? _imageFile;
   bool _logoRemoved = false;
-  final _picker = ImagePicker();
 
   // Location state
   String? _selectedProvinceCode;
@@ -1133,7 +1133,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await _picker.pickImage(source: source, imageQuality: 50);
+    final pickedFile = await AppImagePicker.pickStoreLogo(source);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);

@@ -11,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:pos_mobile/core/utils/image_picker_helper.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -22,7 +23,6 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isLoadingGoogle = false;
   bool _isSavingAvatar = false;
-  final _picker = ImagePicker();
 
   Future<void> _handleChangeAvatar() async {
     final isId = Localizations.localeOf(context).languageCode == 'id';
@@ -121,7 +121,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (user == null) return;
 
     try {
-      final pickedFile = await _picker.pickImage(source: source, imageQuality: 50);
+      final pickedFile = await AppImagePicker.pickAvatar(source);
       if (pickedFile == null) return;
 
       setState(() => _isSavingAvatar = true);
