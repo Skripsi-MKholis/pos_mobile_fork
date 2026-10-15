@@ -27,6 +27,8 @@ import 'dart:convert';
 import 'package:isar_community/isar.dart';
 import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';
+import 'package:pos_mobile/features/product/providers/product_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   const PaymentScreen({super.key});
@@ -1013,6 +1015,8 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
           }
         }
         ref.invalidate(tableMonitoringProvider);
+        ref.invalidate(stockHistoryProvider);
+        ref.invalidate(productNotifierProvider);
 
         // Log transaction to Firebase Analytics
         final totalItemCount = cartState.items.fold<int>(0, (sum, item) => sum + item.quantity);

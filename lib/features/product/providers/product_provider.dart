@@ -10,6 +10,7 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/providers/connectivity_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
+import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';
 
 part 'product_provider.g.dart';
 
@@ -301,6 +302,9 @@ class ProductNotifier extends _$ProductNotifier {
       }
     });
     ref.invalidateSelf();
+    if (history != null) {
+      ref.invalidate(stockHistoryProvider);
+    }
 
     // 3. Try Sync if Online
     if (isOnline) {
@@ -389,6 +393,7 @@ class ProductNotifier extends _$ProductNotifier {
               await _isar.collection<StockHistoryLocal>().put(history);
             });
             ref.invalidateSelf();
+            ref.invalidate(stockHistoryProvider);
 
             // 2. Try Sync immediately if online
             if (isOnline) {

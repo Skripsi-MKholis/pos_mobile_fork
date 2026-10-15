@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/models/stock_history.dart';
 import 'package:pos_mobile/features/product/providers/stock_history_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
@@ -19,7 +18,7 @@ class StockHistoryScreen extends ConsumerStatefulWidget {
 class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _filterType = 'all'; // 'all', 'sale', 'manual'
+  String _filterType = 'all'; // 'all', 'sale', 'in', 'out'
 
   @override
   void dispose() {
@@ -34,7 +33,7 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
     final isId = Localizations.localeOf(context).languageCode == 'id';
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,29 +42,42 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
               isId ? 'Riwayat Stok' : 'Stock History',
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
-                fontSize: 20,
-                letterSpacing: -0.5,
+                fontSize: 18,
+                letterSpacing: -0.3,
+                color: Color(0xFF0F172A),
               ),
             ),
+            const SizedBox(height: 2),
             Text(
-              isId 
-                  ? 'Audit penyesuaian stok dan penjualan' 
-                  : 'Audit stock adjustments and sales',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
+              isId
+                  ? 'Audit mutasi & aktivitas stok produk'
+                  : 'Audit stock movements & activities',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w400,
+              ),
             ),
           ],
         ),
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: const Color(0xFFE2E8F0),
+            height: 1,
+          ),
+        ),
         leading: IconButton(
           icon: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: theme.colorScheme.muted.withValues(alpha: 0.5),
+              color: const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
-            child: const Icon(TablerIcons.chevron_left, size: 20),
+            child: const Icon(TablerIcons.chevron_left, size: 19, color: Color(0xFF334155)),
           ),
           onPressed: () {
             if (context.canPop()) {
@@ -75,353 +87,670 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
             }
           },
         ),
-        toolbarHeight: 80,
+        toolbarHeight: 70,
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // SEARCH & FILTER SECTION
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                children: [
-                  ShadInput(
-                    controller: _searchController,
-                    placeholder: Text(isId ? 'Cari nama produk...' : 'Search product name...'),
-                    leading: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Icon(TablerIcons.search, size: 18, color: Colors.grey),
+        child: historyAsync.when(
+          data: (allLogs) {
+            // Count metrics for summary pills
+            final totalCount = allLogs.length;
+            final salesCount = allLogs.where((l) => l.changeType == 'sale').length;
+            final inCount = allLogs.where((l) => l.quantityChange > 0).length;
+            final outCount = allLogs.where((l) => l.quantityChange < 0 && l.changeType != 'sale').length;
+
+            // Filter logs
+            final filteredLogs = allLogs.where((log) {
+              final query = _searchQuery.toLowerCase().trim();
+              final matchesSearch = query.isEmpty ||
+                  log.productName.toLowerCase().contains(query);
+
+              bool matchesFilter = true;
+              if (_filterType == 'sale') {
+                matchesFilter = log.changeType == 'sale';
+              } else if (_filterType == 'in') {
+                matchesFilter = log.quantityChange > 0;
+              } else if (_filterType == 'out') {
+                matchesFilter = log.quantityChange < 0 && log.changeType != 'sale';
+              }
+
+              return matchesSearch && matchesFilter;
+            }).toList();
+
+            // Group logs by date string
+            final groupedLogs = _groupLogsByDate(filteredLogs);
+
+            return RefreshIndicator(
+              color: Warna.primary,
+              onRefresh: () async {
+                HapticFeedback.lightImpact();
+                await ref.read(stockHistoryProvider.notifier).syncStockHistory();
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // 1. Search Box
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                      child: Container(
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          style: const TextStyle(fontSize: 13.5, color: Color(0xFF0F172A)),
+                          decoration: InputDecoration(
+                            hintText: isId ? 'Cari riwayat nama produk...' : 'Search product history...',
+                            hintStyle: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            prefixIcon: const Icon(
+                              TablerIcons.search,
+                              size: 18,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    child: const Icon(
+                                      TablerIcons.x,
+                                      size: 16,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          onChanged: (val) {
+                            setState(() => _searchQuery = val);
+                          },
+                        ),
+                      ),
                     ),
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val;
-                      });
-                    },
                   ),
+
+                  // 2. Filter Status Pills
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildFilterPill(
+                              label: isId ? 'Semua' : 'All',
+                              count: totalCount,
+                              isSelected: _filterType == 'all',
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _filterType = 'all');
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterPill(
+                              label: isId ? 'Penjualan' : 'Sales',
+                              count: salesCount,
+                              isSelected: _filterType == 'sale',
+                              badgeColor: const Color(0xFFEA580C),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _filterType = 'sale');
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterPill(
+                              label: isId ? 'Stok Masuk' : 'Stock In',
+                              count: inCount,
+                              isSelected: _filterType == 'in',
+                              badgeColor: const Color(0xFF16A34A),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _filterType = 'in');
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            _buildFilterPill(
+                              label: isId ? 'Stok Keluar' : 'Stock Out',
+                              count: outCount,
+                              isSelected: _filterType == 'out',
+                              badgeColor: const Color(0xFFE11D48),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _filterType = 'out');
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // 3. Content List or Empty State
+                  if (filteredLogs.isEmpty)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _buildEmptyState(isId, theme),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final groupKey = groupedLogs.keys.elementAt(index);
+                            final logsInGroup = groupedLogs[groupKey]!;
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Date Header Section
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: index == 0 ? 4 : 14,
+                                    bottom: 8,
+                                    left: 4,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        TablerIcons.calendar_time,
+                                        size: 14,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        groupKey,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF475569),
+                                          letterSpacing: 0.1,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE2E8F0),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          '${logsInGroup.length}',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF475569),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // Cards in this date group
+                                ...logsInGroup.map((log) => _buildHistoryCard(log, isId, theme)),
+                              ],
+                            );
+                          },
+                          childCount: groupedLogs.keys.length,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Warna.primary, strokeWidth: 2.5),
+          ),
+          error: (err, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(TablerIcons.alert_circle, size: 40, color: Color(0xFFE11D48)),
                   const SizedBox(height: 12),
-                  _buildFilterChips(isId, theme),
+                  Text(
+                    isId ? 'Gagal memuat riwayat stok' : 'Failed to load stock history',
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    err.toString(),
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Warna.primary,
+                      foregroundColor: Warna.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => ref.invalidate(stockHistoryProvider),
+                    icon: const Icon(TablerIcons.refresh, size: 16),
+                    label: Text(isId ? 'Coba Lagi' : 'Retry'),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-
-            // MAIN LIST
-            Expanded(
-              child: historyAsync.when(
-                data: (logs) {
-                  // Filter logs locally based on search query and category type
-                  final filteredLogs = logs.where((log) {
-                    final matchesSearch = log.productName
-                        .toLowerCase()
-                        .contains(_searchQuery.toLowerCase());
-                        
-                    final matchesType = _filterType == 'all' ||
-                        (_filterType == 'sale' && log.changeType == 'sale') ||
-                        (_filterType == 'manual' && log.changeType != 'sale');
-
-                    return matchesSearch && matchesType;
-                  }).toList();
-
-                  if (filteredLogs.isEmpty) {
-                    return _buildEmptyState(isId, theme);
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      HapticFeedback.mediumImpact();
-                      await ref
-                          .read(stockHistoryProvider.notifier)
-                          .syncStockHistory();
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                      itemCount: filteredLogs.length,
-                      itemBuilder: (context, index) {
-                        final log = filteredLogs[index];
-                        return _buildHistoryCard(log, isId, theme);
-                      },
-                    ),
-                  );
-                },
-                loading: () => const Center(
-                  child: CircularProgressIndicator(color: Warna.primary),
-                ),
-                error: (err, _) => Center(
-                  child: Text(
-                    isId ? 'Gagal memuat riwayat: $err' : 'Failed to load history: $err',
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFilterChips(bool isId, ShadThemeData theme) {
-    final List<Map<String, String>> filters = [
-      {'key': 'all', 'label': isId ? 'Semua' : 'All'},
-      {'key': 'sale', 'label': isId ? 'Penjualan' : 'Sales'},
-      {'key': 'manual', 'label': isId ? 'Penyesuaian Manual' : 'Manual Adjustments'},
-    ];
+  Map<String, List<StockHistoryLocal>> _groupLogsByDate(List<StockHistoryLocal> logs) {
+    final Map<String, List<StockHistoryLocal>> map = {};
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final isId = Localizations.localeOf(context).languageCode == 'id';
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: filters.map((f) {
-          final isSelected = _filterType == f['key'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() {
-                  _filterType = f['key']!;
-                });
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected 
-                      ? Warna.primary 
-                      : theme.colorScheme.muted.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? Warna.primary : Colors.grey.shade200,
-                  ),
-                ),
-                child: Text(
-                  f['label']!,
-                  style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected ? Warna.black : Colors.black87,
-                    fontSize: 13,
-                  ),
+    final fullDateFormatter = DateFormat('EEEE, d MMMM yyyy', isId ? 'id_ID' : 'en_US');
+
+    for (var log in logs) {
+      final date = DateTime(log.createdAt.year, log.createdAt.month, log.createdAt.day);
+      String label;
+      if (date == today) {
+        label = isId ? 'Hari Ini' : 'Today';
+      } else if (date == yesterday) {
+        label = isId ? 'Kemarin' : 'Yesterday';
+      } else {
+        label = fullDateFormatter.format(date);
+      }
+
+      if (!map.containsKey(label)) {
+        map[label] = [];
+      }
+      map[label]!.add(log);
+    }
+
+    return map;
+  }
+
+  Widget _buildFilterPill({
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+    Color? badgeColor,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F172A) : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0F172A) : const Color(0xFFE2E8F0),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isSelected ? 0.05 : 0.02),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? Colors.white : const Color(0xFF475569),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.2)
+                    : (badgeColor?.withValues(alpha: 0.12) ?? const Color(0xFFF1F5F9)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: isSelected
+                      ? Colors.white
+                      : (badgeColor ?? const Color(0xFF64748B)),
                 ),
               ),
             ),
-          );
-        }).toList(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHistoryCard(StockHistoryLocal log, bool isId, ShadThemeData theme) {
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final timeFormat = DateFormat('HH:mm');
     final isPositive = log.quantityChange > 0;
-    
-    // Determine title / reason display
-    String changeTitle = '';
-    IconData icon = TablerIcons.adjustments;
-    Color iconColor = Colors.grey;
-    Color badgeColor = Colors.grey.shade100;
-    Color textColor = Colors.black87;
 
-    // Use compile-safe color constants
-    const Color emeraldGreen = Color(0xFF10B981);
-    const Color lightEmerald = Color(0xFFECFDF5);
-    const Color roseRed = Color(0xFFF43F5E);
-    const Color lightRose = Color(0xFFFFF1F2);
-    const Color orangeColor = Color(0xFFF97316);
-    const Color lightOrange = Color(0xFFFFF7ED);
+    // Compile-safe color tokens matching minimal palette
+    const emeraldGreen = Color(0xFF16A34A);
+    const lightEmerald = Color(0xFFF0FDF4);
+    const borderEmerald = Color(0xFFBBF7D0);
+
+    const roseRed = Color(0xFFE11D48);
+    const lightRose = Color(0xFFFFF1F2);
+    const borderRose = Color(0xFFFECDD3);
+
+    const orangeColor = Color(0xFFEA580C);
+    const lightOrange = Color(0xFFFFF7ED);
+    const borderOrange = Color(0xFFFFEDD5);
+
+    String changeTitle;
+    IconData typeIcon;
+    Color iconColor;
+    Color pillBg;
+    Color pillBorder;
 
     if (log.changeType == 'sale') {
       changeTitle = isId ? 'Penjualan' : 'Sale';
-      icon = TablerIcons.shopping_bag;
+      typeIcon = TablerIcons.shopping_bag;
       iconColor = orangeColor;
-      badgeColor = lightOrange;
-      textColor = orangeColor;
-    } else if (log.changeType == 'manual_addition') {
-      changeTitle = isId ? 'Tambah Manual' : 'Manual Addition';
-      icon = TablerIcons.arrow_up;
+      pillBg = lightOrange;
+      pillBorder = borderOrange;
+    } else if (log.changeType == 'manual_addition' || isPositive) {
+      changeTitle = isId ? 'Tambah Stok' : 'Stock In';
+      typeIcon = TablerIcons.arrow_up_right;
       iconColor = emeraldGreen;
-      badgeColor = lightEmerald;
-      textColor = emeraldGreen;
-    } else if (log.changeType == 'manual_reduction') {
-      changeTitle = isId ? 'Kurang Manual' : 'Manual Reduction';
-      icon = TablerIcons.arrow_down;
-      iconColor = roseRed;
-      badgeColor = lightRose;
-      textColor = roseRed;
+      pillBg = lightEmerald;
+      pillBorder = borderEmerald;
     } else {
-      changeTitle = isId ? 'Penyesuaian Stok' : 'Stock Adjustment';
-      icon = TablerIcons.settings;
-      iconColor = Warna.primary;
-      badgeColor = Warna.primary.withValues(alpha: 0.15);
-      textColor = Warna.black;
+      changeTitle = isId ? 'Kurang Stok' : 'Stock Out';
+      typeIcon = TablerIcons.arrow_down_right;
+      iconColor = roseRed;
+      pillBg = lightRose;
+      pillBorder = borderRose;
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.015),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          )
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // HEADER OF CARD
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    log.productName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Row 1: Product name & Quantity Change Badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Change type icon avatar
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: pillBg,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: pillBorder),
                 ),
-                const SizedBox(width: 8),
-                // QUANTITY ADJUSTMENT BADGE
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isPositive ? lightEmerald : lightRose,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    isPositive ? '+${log.quantityChange}' : '${log.quantityChange}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: isPositive ? emeraldGreen : roseRed,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+                child: Icon(typeIcon, size: 16, color: iconColor),
+              ),
+              const SizedBox(width: 10),
 
-            // INTERMEDIATE DIVIDER OR DETAILS
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // LOG CATEGORY BADGE
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(icon, size: 14, color: iconColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        changeTitle,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
+              // Product Name and Subtitle
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      log.productName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: pillBg,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            changeTitle,
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              color: iconColor,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 6),
+                        Text(
+                          timeFormat.format(log.createdAt),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                
-                // STOCK FLOW
-                Text(
-                  '${log.oldStock} → ${log.newStock} pcs',
-                  style: TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12.0),
-              child: Divider(height: 1, color: Colors.black12),
-            ),
+              ),
 
-            // FOOTER INFO: CASHIER, TIME & SYNC STATE
-            Row(
+              const SizedBox(width: 8),
+
+              // Delta pill (+10 / -5)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPositive ? lightEmerald : lightRose,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isPositive ? borderEmerald : borderRose,
+                  ),
+                ),
+                child: Text(
+                  isPositive ? '+${log.quantityChange}' : '${log.quantityChange}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: isPositive ? emeraldGreen : roseRed,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Row 2: Stock flow (old -> new) and User/Cashier metadata
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Cashier info & timestamp
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${isId ? "Oleh" : "By"}: ${log.cashierId != null ? "Kasir" : (isId ? "Sistem" : "System")}',
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                // Stock transition: 20 -> 25 pcs
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Stok: ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        dateFormat.format(log.createdAt),
-                        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                    ),
+                    Text(
+                      '${log.oldStock}',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF334155),
                       ),
-                    ],
-                  ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4.0),
+                      child: Icon(TablerIcons.arrow_narrow_right, size: 14, color: Color(0xFF94A3B8)),
+                    ),
+                    Text(
+                      '${log.newStock} pcs',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
                 ),
-                // Sync indicator icon
-                Tooltip(
-                  message: log.isSynced 
-                      ? (isId ? "Tersinkronisasi dengan Cloud" : "Synced with Cloud") 
-                      : (isId ? "Menunggu Sinkronisasi" : "Pending Sync"),
-                  child: Icon(
-                    log.isSynced ? TablerIcons.circle_check : TablerIcons.refresh,
-                    size: 18,
-                    color: log.isSynced ? emeraldGreen : Colors.amber.shade600,
-                  ),
+
+                // Cashier info & sync dot
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      log.cashierId != null
+                          ? (isId ? 'Kasir' : 'Cashier')
+                          : (isId ? 'Sistem' : 'System'),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: log.isSynced ? emeraldGreen : const Color(0xFFF59E0B),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildEmptyState(bool isId, ShadThemeData theme) {
+    final isFiltered = _searchQuery.isNotEmpty || _filterType != 'all';
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.muted.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isFiltered ? TablerIcons.filter_off : TablerIcons.history,
+                size: 38,
+                color: const Color(0xFF94A3B8),
+              ),
             ),
-            child: const Icon(TablerIcons.history, size: 48, color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isId ? 'Tidak Ada Riwayat' : 'No History Found',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isId 
-                ? 'Belum ada perubahan stok yang tercatat.' 
-                : 'No stock changes have been logged yet.',
-            style: const TextStyle(color: Colors.grey, fontSize: 13),
-            textAlign: TextAlign.center,
-          ),
-        ],
+            const SizedBox(height: 14),
+            Text(
+              isFiltered
+                  ? (isId ? 'Tidak ada riwayat yang cocok' : 'No matching records')
+                  : (isId ? 'Belum Ada Riwayat' : 'No Stock History'),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isFiltered
+                  ? (isId
+                      ? 'Coba ganti filter atau kata kunci pencarian Anda.'
+                      : 'Try adjusting your filters or search query.')
+                  : (isId
+                      ? 'Aktivitas perubahan stok dan penjualan akan otomatis tercatat di sini.'
+                      : 'Stock adjustments and sales will automatically appear here.'),
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 12.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (isFiltered) ...[
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _searchController.clear();
+                    _searchQuery = '';
+                    _filterType = 'all';
+                  });
+                },
+                child: Text(
+                  isId ? 'Reset Filter' : 'Reset Filters',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

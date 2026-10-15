@@ -22,10 +22,48 @@ class StockHistory extends _$StockHistory {
 
     if (storeId == null) return [];
 
+    final channel = _listenToRealtimeChanges(storeId.toString());
+    ref.onDispose(() {
+      _supabase.removeChannel(channel);
+    });
+
+    // Watch connectivity to trigger sync when online
+    ref.listen(connectivityNotifierProvider, (previous, next) {
+      if (next.value == ConnectivityStatus.online) {
+        syncStockHistory();
+      }
+    });
+
     // Trigger initial background sync
     Future.microtask(() => syncStockHistory());
 
     return _fetchLocalStockHistory(storeId.toString());
+  }
+
+  RealtimeChannel _listenToRealtimeChanges(String storeId) {
+    return _supabase
+        .channel('public:stock_history:store:$storeId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'stock_history',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'store_id',
+            value: storeId,
+          ),
+          callback: (payload) async {
+            if (payload.newRecord.isNotEmpty) {
+              final data = payload.newRecord;
+              final history = _mapSupabaseToStockHistory(data);
+              await _isar.writeTxn(() async {
+                await _isar.collection<StockHistoryLocal>().putBySupabaseId(history);
+              });
+              ref.invalidateSelf();
+            }
+          },
+        )
+        .subscribe();
   }
 
   Future<List<StockHistoryLocal>> _fetchLocalStockHistory(String storeId) async {
