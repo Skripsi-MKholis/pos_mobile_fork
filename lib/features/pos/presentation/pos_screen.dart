@@ -1651,6 +1651,7 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                         _isTorchOn ? Icons.flashlight_off : Icons.flashlight_on,
                         color: Colors.white,
                       ),
+                      tooltip: 'Flashlight',
                       onPressed: () {
                         _controller.toggleTorch();
                         setState(() {
@@ -1666,10 +1667,30 @@ class _BarcodeScannerModalState extends State<_BarcodeScannerModal>
                         fontSize: 16,
                       ),
                     ),
-                    // Close button
-                    IconButton(
-                      icon: const Icon(TablerIcons.x, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Switch Camera (Front / Back)
+                        IconButton(
+                          icon: const Icon(
+                            TablerIcons.switch_horizontal,
+                            color: Colors.white,
+                          ),
+                          tooltip: 'Ganti Kamera',
+                          onPressed: () async {
+                            await _controller.switchCamera();
+                            // When switching cameras, torch usually turns off
+                            setState(() {
+                              _isTorchOn = false;
+                            });
+                          },
+                        ),
+                        // Close button
+                        IconButton(
+                          icon: const Icon(TablerIcons.x, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
                     ),
                   ],
                 ),
