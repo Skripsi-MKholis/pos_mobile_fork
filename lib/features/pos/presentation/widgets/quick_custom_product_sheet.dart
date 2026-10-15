@@ -158,7 +158,7 @@ class _QuickCustomProductSheetState extends State<QuickCustomProductSheet> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      TablerIcons.sparkles,
+                      TablerIcons.plus,
                       size: 22,
                       color: Colors.black,
                     ),

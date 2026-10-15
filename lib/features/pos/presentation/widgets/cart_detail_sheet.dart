@@ -179,7 +179,7 @@ class _CartDetailSheetState extends ConsumerState<CartDetailSheet> {
                         storeId: storeId,
                       );
                     },
-                    icon: const Icon(TablerIcons.sparkles, size: 18),
+                    icon: const Icon(TablerIcons.plus, size: 18),
                     decoration: ShadDecoration(
                       border: ShadBorder.all(
                         color: Warna.primary,

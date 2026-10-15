@@ -430,7 +430,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   message: l10n.addCustomProduct,
                   child: ShadIconButton.outline(
                     onPressed: _openQuickCustomProduct,
-                    icon: const Icon(TablerIcons.sparkles, size: 20),
+                    icon: const Icon(TablerIcons.plus, size: 20),
                     width: 48,
                     height: 48,
                     decoration: ShadDecoration(
@@ -1187,7 +1187,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                         ],
                       ),
                       child: const Icon(
-                        TablerIcons.sparkles,
+                        TablerIcons.plus,
                         size: 28,
                         color: Colors.black,
                       ),
