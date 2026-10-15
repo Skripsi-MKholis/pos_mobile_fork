@@ -281,7 +281,9 @@ class _CategoryProductsScreenState extends ConsumerState<CategoryProductsScreen>
                   }
 
                   return ListView.builder(
-                    physics: const AlwaysScrollableScrollPhysics(),
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
+                    ),
                     padding: const EdgeInsets.only(bottom: 80),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {

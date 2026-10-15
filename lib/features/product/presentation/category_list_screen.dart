@@ -400,7 +400,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                         color: Warna.primary,
                         onRefresh: () => ref.read(categoryNotifierProvider.notifier).syncCategories(),
                         child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
                           child: Container(
                             height: MediaQuery.of(context).size.height * 0.55,
                             alignment: Alignment.center,
@@ -488,7 +490,9 @@ class _CategoryListScreenState extends ConsumerState<CategoryListScreen> {
                       color: Warna.primary,
                       onRefresh: () => ref.read(categoryNotifierProvider.notifier).syncCategories(),
                       child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
                         padding: const EdgeInsets.fromLTRB(16, 2, 16, 80),
                         itemCount: filtered.length + 1,
                         itemBuilder: (context, index) {

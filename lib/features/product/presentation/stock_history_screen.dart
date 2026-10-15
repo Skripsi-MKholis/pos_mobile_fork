@@ -386,265 +386,262 @@ class _StockHistoryScreenState extends ConsumerState<StockHistoryScreen> {
                 _sortOption == HistorySortOption.dateAsc;
             final groupedLogs = isGrouped ? _groupLogsByDate(filteredLogs) : null;
 
-            return RefreshIndicator(
-              color: Warna.primary,
-              onRefresh: () async {
-                HapticFeedback.lightImpact();
-                await ref.read(stockHistoryProvider.notifier).syncStockHistory();
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  // 1. Minimal Search Box with Integrated Date Range Trigger
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Row(
-                        children: [
-                          // Search field
-                          Expanded(
-                            child: Container(
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Minimal Search Box with Integrated Date Range Trigger (Pinned)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Row(
+                    children: [
+                      // Search field
+                      Expanded(
+                        child: Container(
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            textAlignVertical: TextAlignVertical.center,
+                            style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: isId ? 'Cari riwayat produk...' : 'Search product...',
+                              hintStyle: const TextStyle(
+                                fontSize: 12.5,
+                                color: Color(0xFF94A3B8),
                               ),
-                              child: TextField(
-                                controller: _searchController,
-                                textAlignVertical: TextAlignVertical.center,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
-                                decoration: InputDecoration(
-                                  isDense: true,
-                                  hintText: isId ? 'Cari riwayat produk...' : 'Search product...',
-                                  hintStyle: const TextStyle(
-                                    fontSize: 12.5,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                  prefixIcon: const Icon(
-                                    TablerIcons.search,
-                                    size: 16,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                  prefixIconConstraints: const BoxConstraints(
-                                    minWidth: 36,
-                                    minHeight: 40,
-                                  ),
-                                  suffixIcon: _searchQuery.isNotEmpty
-                                      ? GestureDetector(
-                                          onTap: () {
-                                            _searchController.clear();
-                                            setState(() => _searchQuery = '');
-                                          },
-                                          child: const Icon(
-                                            TablerIcons.x,
-                                            size: 15,
-                                            color: Color(0xFF94A3B8),
-                                          ),
-                                        )
-                                      : null,
-                                  suffixIconConstraints: const BoxConstraints(
-                                    minWidth: 36,
-                                    minHeight: 40,
-                                  ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
+                              prefixIcon: const Icon(
+                                TablerIcons.search,
+                                size: 16,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 36,
+                                minHeight: 40,
+                              ),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        _searchController.clear();
+                                        setState(() => _searchQuery = '');
+                                      },
+                                      child: const Icon(
+                                        TablerIcons.x,
+                                        size: 15,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    )
+                                  : null,
+                              suffixIconConstraints: const BoxConstraints(
+                                minWidth: 36,
+                                minHeight: 40,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
+                            onChanged: (val) {
+                              setState(() => _searchQuery = val);
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Quick Date Filter Menu
+                      _buildDateFilterDropdown(isId),
+                    ],
+                  ),
+                ),
+
+                // 2. Filter Status Pills (Horizontal Scrollable - Pinned)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildFilterPill(
+                          label: isId ? 'Semua' : 'All',
+                          count: totalCount,
+                          isSelected: _filterType == 'all',
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _filterType = 'all');
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        _buildFilterPill(
+                          label: isId ? 'Penjualan' : 'Sales',
+                          count: salesCount,
+                          isSelected: _filterType == 'sale',
+                          badgeColor: const Color(0xFFEA580C),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _filterType = 'sale');
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        _buildFilterPill(
+                          label: isId ? 'Stok Masuk' : 'Stock In',
+                          count: inCount,
+                          isSelected: _filterType == 'in',
+                          badgeColor: const Color(0xFF16A34A),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _filterType = 'in');
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        _buildFilterPill(
+                          label: isId ? 'Stok Keluar' : 'Stock Out',
+                          count: outCount,
+                          isSelected: _filterType == 'out',
+                          badgeColor: const Color(0xFFE11D48),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _filterType = 'out');
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Active Filter Summary Indicator (shows when date or non-default sort is active - Pinned)
+                if (_dateFilter != DateRangeFilter.all ||
+                    _sortOption != HistorySortOption.dateDesc)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                    child: Row(
+                      children: [
+                        Text(
+                          isId
+                              ? 'Menampilkan ${filteredLogs.length} hasil'
+                              : 'Showing ${filteredLogs.length} results',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _dateFilter = DateRangeFilter.all;
+                              _customDateRange = null;
+                              _sortOption = HistorySortOption.dateDesc;
+                            });
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(TablerIcons.x, size: 13, color: Color(0xFFE11D48)),
+                              const SizedBox(width: 2),
+                              Text(
+                                isId ? 'Hapus Filter Tanggal' : 'Clear Date Filter',
+                                style: const TextStyle(
+                                  fontSize: 11.5,
+                                  color: Color(0xFFE11D48),
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                onChanged: (val) {
-                                  setState(() => _searchQuery = val);
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // 3. Content List or Empty State (Only this part scrolls)
+                Expanded(
+                  child: RefreshIndicator(
+                    color: Warna.primary,
+                    onRefresh: () async {
+                      HapticFeedback.lightImpact();
+                      await ref.read(stockHistoryProvider.notifier).syncStockHistory();
+                    },
+                    child: filteredLogs.isEmpty
+                        ? SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
+                            ),
+                            child: SizedBox(
+                              height: 350,
+                              child: _buildEmptyState(isId, theme),
+                            ),
+                          )
+                        : isGrouped && groupedLogs != null
+                            ? ListView.builder(
+                                physics: const BouncingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                ),
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                                itemCount: groupedLogs.keys.length,
+                                itemBuilder: (context, index) {
+                                  final groupKey = groupedLogs.keys.elementAt(index);
+                                  final logsInGroup = groupedLogs[groupKey]!;
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      // Minimal Date Header
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          top: index == 0 ? 2 : 12,
+                                          bottom: 6,
+                                          left: 2,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              groupKey,
+                                              style: const TextStyle(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: Color(0xFF64748B),
+                                                letterSpacing: 0.1,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              '(${logsInGroup.length})',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Cards in this date group
+                                      ...logsInGroup.map((log) => _buildHistoryCard(log, isId, theme)),
+                                    ],
+                                  );
+                                },
+                              )
+                            : ListView.builder(
+                                physics: const BouncingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                ),
+                                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                                itemCount: filteredLogs.length,
+                                itemBuilder: (context, index) {
+                                  final log = filteredLogs[index];
+                                  return _buildHistoryCard(log, isId, theme);
                                 },
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
-                          // Quick Date Filter Menu
-                          _buildDateFilterDropdown(isId),
-                        ],
-                      ),
-                    ),
                   ),
-
-                  // 2. Filter Status Pills (Horizontal Scrollable)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildFilterPill(
-                              label: isId ? 'Semua' : 'All',
-                              count: totalCount,
-                              isSelected: _filterType == 'all',
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _filterType = 'all');
-                              },
-                            ),
-                            const SizedBox(width: 6),
-                            _buildFilterPill(
-                              label: isId ? 'Penjualan' : 'Sales',
-                              count: salesCount,
-                              isSelected: _filterType == 'sale',
-                              badgeColor: const Color(0xFFEA580C),
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _filterType = 'sale');
-                              },
-                            ),
-                            const SizedBox(width: 6),
-                            _buildFilterPill(
-                              label: isId ? 'Stok Masuk' : 'Stock In',
-                              count: inCount,
-                              isSelected: _filterType == 'in',
-                              badgeColor: const Color(0xFF16A34A),
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _filterType = 'in');
-                              },
-                            ),
-                            const SizedBox(width: 6),
-                            _buildFilterPill(
-                              label: isId ? 'Stok Keluar' : 'Stock Out',
-                              count: outCount,
-                              isSelected: _filterType == 'out',
-                              badgeColor: const Color(0xFFE11D48),
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                setState(() => _filterType = 'out');
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Active Filter Summary Indicator (shows when date or non-default sort is active)
-                  if (_dateFilter != DateRangeFilter.all ||
-                      _sortOption != HistorySortOption.dateDesc)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                        child: Row(
-                          children: [
-                            Text(
-                              isId
-                                  ? 'Menampilkan ${filteredLogs.length} hasil'
-                                  : 'Showing ${filteredLogs.length} results',
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _dateFilter = DateRangeFilter.all;
-                                  _customDateRange = null;
-                                  _sortOption = HistorySortOption.dateDesc;
-                                });
-                              },
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(TablerIcons.x, size: 13, color: Color(0xFFE11D48)),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    isId ? 'Hapus Filter Tanggal' : 'Clear Date Filter',
-                                    style: const TextStyle(
-                                      fontSize: 11.5,
-                                      color: Color(0xFFE11D48),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // 3. Content List or Empty State
-                  if (filteredLogs.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _buildEmptyState(isId, theme),
-                    )
-                  else if (isGrouped && groupedLogs != null)
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final groupKey = groupedLogs.keys.elementAt(index);
-                            final logsInGroup = groupedLogs[groupKey]!;
-
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Minimal Date Header
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: index == 0 ? 2 : 12,
-                                    bottom: 6,
-                                    left: 2,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        groupKey,
-                                        style: const TextStyle(
-                                          fontSize: 11.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: Color(0xFF64748B),
-                                          letterSpacing: 0.1,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '(${logsInGroup.length})',
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF94A3B8),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // Cards in this date group
-                                ...logsInGroup.map((log) => _buildHistoryCard(log, isId, theme)),
-                              ],
-                            );
-                          },
-                          childCount: groupedLogs.keys.length,
-                        ),
-                      ),
-                    )
-                  else
-                    // Flat list when sorted by quantity
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final log = filteredLogs[index];
-                            return _buildHistoryCard(log, isId, theme);
-                          },
-                          childCount: filteredLogs.length,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                ),
+              ],
             );
           },
           loading: () => const Center(

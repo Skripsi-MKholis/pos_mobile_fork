@@ -649,7 +649,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             return SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(),
+                              physics: const BouncingScrollPhysics(
+                                parent: AlwaysScrollableScrollPhysics(),
+                              ),
                               child: ConstrainedBox(
                                 constraints: BoxConstraints(
                                   minHeight: constraints.maxHeight,
@@ -673,7 +675,9 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       color: Warna.primary,
                       onRefresh: () => ref.read(productNotifierProvider.notifier).syncProducts(),
                       child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
                         padding: const EdgeInsets.fromLTRB(16, 2, 16, 80),
                         itemCount: filteredProducts.length,
                         itemBuilder: (context, index) {

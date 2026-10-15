@@ -278,333 +278,339 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
               }
             });
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(productNotifierProvider);
-              },
-              child: CustomScrollView(
-                slivers: [
-                  // 1. Search Bar & Filter Action Row
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Row(
-                        children: [
-                          // Search field
-                          Expanded(
-                            child: Container(
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.border.withValues(alpha: 0.6),
-                                ),
-                              ),
-                              child: TextField(
-                                controller: _searchController,
-                                style: const TextStyle(fontSize: 13.5),
-                                decoration: InputDecoration(
-                                  hintText: l10n.searchNameOrSku,
-                                  hintStyle: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  prefixIcon: const Icon(
-                                    TablerIcons.search,
-                                    size: 18,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                  suffixIcon: _searchQuery.isNotEmpty
-                                      ? GestureDetector(
-                                          onTap: () {
-                                            _searchController.clear();
-                                            setState(() => _searchQuery = '');
-                                          },
-                                          child: const Icon(
-                                            TablerIcons.x,
-                                            size: 16,
-                                            color: Colors.grey,
-                                          ),
-                                        )
-                                      : null,
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                ),
-                                onChanged: (value) => _debouncer.run(
-                                  () => setState(() => _searchQuery = value),
-                                ),
-                              ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Search Bar & Filter Action Row (Pinned at top)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                  child: Row(
+                    children: [
+                      // Search field
+                      Expanded(
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: theme.colorScheme.border.withValues(alpha: 0.6),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          child: TextField(
+                            controller: _searchController,
+                            textAlignVertical: TextAlignVertical.center,
+                            style: const TextStyle(fontSize: 13.5),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: l10n.searchNameOrSku,
+                              hintStyle: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade400,
+                              ),
+                              prefixIcon: const Icon(
+                                TablerIcons.search,
+                                size: 18,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              prefixIconConstraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 44,
+                              ),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? GestureDetector(
+                                      onTap: () {
+                                        _searchController.clear();
+                                        setState(() => _searchQuery = '');
+                                      },
+                                      child: const Icon(
+                                        TablerIcons.x,
+                                        size: 16,
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                                  : null,
+                              suffixIconConstraints: const BoxConstraints(
+                                minWidth: 36,
+                                minHeight: 44,
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            onChanged: (value) => _debouncer.run(
+                              () => setState(() => _searchQuery = value),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
 
-                          // Sort Button
-                          PopupMenuButton<StockSortOption>(
-                            tooltip: isId ? 'Urutkan' : 'Sort by',
-                            initialValue: _selectedSort,
-                            onSelected: (val) {
-                              HapticFeedback.selectionClick();
-                              setState(() => _selectedSort = val);
-                            },
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                      // Sort Button
+                      PopupMenuButton<StockSortOption>(
+                        tooltip: isId ? 'Urutkan' : 'Sort by',
+                        initialValue: _selectedSort,
+                        onSelected: (val) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _selectedSort = val);
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: theme.colorScheme.border.withValues(alpha: 0.6),
                             ),
-                            child: Container(
-                              height: 44,
-                              padding: const EdgeInsets.symmetric(horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: theme.colorScheme.border.withValues(alpha: 0.6),
-                                ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                TablerIcons.arrows_sort,
+                                size: 17,
+                                color: Color(0xFF64748B),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    TablerIcons.arrows_sort,
-                                    size: 17,
-                                    color: Color(0xFF64748B),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _getSortShortLabel(_selectedSort, isId),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF475569),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: StockSortOption.stockAsc,
-                                child: Text(
-                                  isId ? 'Stok Terendah' : 'Lowest Stock',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: StockSortOption.stockDesc,
-                                child: Text(
-                                  isId ? 'Stok Terbanyak' : 'Highest Stock',
-                                  style: const TextStyle(fontSize: 13),
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: StockSortOption.nameAsc,
-                                child: Text(
-                                  isId ? 'Nama (A-Z)' : 'Name (A-Z)',
-                                  style: const TextStyle(fontSize: 13),
+                              const SizedBox(width: 4),
+                              Text(
+                                _getSortShortLabel(_selectedSort, isId),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF475569),
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: StockSortOption.stockAsc,
+                            child: Text(
+                              isId ? 'Stok Terendah' : 'Lowest Stock',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: StockSortOption.stockDesc,
+                            child: Text(
+                              isId ? 'Stok Terbanyak' : 'Highest Stock',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: StockSortOption.nameAsc,
+                            child: Text(
+                              isId ? 'Nama (A-Z)' : 'Name (A-Z)',
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
                         ],
                       ),
+                    ],
+                  ),
+                ),
+
+                // 2. Minimalist Horizontal Filter Chips (Category + Status - Pinned)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Row(
+                    children: [
+                      // Status Filter Pills
+                      _buildSimpleChip(
+                        label: isId ? 'Semua ($totalCount)' : 'All ($totalCount)',
+                        isSelected: _selectedStatus == StockFilterStatus.all,
+                        onTap: () => setState(
+                          () => _selectedStatus = StockFilterStatus.all,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      if (outOfStockCount > 0) ...[
+                        _buildSimpleChip(
+                          label: isId
+                              ? 'Habis ($outOfStockCount)'
+                              : 'Empty ($outOfStockCount)',
+                          isSelected:
+                              _selectedStatus == StockFilterStatus.outOfStock,
+                          activeColor: const Color(0xFFEF4444),
+                          onTap: () => setState(
+                            () => _selectedStatus =
+                                _selectedStatus == StockFilterStatus.outOfStock
+                                    ? StockFilterStatus.all
+                                    : StockFilterStatus.outOfStock,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      if (lowStockCount > 0) ...[
+                        _buildSimpleChip(
+                          label: isId
+                              ? 'Menipis ($lowStockCount)'
+                              : 'Low ($lowStockCount)',
+                          isSelected:
+                              _selectedStatus == StockFilterStatus.lowStock,
+                          activeColor: const Color(0xFFF59E0B),
+                          onTap: () => setState(
+                            () => _selectedStatus =
+                                _selectedStatus == StockFilterStatus.lowStock
+                                    ? StockFilterStatus.all
+                                    : StockFilterStatus.lowStock,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      _buildSimpleChip(
+                        label: isId
+                            ? 'Aman ($inStockCount)'
+                            : 'Safe ($inStockCount)',
+                        isSelected: _selectedStatus == StockFilterStatus.inStock,
+                        activeColor: const Color(0xFF10B981),
+                        onTap: () => setState(
+                          () => _selectedStatus =
+                              _selectedStatus == StockFilterStatus.inStock
+                                  ? StockFilterStatus.all
+                                  : StockFilterStatus.inStock,
+                        ),
+                      ),
+
+                      // Category separator & category chips
+                      categoriesAsync.when(
+                        data: (categories) {
+                          if (categories.isEmpty) return const SizedBox.shrink();
+                          return Row(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 6),
+                                height: 16,
+                                width: 1,
+                                color: Colors.grey.shade300,
+                              ),
+                              ...categories.map((c) {
+                                final isCatSelected =
+                                    _selectedCategory == c.supabaseId;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: _buildSimpleChip(
+                                    label: c.name,
+                                    isSelected: isCatSelected,
+                                    onTap: () => setState(() {
+                                      _selectedCategory = isCatSelected
+                                          ? null
+                                          : c.supabaseId;
+                                    }),
+                                  ),
+                                );
+                              }),
+                            ],
+                          );
+                        },
+                        loading: () => const SizedBox.shrink(),
+                        error: (e, s) => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 3. Smart Restock Suggestion (Pinned)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: RestockSuggestionCard(
+                    onApply: (product, suggestedStock) => _openStockEditModal(
+                      context,
+                      product,
+                      initialStock: suggestedStock,
+                    ),
+                  ),
+                ),
+
+                // Status filter notification bar (if filtered - Pinned)
+                if (_searchQuery.isNotEmpty ||
+                    _selectedCategory != null ||
+                    _selectedStatus != StockFilterStatus.all)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+                    child: Row(
+                      children: [
+                        Text(
+                          isId
+                              ? '${filteredProducts.length} produk ditemukan'
+                              : '${filteredProducts.length} products found',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                              _selectedCategory = null;
+                              _selectedStatus = StockFilterStatus.all;
+                            });
+                          },
+                          child: Text(
+                            l10n.resetFilter,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF4D7C0F),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
-                  // 2. Minimalist Horizontal Filter Chips (Category + Status)
-                  SliverToBoxAdapter(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      child: Row(
-                        children: [
-                          // Status Filter Pills
-                          _buildSimpleChip(
-                            label: isId ? 'Semua ($totalCount)' : 'All ($totalCount)',
-                            isSelected: _selectedStatus == StockFilterStatus.all,
-                            onTap: () => setState(
-                              () => _selectedStatus = StockFilterStatus.all,
+                // 4. Clean List of Products or Empty View (Only this part scrolls)
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      ref.invalidate(productNotifierProvider);
+                    },
+                    child: filteredProducts.isEmpty
+                        ? SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          if (outOfStockCount > 0) ...[
-                            _buildSimpleChip(
-                              label: isId
-                                  ? 'Habis ($outOfStockCount)'
-                                  : 'Empty ($outOfStockCount)',
-                              isSelected:
-                                  _selectedStatus == StockFilterStatus.outOfStock,
-                              activeColor: const Color(0xFFEF4444),
-                              onTap: () => setState(
-                                () => _selectedStatus =
-                                    _selectedStatus == StockFilterStatus.outOfStock
-                                        ? StockFilterStatus.all
-                                        : StockFilterStatus.outOfStock,
+                            child: SizedBox(
+                              height: 350,
+                              child: _buildEmptyState(
+                                context,
+                                theme,
+                                l10n,
+                                hasActiveFilter: _searchQuery.isNotEmpty ||
+                                    _selectedCategory != null ||
+                                    _selectedStatus != StockFilterStatus.all,
                               ),
                             ),
-                            const SizedBox(width: 6),
-                          ],
-                          if (lowStockCount > 0) ...[
-                            _buildSimpleChip(
-                              label: isId
-                                  ? 'Menipis ($lowStockCount)'
-                                  : 'Low ($lowStockCount)',
-                              isSelected:
-                                  _selectedStatus == StockFilterStatus.lowStock,
-                              activeColor: const Color(0xFFF59E0B),
-                              onTap: () => setState(
-                                () => _selectedStatus =
-                                    _selectedStatus == StockFilterStatus.lowStock
-                                        ? StockFilterStatus.all
-                                        : StockFilterStatus.lowStock,
-                              ),
+                          )
+                        : ListView.builder(
+                            physics: const BouncingScrollPhysics(
+                              parent: AlwaysScrollableScrollPhysics(),
                             ),
-                            const SizedBox(width: 6),
-                          ],
-                          _buildSimpleChip(
-                            label: isId
-                                ? 'Aman ($inStockCount)'
-                                : 'Safe ($inStockCount)',
-                            isSelected: _selectedStatus == StockFilterStatus.inStock,
-                            activeColor: const Color(0xFF10B981),
-                            onTap: () => setState(
-                              () => _selectedStatus =
-                                  _selectedStatus == StockFilterStatus.inStock
-                                      ? StockFilterStatus.all
-                                      : StockFilterStatus.inStock,
-                            ),
-                          ),
-
-                          // Category separator & category chips
-                          categoriesAsync.when(
-                            data: (categories) {
-                              if (categories.isEmpty) return const SizedBox.shrink();
-                              return Row(
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                                    height: 16,
-                                    width: 1,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                  ...categories.map((c) {
-                                    final isCatSelected =
-                                        _selectedCategory == c.supabaseId;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 6),
-                                      child: _buildSimpleChip(
-                                        label: c.name,
-                                        isSelected: isCatSelected,
-                                        onTap: () => setState(() {
-                                          _selectedCategory = isCatSelected
-                                              ? null
-                                              : c.supabaseId;
-                                        }),
-                                      ),
-                                    );
-                                  }),
-                                ],
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                            itemCount: filteredProducts.length,
+                            itemBuilder: (context, index) {
+                              final product = filteredProducts[index];
+                              return _buildMinimalProductCard(
+                                context,
+                                product: product,
+                                theme: theme,
+                                l10n: l10n,
+                                format: format,
+                                isId: isId,
                               );
                             },
-                            loading: () => const SizedBox.shrink(),
-                            error: (e, s) => const SizedBox.shrink(),
                           ),
-                        ],
-                      ),
-                    ),
                   ),
-
-                  // 3. Smart Restock Suggestion (Minimal & compact)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: RestockSuggestionCard(
-                        onApply: (product, suggestedStock) => _openStockEditModal(
-                          context,
-                          product,
-                          initialStock: suggestedStock,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Status filter notification bar (if filtered)
-                  if (_searchQuery.isNotEmpty ||
-                      _selectedCategory != null ||
-                      _selectedStatus != StockFilterStatus.all)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
-                        child: Row(
-                          children: [
-                            Text(
-                              isId
-                                  ? '${filteredProducts.length} produk ditemukan'
-                                  : '${filteredProducts.length} products found',
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                  _selectedCategory = null;
-                                  _selectedStatus = StockFilterStatus.all;
-                                });
-                              },
-                              child: Text(
-                                l10n.resetFilter,
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF4D7C0F),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // 4. Clean List of Products or Empty View
-                  if (filteredProducts.isEmpty)
-                    SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _buildEmptyState(
-                        context,
-                        theme,
-                        l10n,
-                        hasActiveFilter: _searchQuery.isNotEmpty ||
-                            _selectedCategory != null ||
-                            _selectedStatus != StockFilterStatus.all,
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final product = filteredProducts[index];
-                            return _buildMinimalProductCard(
-                              context,
-                              product: product,
-                              theme: theme,
-                              l10n: l10n,
-                              format: format,
-                              isId: isId,
-                            );
-                          },
-                          childCount: filteredProducts.length,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                ),
+              ],
             );
           },
           loading: () => const Center(

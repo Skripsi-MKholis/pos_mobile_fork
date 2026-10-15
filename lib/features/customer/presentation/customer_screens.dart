@@ -3984,7 +3984,9 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
         onRefresh: () => ref.read(customerAllStoresProvider.notifier).fetchStores(refresh: true),
         color: Warna.primary,
         child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           children: [
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.5,
@@ -4021,7 +4023,9 @@ class _CustomerAllStoresScreenState extends ConsumerState<CustomerAllStoresScree
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         itemCount: state.stores.length + (state.hasNextPage ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == state.stores.length) {

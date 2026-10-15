@@ -557,7 +557,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         return SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
                               minHeight: constraints.maxHeight,
