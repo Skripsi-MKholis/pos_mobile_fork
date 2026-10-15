@@ -971,10 +971,9 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                           ? CachedNetworkImage(
                               imageUrl: product.imageUrl!,
                               fit: BoxFit.cover,
+                              alignment: Alignment.center,
                               width: double.infinity,
                               height: double.infinity,
-                              maxHeightDiskCache: 250, // Resizes and caches optimized low-res image
-                              maxWidthDiskCache: 250,
                               placeholder: (context, url) => Shimmer.fromColors(
                                 baseColor: theme.colorScheme.muted.withValues(alpha: 0.5),
                                 highlightColor: theme.colorScheme.muted.withValues(alpha: 0.2),
