@@ -412,14 +412,16 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 const SizedBox(width: 8),
                 Tooltip(
                   message: l10n.scanBarcode,
-                  child: ShadIconButton.outline(
+                  child: ShadIconButton.secondary(
                     onPressed: () => _openBarcodeScanner(products),
-                    icon: const Icon(TablerIcons.barcode, size: 20),
+                    icon: const Icon(TablerIcons.barcode, size: 22, color: Colors.black),
                     width: 48,
                     height: 48,
                     decoration: ShadDecoration(
+                      color: Warna.primary.withValues(alpha: 0.15),
                       border: ShadBorder.all(
-                        color: theme.colorScheme.border.withValues(alpha: 0.5),
+                        color: Warna.primary.withValues(alpha: 0.5),
+                        width: 1.2,
                         radius: BorderRadius.circular(24),
                       ),
                     ),
@@ -428,14 +430,15 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                 const SizedBox(width: 8),
                 Tooltip(
                   message: l10n.addCustomProduct,
-                  child: ShadIconButton.outline(
+                  child: ShadIconButton(
                     onPressed: _openQuickCustomProduct,
-                    icon: const Icon(TablerIcons.plus, size: 20),
+                    icon: const Icon(TablerIcons.plus, size: 22, color: Colors.black),
                     width: 48,
                     height: 48,
                     decoration: ShadDecoration(
+                      color: Warna.primary,
                       border: ShadBorder.all(
-                        color: theme.colorScheme.border.withValues(alpha: 0.5),
+                        color: Warna.primary,
                         radius: BorderRadius.circular(24),
                       ),
                     ),
