@@ -1,16 +1,34 @@
 ### **Versi Sekarang**
 
-**1.13.0+19**
+**1.14.0+20**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Inventory Redesign, Scanner Camera Switch & Operational Polish**
+**ZelloPOS Dynamic Subscriptions & Google Play Billing Integration**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.14.0+20 (Dynamic Subscriptions & Google Play Billing Integration)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Penyempurnaan Integrasi Google Play Billing Resmi**:
+  - Menghapus alur bypass aktivasi instan (*sandbox direct activation*) pada layar langganan sehingga paket hanya aktif setelah transaksi terverifikasi dan sukses melalui Google Play Store.
+  - Penambahan validasi ketersediaan Google Play Store (`isStoreAvailable`) untuk mencegah transaksi menggantung pada perangkat tanpa layanan Google Play.
+  - Penyesuaian Product ID resmi Google Play Store (`com.posmobile.subscription.umkm_hebat` dan `com.posmobile.subscription.bisnis`).
+* **Sistem Paket Langganan Dinamis Berbasis Database**:
+  - Penambahan kolom `google_play_product_id` pada tabel `subscription_plans` di Supabase untuk fleksibilitas pengaturan produk store tanpa perlu merilis pembaruan aplikasi.
+  - Pemetaan otomatis ID produk store dari database dengan fallback lokal yang aman.
+* **Tampilan Harga Real-Time Mengikuti Google Play Store**:
+  - Layar pilihan paket kini menampilkan harga resmi dan mata uang lokal secara dinamis langsung dari Google Play Store (`ProductDetails.price`), dengan fallback harga database jika perangkat sedang offline.
+* **Peningkatan Keamanan & Keandalan Alur Pembayaran**:
+  - Penanganan status transaksi Google Play secara reaktif melalui `purchaseStream` dengan pencatatan transaksi yang tervalidasi ke tabel `subscription_history` dan aktivasi otomatis pada tabel `subscriptions`.
+
+---
 
 **Versi 1.13.0+19 (Inventory Redesign, Scanner Camera Switch & Operational Polish)**
 
