@@ -23,6 +23,21 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
   String _selectedPlanId = 'pro_monthly';
   bool _isLoading = false;
 
+  /// Mengambil label harga dinamis: memprioritaskan harga resmi dari Google Play Store jika terhubung,
+  /// atau fallback ke harga di database jika offline / belum sinkron.
+  String _getFormattedPlanPrice(SubscriptionPlan plan) {
+    if (plan.price == 0) return 'Gratis';
+    final googlePlayProducts = ref.watch(googlePlayProductsProvider).value;
+    final storeProduct = googlePlayProducts
+        ?.where((p) => p.id == plan.googlePlayProductId)
+        .firstOrNull;
+
+    if (storeProduct != null && storeProduct.price.isNotEmpty) {
+      return storeProduct.price;
+    }
+    return 'Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)}';
+  }
+
   void _handleSelectPlan(SubscriptionPlan plan) async {
     final currentSub = ref.read(currentSubscriptionProvider).value;
     final userRole = ref.read(userRoleProvider);
@@ -226,7 +241,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                     children: [
                       Text(l10n.subscriptionFee, style: const TextStyle(color: Colors.black54)),
                       Text(
-                        'Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)} ${plan.period}',
+                        '${_getFormattedPlanPrice(plan)} ${plan.period}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                     ],
@@ -266,7 +281,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                   const Icon(TablerIcons.brand_google_play, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.confirmViaGooglePlay('Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)}'),
+                    l10n.confirmViaGooglePlay(_getFormattedPlanPrice(plan)),
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
@@ -574,9 +589,7 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
                                     textBaseline: TextBaseline.alphabetic,
                                     children: [
                                       Text(
-                                        plan.price == 0
-                                            ? 'Gratis'
-                                            : 'Rp ${NumberFormat('#,###', 'id_ID').format(plan.price)}',
+                                        _getFormattedPlanPrice(plan),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w900,
                                           fontSize: 24,
