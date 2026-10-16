@@ -46,7 +46,7 @@ final availablePlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) asyn
         tagline: 'Fitur lengkap dengan harga paling bersahabat.',
         price: 19000,
         period: '/bulan',
-        googlePlayProductId: 'com.posmobile.subscription.umkm-hebat',
+        googlePlayProductId: 'com.posmobile.subscription.umkm_hebat',
         features: [
           'Transaksi Tanpa Batas (Unlimited)',
           'Dukungan hingga 2 cabang/outlet',
@@ -64,7 +64,7 @@ final availablePlansProvider = FutureProvider<List<SubscriptionPlan>>((ref) asyn
         tagline: 'Untuk rantai bisnis yang siap ekspansi.',
         price: 49000,
         period: '/bulan',
-        googlePlayProductId: 'com.posmobile.subscription.bisnis-skalabel',
+        googlePlayProductId: 'com.posmobile.subscription.bisnis',
         features: [
           'Transaksi Tanpa Batas (Unlimited)',
           'Dukungan hingga 5 cabang/outlet',

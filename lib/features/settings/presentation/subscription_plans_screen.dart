@@ -285,48 +285,43 @@ class _SubscriptionPlansScreenState extends ConsumerState<SubscriptionPlansScree
 
   void _processGooglePlayPurchase(SubscriptionPlan plan) async {
     setState(() => _isLoading = true);
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       final iapService = ref.read(inAppPurchaseServiceProvider);
 
-      // Coba luncurkan Google Play Billing native jika tersedia di perangkat
-      bool purchaseLaunched = false;
-      try {
-        if (iapService.isAvailable) {
-          purchaseLaunched = await iapService.buySubscription(plan);
-        }
-      } catch (iapError) {
-        debugPrint('[IAP] Native billing exception: $iapError. Falling back to direct database activation for testing.');
-      }
-
-      // Jika Google Play billing native tidak tersedia (misal di emulator / belum rilis di Play Console),
-      // lakukan simulasi penyimpanan langsung agar developer/tester tetap bisa mencoba fitur
-      if (!purchaseLaunched) {
-        await ref.read(subscriptionActionProvider).purchasePlan(
-          plan: plan,
-          paymentMethod: 'Google Play Billing (Sandbox/Direct)',
+      // Pastikan store / Google Play Billing tersedia
+      final isAvailable = await iapService.isStoreAvailable();
+      if (!isAvailable) {
+        throw Exception(
+          'Layanan Google Play Store tidak tersedia di perangkat ini atau akun Google belum terhubung.',
         );
       }
+
+      // Luncurkan alur pembelian resmi Google Play Billing
+      final purchaseLaunched = await iapService.buySubscription(plan);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      final l10n = AppLocalizations.of(context)!;
-      mySnackBar(
-        context: context,
-        text: l10n.subscriptionSuccess(plan.name),
-        status: ToastStatus.success,
-      );
-
-      context.pop();
+      if (purchaseLaunched) {
+        // Pembelian berhasil diinisiasi ke sistem Google Play,
+        // aktivasi langganan akan diproses otomatis oleh listener ketika pembayaran sukses.
+        mySnackBar(
+          context: context,
+          text: 'Memproses pembayaran Google Play Store...',
+          status: ToastStatus.info,
+        );
+      } else {
+        throw Exception('Gagal memulai transaksi Google Play Billing.');
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
 
-      final l10n = AppLocalizations.of(context)!;
       mySnackBar(
         context: context,
-        text: l10n.subscriptionFailed(e.toString()),
+        text: l10n.subscriptionFailed(e.toString().replaceAll('Exception: ', '')),
         status: ToastStatus.error,
       );
     }

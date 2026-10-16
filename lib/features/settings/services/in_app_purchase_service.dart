@@ -48,6 +48,11 @@ class InAppPurchaseService {
 
   bool get isAvailable => _isAvailable;
 
+  Future<bool> isStoreAvailable() async {
+    _isAvailable = await _iap.isAvailable();
+    return _isAvailable;
+  }
+
   void initialize() {
     final purchaseUpdated = _iap.purchaseStream;
     _subscription = purchaseUpdated.listen(

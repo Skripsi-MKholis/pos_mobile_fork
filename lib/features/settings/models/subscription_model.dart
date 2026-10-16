@@ -98,6 +98,18 @@ class SubscriptionPlan {
       periodLabel = '/tahun';
     }
 
+    // Mapping resmi Google Play Product ID
+    String googlePlayProductId = '';
+    if (json['google_play_product_id'] != null && (json['google_play_product_id'] as String).isNotEmpty) {
+      googlePlayProductId = json['google_play_product_id'] as String;
+    } else if (slug == 'umkm-hebat' || slug == 'umkm_hebat') {
+      googlePlayProductId = 'com.posmobile.subscription.umkm_hebat';
+    } else if (slug == 'bisnis' || slug == 'bisnis-skalabel' || slug == 'bisnis_skalabel') {
+      googlePlayProductId = 'com.posmobile.subscription.bisnis';
+    } else if (price > 0) {
+      googlePlayProductId = 'com.posmobile.subscription.$slug';
+    }
+
     return SubscriptionPlan(
       id: json['id'] as String,
       slug: slug,
@@ -107,11 +119,11 @@ class SubscriptionPlan {
       period: periodLabel,
       durationDays: durationDays,
       billingPeriod: billingPeriod,
-      googlePlayProductId: 'com.posmobile.subscription.$slug',
+      googlePlayProductId: googlePlayProductId,
       features: featureList,
       maxOutlets: maxOutlets,
       maxTransactions: maxTx,
-      isPopular: slug == 'umkm-hebat',
+      isPopular: slug == 'umkm-hebat' || slug == 'umkm_hebat',
     );
   }
 
