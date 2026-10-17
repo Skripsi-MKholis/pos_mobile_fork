@@ -49,6 +49,7 @@ final customerCatalogProvider =
         .from('products')
         .select('id, name, description, price, stock_quantity, image_url, category, category_id')
         .eq('store_id', storeId)
+        .isFilter('deleted_at', null)
         .order('name'));
 
     final rows = response as List<dynamic>;

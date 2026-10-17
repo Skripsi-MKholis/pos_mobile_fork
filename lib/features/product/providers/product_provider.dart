@@ -60,12 +60,22 @@ class ProductNotifier extends _$ProductNotifier {
           callback: (payload) async {
             if (payload.newRecord.isNotEmpty) {
               final data = payload.newRecord;
-              final product = _mapSupabaseToProduct(data);
-              product.isSynced = true;
+              if (data['deleted_at'] != null) {
+                // If soft-deleted on remote, remove from local active products
+                await _isar.writeTxn(() async {
+                  await _isar.products
+                      .filter()
+                      .supabaseIdEqualTo(data['id'].toString())
+                      .deleteAll();
+                });
+              } else {
+                final product = _mapSupabaseToProduct(data);
+                product.isSynced = true;
 
-              await _isar.writeTxn(() async {
-                await _isar.products.putBySupabaseId(product);
-              });
+                await _isar.writeTxn(() async {
+                  await _isar.products.putBySupabaseId(product);
+                });
+              }
 
               ref.invalidateSelf();
             }
@@ -128,7 +138,8 @@ class ProductNotifier extends _$ProductNotifier {
       final response = await _supabase.retryWithFreshSession(() => _supabase
           .from('products')
           .select()
-          .eq('store_id', storeId));
+          .eq('store_id', storeId)
+          .isFilter('deleted_at', null));
       final products = (response as List)
           .map((data) => _mapSupabaseToProduct(data))
           .toList();
@@ -448,15 +459,13 @@ class ProductNotifier extends _$ProductNotifier {
           ref.read(connectivityNotifierProvider).value ==
           ConnectivityStatus.online;
       if (isOnline) {
-        // Delete image from storage first
-        if (localProduct != null) {
-          await deleteImageFromStorage(localProduct.imageUrl);
-          await deleteLocalImage(localProduct.localImagePath);
-        }
-
-        await _supabase.from('products').delete().eq('id', supabaseId);
+        // Soft delete on Supabase by updating deleted_at
+        await _supabase
+            .from('products')
+            .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+            .eq('id', supabaseId);
         
-        // Hard delete locally if sync success
+        // Remove locally from active products table once synced
         await _isar.writeTxn(() async {
           await _isar.products
               .filter()

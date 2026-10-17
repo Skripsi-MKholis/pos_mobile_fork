@@ -109,12 +109,10 @@ class SyncNotifier extends _$SyncNotifier {
     for (var prod in unsynced) {
       try {
         if (prod.isDeleted) {
-          // Delete image before deleting record
-          final productNotifier = ref.read(productNotifierProvider.notifier);
-          await productNotifier.deleteImageFromStorage(prod.imageUrl);
-          await productNotifier.deleteLocalImage(prod.localImagePath);
-
-          await _supabase.retryWithFreshSession(() => _supabase.from('products').delete().eq('id', prod.supabaseId));
+          await _supabase.retryWithFreshSession(() => _supabase
+              .from('products')
+              .update({'deleted_at': DateTime.now().toUtc().toIso8601String()})
+              .eq('id', prod.supabaseId));
           await _isar.writeTxn(() => _isar.products.delete(prod.id));
         } else {
           String? imageUrl = prod.imageUrl;
