@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/core/widgets/app_button.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,6 +28,21 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   File? _imageFile;
   bool _logoRemoved = false;
 
+  // Initial State Tracking (untuk deteksi dirty/perubahan)
+  String? _initialName;
+  String? _initialPhone;
+  String? _initialAddress;
+  String? _initialProvinceName;
+  String? _initialCityName;
+  Set<int> _initialOpenWeekdays = {1, 2, 3, 4, 5, 6, 7};
+  int _initialOpenHour = 8;
+  int _initialCloseHour = 21;
+
+  // Current Form State
+  late TextEditingController _nameController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+
   // Location state
   String? _selectedProvinceCode;
   String? _selectedProvinceName;
@@ -38,14 +52,31 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
   bool _loadingCities = false;
   bool _locationInitialized = false;
 
-  // Profil operasional — dipakai model prediksi untuk menyelaraskan hari
-  // aktif toko (§8.9). Sebelumnya nilai ini dikirim ke model tapi tidak
-  // pernah bisa diisi lewat UI mana pun (T-13).
+  // Profil operasional toko
   Set<int> _openWeekdays = {1, 2, 3, 4, 5, 6, 7};
-  Set<int> _closedMonths = {};
+  List<int> _existingClosedMonths = const [];
   int _openHour = 8;
   int _closeHour = 21;
-  bool _showClosedMonths = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _phoneController = TextEditingController();
+    _addressController = TextEditingController();
+
+    _nameController.addListener(() => setState(() {}));
+    _phoneController.addListener(() => setState(() {}));
+    _addressController.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -54,16 +85,90 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
       _locationInitialized = true;
       final activeStore = ref.read(activeStoreProvider).value;
       if (activeStore != null) {
-        _selectedProvinceName = activeStore['province'] as String?;
-        _selectedCityName = activeStore['city'] as String?;
+        _initialName = activeStore['name']?.toString() ?? '';
+        _initialPhone = activeStore['phone']?.toString() ?? '';
+        _initialAddress = activeStore['address']?.toString() ?? '';
+        _initialProvinceName = activeStore['province'] as String?;
+        _initialCityName = activeStore['city'] as String?;
+
+        _nameController.text = _initialName ?? '';
+        _phoneController.text = _initialPhone ?? '';
+        _addressController.text = _initialAddress ?? '';
+
+        _selectedProvinceName = _initialProvinceName;
+        _selectedCityName = _initialCityName;
 
         final profile = StoreOperationalProfile.fromStoreSettings(activeStore);
-        _openWeekdays = profile.openWeekdays.toSet();
-        _closedMonths = profile.closedMonths.toSet();
-        _openHour = profile.openHour;
-        _closeHour = profile.closeHour;
+        _initialOpenWeekdays = profile.openWeekdays.toSet();
+        _existingClosedMonths = profile.closedMonths;
+        _initialOpenHour = profile.openHour;
+        _initialCloseHour = profile.closeHour;
+
+        _openWeekdays = Set.from(_initialOpenWeekdays);
+        _openHour = _initialOpenHour;
+        _closeHour = _initialCloseHour;
       }
     }
+  }
+
+  bool _setEquals<T>(Set<T> a, Set<T> b) {
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
+  }
+
+  /// Mengecek apakah terdapat perubahan yang belum disimpan
+  bool get _hasChanges {
+    // 1. Logo
+    if (_imageFile != null || _logoRemoved) return true;
+
+    // 2. Text fields
+    if (_nameController.text.trim() != (_initialName ?? '').trim()) return true;
+    if (_phoneController.text.trim() != (_initialPhone ?? '').trim()) return true;
+    if (_addressController.text.trim() != (_initialAddress ?? '').trim()) return true;
+
+    // 3. Location
+    if (_selectedProvinceName != _initialProvinceName) return true;
+    if (_selectedCityName != _initialCityName) return true;
+
+    // 4. Operational profile
+    if (!_setEquals(_openWeekdays, _initialOpenWeekdays)) return true;
+    if (_openHour != _initialOpenHour) return true;
+    if (_closeHour != _initialCloseHour) return true;
+
+    return false;
+  }
+
+  /// Menampilkan dialog konfirmasi saat user menekan back dengan data belum disimpan
+  Future<bool> _handlePopScope() async {
+    if (!_hasChanges) return true;
+
+    final isId = Localizations.localeOf(context).languageCode == 'id';
+    final shouldLeave = await showShadDialog<bool>(
+      context: context,
+      builder: (context) => ShadDialog.alert(
+        title: Text(
+          isId ? 'Perubahan Belum Disimpan' : 'Unsaved Changes',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        description: Text(
+          isId
+              ? 'Anda memiliki perubahan yang belum disimpan. Yakin ingin keluar tanpa menyimpan?'
+              : 'You have unsaved changes. Are you sure you want to discard them and leave?',
+        ),
+        actions: [
+          ShadButton.outline(
+            child: Text(isId ? 'Tetap di Sini' : 'Stay Here'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ShadButton.destructive(
+            child: Text(isId ? 'Buang Perubahan' : 'Discard Changes'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    return shouldLeave ?? false;
   }
 
   Future<void> _pickProvince() async {
@@ -95,8 +200,6 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
 
   Future<void> _pickCity() async {
     if (_selectedProvinceCode == null && _selectedProvinceName != null) {
-      // Province was pre-populated from DB without a code; need to find the code
-      // by searching cached provinces
       if (_cachedProvinces == null) {
         setState(() => _loadingProvinces = true);
         try {
@@ -172,19 +275,36 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
                 children: [
                   const SizedBox(height: 12),
                   Container(
-                    width: 40,
+                    width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: const Color(0xFFE2E8F0),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+                        ),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () => Navigator.pop(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(TablerIcons.x, size: 16, color: Colors.grey),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -194,31 +314,45 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
                       controller: searchController,
                       autofocus: true,
                       decoration: InputDecoration(
-                        hintText: 'Cari...',
-                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                        prefixIcon: const Icon(TablerIcons.search, size: 18),
-                        fillColor: const Color(0xFFF3F4F6),
+                        hintText: 'Cari nama daerah...',
+                        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        prefixIcon: const Icon(TablerIcons.search, size: 18, color: Colors.grey),
+                        fillColor: const Color(0xFFF8FAFC),
                         filled: true,
+                        isDense: true,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: Warna.primary, width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
                       ),
                       onChanged: (_) => setModalState(() {}),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: ListView.builder(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       itemCount: filtered.length,
+                      separatorBuilder: (_, _) => Divider(height: 1, color: Colors.grey.shade100),
                       itemBuilder: (context, index) {
                         final item = filtered[index];
+                        final name = WilayahService.instance.toTitleCase(item['name']);
                         return ListTile(
+                          dense: true,
                           title: Text(
-                            WilayahService.instance.toTitleCase(item['name']),
+                            name,
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                           ),
+                          trailing: const Icon(TablerIcons.chevron_right, size: 16, color: Colors.grey),
                           onTap: () {
                             result = item;
                             Navigator.of(context).pop();
@@ -246,37 +380,47 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     required VoidCallback onTap,
     bool isDisabled = false,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: isDisabled || isLoading ? null : onTap,
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isDisabled ? Colors.grey.shade100 : const Color(0xFFF9F9F9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200),
+          color: isDisabled ? const Color(0xFFF8FAFC) : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isDisabled ? const Color(0xFFE2E8F0) : const Color(0xFFE2E8F0),
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: isDisabled ? Colors.grey.shade400 : Colors.grey),
-            const SizedBox(width: 12),
+            Icon(
+              icon,
+              size: 18,
+              color: isDisabled ? Colors.grey.shade400 : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 10),
             Expanded(
               child: isLoading
-                  ? SizedBox(
-                      height: 16,
-                      width: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.grey.shade400,
+                  ? const Align(
+                      alignment: Alignment.centerLeft,
+                      child: SizedBox(
+                        height: 14,
+                        width: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Warna.black,
+                        ),
                       ),
                     )
                   : Text(
                       value ?? placeholder,
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: value != null ? FontWeight.w500 : FontWeight.normal,
+                        fontSize: 13.5,
+                        fontWeight: value != null ? FontWeight.w500 : FontWeight.w400,
                         color: value != null
-                            ? Colors.black87
-                            : (isDisabled ? Colors.grey.shade400 : Colors.grey.shade500),
+                            ? const Color(0xFF1E293B)
+                            : (isDisabled ? Colors.grey.shade400 : Colors.grey.shade400),
                       ),
                     ),
             ),
@@ -299,7 +443,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
 
     if (activeStore == null) {
       return Scaffold(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: const Color(0xFFF8FAFC),
         body: Center(
           child: Text(
             isId ? 'Toko tidak ditemukan' : 'Store not found',
@@ -311,96 +455,157 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
 
     final storeName = activeStore['name'] ?? 'Toko';
     final businessType = activeStore['business_type'] ?? 'Retail';
+    final hasChanges = _hasChanges;
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: false,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              isId ? 'Informasi Toko' : 'Store Information',
-              style: theme.textTheme.h3.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.0,
+    return PopScope(
+      canPop: !hasChanges,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        final shouldLeave = await _handlePopScope();
+        if (shouldLeave && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                isId ? 'Informasi Toko' : 'Store Information',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 17,
+                  letterSpacing: -0.3,
+                  color: Color(0xFF0F172A),
+                ),
               ),
-            ),
-            Text(
-              isId ? 'Kelola identitas dan detail bisnis Anda' : 'Manage your business identity & details',
-              style: theme.textTheme.muted.copyWith(fontSize: 12),
-            ),
-          ],
-        ),
-        leading: IconButton(
-          icon: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.muted.withValues(alpha: 0.5),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(TablerIcons.chevron_left, size: 20),
+              const SizedBox(height: 2),
+              Text(
+                isId ? 'Kelola identitas outlet & jadwal operasional' : 'Manage outlet identity & operating hours',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        toolbarHeight: 80,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          toolbarHeight: 70,
+          leading: IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(7),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(TablerIcons.chevron_left, size: 19, color: Color(0xFF334155)),
+            ),
+            onPressed: () async {
+              final shouldLeave = await _handlePopScope();
+              if (shouldLeave && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
           ),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-          child: ShadForm(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // BENTO CARD 1: Logo & Store Identity
-                _buildLogoBentoCard(activeStore, storeName, businessType, theme, isId),
-                const SizedBox(height: 16),
-
-                // BENTO CARD 2: Detail Informasi Toko (Form)
-                _buildFormBentoCard(activeStore, theme, isId),
-                const SizedBox(height: 16),
-
-                // BENTO CARD 3: Profil Operasional (input model prediksi)
-                _buildOperationalBentoCard(theme, isId),
-                const SizedBox(height: 24),
-
-                // Primary Save Button
-                SizedBox(
-                  width: double.infinity,
-                  child: MyButtonPrimary(
-                    backgroundColor: Warna.primary,
-                    radius: 16,
-                    onPressed: _isSaving ? null : _saveChanges,
-                    child: _isSaving
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: Warna.black,
-                            ),
-                          )
-                        : Text(
-                            isId ? 'Simpan Perubahan' : 'Save Changes',
-                            style: const TextStyle(
-                              color: Warna.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              color: const Color(0xFFE2E8F0),
+              height: 1,
+            ),
+          ),
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: const Border(
+              top: BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ShadButton(
+              backgroundColor: hasChanges ? Warna.primary : const Color(0xFFE2E8F0),
+              foregroundColor: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+              onPressed: (!hasChanges || _isSaving) ? null : _saveChanges,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: Warna.black,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          TablerIcons.device_floppy,
+                          size: 18,
+                          color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isId ? 'Simpan Perubahan' : 'Save Changes',
+                          style: TextStyle(
+                            color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.5,
                           ),
-                  ),
-                ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+        body: SafeArea(
+          top: false,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+            child: ShadForm(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 1. Identity Header Card (Logo, Name, Business Type)
+                  _buildHeaderIdentityCard(activeStore, storeName, businessType, isId),
+                  const SizedBox(height: 14),
 
-                const SizedBox(height: 32),
-                _buildDangerZoneCard(activeStore, theme, isId),
-              ],
+                  // 2. Business Details Form Card
+                  _buildFormCard(activeStore, theme, isId),
+                  const SizedBox(height: 14),
+
+                  // 3. Operational Profile Card
+                  _buildOperationalCard(theme, isId),
+                  const SizedBox(height: 14),
+
+                  // 4. Danger Zone Card (Owner only)
+                  _buildDangerZoneCard(activeStore, theme, isId),
+                ],
+              ),
             ),
           ),
         ),
@@ -408,106 +613,389 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     );
   }
 
-  /// Profil operasional toko: hari buka, jam operasional, dan bulan tutup.
-  ///
-  /// Nilai-nilai ini dikirim ke server model sebagai `store_profile`, dan
-  /// dipakai estimasi lokal untuk memprediksi hari tutup sebagai nol alih-alih
-  /// rata-rata. Sebelum ini, `open_on_weekends`/`closed_months` sudah dikirim
-  /// provider tetapi tidak pernah bisa diubah pengguna (T-13).
-  Widget _buildOperationalBentoCard(ShadThemeData theme, bool isId) {
-    const dayLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-    const monthLabels = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
-    ];
+  /// Header identitas toko: logo di kiri, nama toko, tipe bisnis, dan tombol ganti logo.
+  Widget _buildHeaderIdentityCard(
+    Map<String, dynamic> activeStore,
+    String storeName,
+    String businessType,
+    bool isId,
+  ) {
+    final currentLogo = activeStore['logo_url'];
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.card,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: theme.colorScheme.border),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Logo Avatar
+          GestureDetector(
+            onTap: () => _handleChangeLogo(currentLogo),
+            child: Stack(
+              children: [
+                Container(
+                  height: 64,
+                  width: 64,
+                  decoration: BoxDecoration(
+                    color: Warna.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFE2E8F0),
+                      width: 1,
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _logoRemoved
+                      ? _buildPlaceholderLogo(storeName)
+                      : (_imageFile != null
+                          ? Image.file(_imageFile!, fit: BoxFit.cover)
+                          : (currentLogo != null && currentLogo.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: currentLogo,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade200,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(color: Colors.white),
+                                  ),
+                                  errorWidget: (context, url, error) => _buildPlaceholderLogo(storeName),
+                                )
+                              : _buildPlaceholderLogo(storeName))),
+                ),
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Warna.black,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      TablerIcons.camera,
+                      color: Colors.white,
+                      size: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // Name and Tag
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : storeName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16.5,
+                    letterSpacing: -0.3,
+                    color: Color(0xFF0F172A),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(TablerIcons.building_store, size: 12, color: Color(0xFF64748B)),
+                          const SizedBox(width: 4),
+                          Text(
+                            businessType.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF475569),
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () => _handleChangeLogo(currentLogo),
+                      child: Text(
+                        isId ? 'Ubah Logo' : 'Change Logo',
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2563EB),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderLogo(String storeName) {
+    return Center(
+      child: Text(
+        storeName.trim().isNotEmpty ? storeName.trim()[0].toUpperCase() : 'T',
+        style: const TextStyle(
+          fontSize: 24,
+          color: Warna.black,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+
+  /// Card Formulir Detail Toko
+  Widget _buildFormCard(
+    Map<String, dynamic> activeStore,
+    ShadThemeData theme,
+    bool isId,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  TablerIcons.calendar_time,
-                  size: 16,
-                  color: Warna.black,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isId ? 'Profil Operasional' : 'Operating Profile',
-                      style: theme.textTheme.large.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      isId
-                          ? 'Dipakai model prediksi agar hari tutup tidak dihitung sebagai penurunan penjualan'
-                          : 'Used by the forecast model so closed days are not read as a sales drop',
-                      style: theme.textTheme.muted.copyWith(fontSize: 10.5),
-                    ),
-                  ],
+              const Icon(TablerIcons.info_circle, size: 17, color: Color(0xFF0F172A)),
+              const SizedBox(width: 8),
+              Text(
+                isId ? 'Detail Informasi Toko' : 'Store Information Details',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0F172A),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
 
+          // Nama Toko
+          ShadInputFormField(
+            id: 'name',
+            controller: _nameController,
+            label: Text(
+              isId ? 'Nama Toko' : 'Store Name',
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+            ),
+            placeholder: Text(
+              isId ? 'Masukkan nama toko' : 'Enter store name',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            ),
+            validator: (v) => v.trim().length < 3 
+                ? (isId ? 'Nama toko minimal 3 karakter' : 'Store name too short') 
+                : null,
+            leading: const Padding(
+              padding: EdgeInsets.only(left: 10, right: 6),
+              child: Icon(TablerIcons.building_store, size: 17, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Nomor Telepon
+          ShadInputFormField(
+            id: 'phone',
+            controller: _phoneController,
+            label: Text(
+              isId ? 'Nomor Telepon / WhatsApp' : 'Phone / WhatsApp Number',
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+            ),
+            placeholder: Text(
+              isId ? 'Contoh: 08123456789' : 'Example: 08123456789',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            ),
+            keyboardType: TextInputType.phone,
+            leading: const Padding(
+              padding: EdgeInsets.only(left: 10, right: 6),
+              child: Icon(TablerIcons.phone, size: 17, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Alamat
+          ShadInputFormField(
+            id: 'address',
+            controller: _addressController,
+            label: Text(
+              isId ? 'Alamat Lengkap' : 'Full Address',
+              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+            ),
+            placeholder: Text(
+              isId ? 'Masukkan jalan, nomor, RT/RW, dsb.' : 'Enter street address, building, etc.',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            ),
+            maxLines: 2,
+            leading: const Padding(
+              padding: EdgeInsets.only(left: 10, right: 6, top: 10),
+              child: Icon(TablerIcons.map_pin, size: 17, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Provinsi
           Text(
-            isId ? 'Hari buka' : 'Open days',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            isId ? 'Provinsi' : 'Province',
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          ),
+          const SizedBox(height: 6),
+          _buildLocationPickerTile(
+            icon: TablerIcons.map,
+            value: _selectedProvinceName,
+            placeholder: isId ? 'Pilih Provinsi' : 'Select Province',
+            isLoading: _loadingProvinces,
+            onTap: _pickProvince,
+          ),
+          const SizedBox(height: 16),
+
+          // Kota / Kabupaten
+          Text(
+            isId ? 'Kota / Kabupaten' : 'City / Regency',
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          ),
+          const SizedBox(height: 6),
+          _buildLocationPickerTile(
+            icon: TablerIcons.map_pin,
+            value: _selectedCityName,
+            placeholder: _selectedProvinceName == null
+                ? (isId ? 'Pilih provinsi terlebih dahulu' : 'Select province first')
+                : (isId ? 'Pilih Kota / Kabupaten' : 'Select City / Regency'),
+            isLoading: _loadingCities,
+            isDisabled: _selectedProvinceName == null,
+            onTap: _pickCity,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Profil operasional toko
+  Widget _buildOperationalCard(ShadThemeData theme, bool isId) {
+    const dayLabels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+
+    final openDaysCount = _openWeekdays.length;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(TablerIcons.clock, size: 17, color: Color(0xFF0F172A)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isId ? 'Jadwal & Jam Operasional' : 'Operating Schedule & Hours',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Warna.primary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '$openDaysCount/7 ${isId ? 'Hari' : 'Days'}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Warna.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isId
+                ? 'Diselaraskan dengan model prediksi analitik penjualan toko'
+                : 'Synced with the predictive analytics sales forecast model',
+            style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 16),
+
+          // Hari Buka
+          Text(
+            isId ? 'Hari Operasional Buka' : 'Open Days',
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+          Row(
             children: [
               for (int day = 1; day <= 7; day++)
-                _buildToggleChip(
-                  label: dayLabels[day - 1],
-                  selected: _openWeekdays.contains(day),
-                  onTap: () => setState(() {
-                    if (_openWeekdays.contains(day)) {
-                      // Minimal satu hari harus tetap buka.
-                      if (_openWeekdays.length > 1) _openWeekdays.remove(day);
-                    } else {
-                      _openWeekdays.add(day);
-                    }
-                  }),
-                  theme: theme,
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.only(right: day < 7 ? 6 : 0),
+                    child: _buildDayChip(
+                      label: dayLabels[day - 1],
+                      selected: _openWeekdays.contains(day),
+                      onTap: () => setState(() {
+                        if (_openWeekdays.contains(day)) {
+                          if (_openWeekdays.length > 1) _openWeekdays.remove(day);
+                        } else {
+                          _openWeekdays.add(day);
+                        }
+                      }),
+                    ),
+                  ),
                 ),
             ],
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
 
+          // Jam Operasional
           Text(
-            isId ? 'Jam operasional' : 'Operating hours',
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+            isId ? 'Jam Operasional Harian' : 'Daily Operating Hours',
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _buildHourPicker(
-                  label: isId ? 'Buka' : 'Open',
+                  label: isId ? 'Buka Pukul' : 'Opens At',
                   hour: _openHour,
                   theme: theme,
                   onChanged: (value) => setState(() {
@@ -519,7 +1007,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildHourPicker(
-                  label: isId ? 'Tutup' : 'Close',
+                  label: isId ? 'Tutup Pukul' : 'Closes At',
                   hour: _closeHour,
                   theme: theme,
                   minHour: _openHour + 1,
@@ -528,94 +1016,36 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 18),
-
-          InkWell(
-            onTap: () =>
-                setState(() => _showClosedMonths = !_showClosedMonths),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    isId
-                        ? 'Bulan tutup (opsional)'
-                        : 'Closed months (optional)',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                if (_closedMonths.isNotEmpty)
-                  Text(
-                    '${_closedMonths.length} ${isId ? 'bulan' : 'months'}',
-                    style: theme.textTheme.muted.copyWith(fontSize: 10),
-                  ),
-                Icon(
-                  _showClosedMonths
-                      ? TablerIcons.chevron_up
-                      : TablerIcons.chevron_down,
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-          if (_showClosedMonths) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (int month = 1; month <= 12; month++)
-                  _buildToggleChip(
-                    label: monthLabels[month - 1],
-                    selected: _closedMonths.contains(month),
-                    onTap: () => setState(() {
-                      if (!_closedMonths.remove(month)) {
-                        _closedMonths.add(month);
-                      }
-                    }),
-                    theme: theme,
-                    danger: true,
-                  ),
-              ],
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildToggleChip({
+  Widget _buildDayChip({
     required String label,
     required bool selected,
     required VoidCallback onTap,
-    required ShadThemeData theme,
-    bool danger = false,
   }) {
-    final activeColor = danger ? Colors.red.shade400 : Warna.primary;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 38,
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected
-              ? activeColor.withValues(alpha: 0.18)
-              : theme.colorScheme.muted.withValues(alpha: 0.4),
+          color: selected ? Warna.primary : const Color(0xFFF1F5F9),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: selected ? activeColor : Colors.transparent,
+            color: selected ? Warna.primary : const Color(0xFFE2E8F0),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-            color: selected
-                ? theme.colorScheme.foreground
-                : theme.colorScheme.mutedForeground,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+            color: selected ? Warna.black : const Color(0xFF64748B),
           ),
         ),
       ),
@@ -632,19 +1062,22 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.muted.copyWith(fontSize: 10)),
-        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Color(0xFF64748B)),
+        ),
+        const SizedBox(height: 5),
         ShadSelect<int>(
           initialValue: hour,
           options: [
             for (int h = minHour; h <= 23; h++)
               ShadOption(
                 value: h,
-                child: Text('${h.toString().padLeft(2, '0')}.00'),
+                child: Text('${h.toString().padLeft(2, '0')}:00'),
               ),
           ],
           selectedOptionBuilder: (context, value) =>
-              Text('${value.toString().padLeft(2, '0')}.00'),
+              Text('${value.toString().padLeft(2, '0')}:00', style: const TextStyle(fontWeight: FontWeight.w600)),
           onChanged: (value) {
             if (value != null) onChanged(value);
           },
@@ -662,62 +1095,61 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     final isOwner = activeStore['owner_id'] == user?.id;
     if (!isOwner) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 6, bottom: 8),
-          child: Text(
-            isId ? 'ZONA BERBAHAYA' : 'DANGER ZONE',
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-              color: Colors.red,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(TablerIcons.trash, color: Colors.red, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isId ? 'Hapus Toko Ini' : 'Delete This Store',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                    color: Colors.red,
+                  ),
+                ),
+                Text(
+                  isId ? 'Hapus toko dan sembunyikan dari staf' : 'Hide store permanently from all staff',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.red.shade50,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.red.shade100),
+          ShadButton.destructive(
+            size: ShadButtonSize.sm,
+            onPressed: _isDeleting ? null : () => _handleDeleteStore(activeStore, isId),
+            child: _isDeleting
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : Text(isId ? 'Hapus' : 'Delete'),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isId ? 'Hapus Toko' : 'Delete Store',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.red),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                isId
-                    ? 'Toko akan disembunyikan secara permanen dari akun Anda dan semua staf. Riwayat transaksi tetap disimpan untuk keperluan audit.'
-                    : 'The store will be permanently hidden from your account and all staff. Transaction history is kept for audit purposes.',
-                style: TextStyle(fontSize: 12, color: Colors.red.shade700),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ShadButton.destructive(
-                  onPressed: _isDeleting ? null : () => _handleDeleteStore(activeStore, isId),
-                  child: _isDeleting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
-                        )
-                      : Text(isId ? 'Hapus Toko Ini' : 'Delete This Store'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.04, end: 0);
+        ],
+      ),
+    );
   }
 
   Future<void> _handleDeleteStore(Map<String, dynamic> activeStore, bool isId) async {
@@ -769,275 +1201,6 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     }
   }
 
-  Widget _buildLogoBentoCard(
-    Map<String, dynamic> activeStore,
-    String storeName,
-    String businessType,
-    ShadThemeData theme,
-    bool isId,
-  ) {
-    final currentLogo = activeStore['logo_url'];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () => _handleChangeLogo(currentLogo),
-            child: Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Warna.primary.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                  ),
-                  child: Container(
-                    height: 92,
-                    width: 92,
-                    decoration: BoxDecoration(
-                      color: Warna.primary.withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: _logoRemoved
-                        ? _buildPlaceholderLogo(storeName)
-                        : (_imageFile != null
-                            ? Image.file(_imageFile!, fit: BoxFit.cover)
-                            : (currentLogo != null && currentLogo.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: currentLogo,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Shimmer.fromColors(
-                                      baseColor: Colors.grey.shade200,
-                                      highlightColor: Colors.grey.shade100,
-                                      child: Container(color: Colors.white),
-                                    ),
-                                    errorWidget: (context, url, error) => _buildPlaceholderLogo(storeName),
-                                  )
-                                : _buildPlaceholderLogo(storeName))),
-                  ),
-                ),
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Warna.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      TablerIcons.pencil,
-                      color: Warna.black,
-                      size: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
-          const SizedBox(height: 16),
-
-          // Store Name (Display)
-          Text(
-            storeName,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 20,
-              letterSpacing: -0.5,
-              color: Warna.black,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-
-          // Business Type Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: Warna.primary.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: Warna.primary.withValues(alpha: 0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(TablerIcons.building_store, size: 14, color: Warna.black),
-                const SizedBox(width: 6),
-                Text(
-                  businessType.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Warna.black,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0);
-  }
-
-  Widget _buildPlaceholderLogo(String storeName) {
-    return Center(
-      child: Text(
-        storeName.trim().isNotEmpty ? storeName.trim()[0].toUpperCase() : 'T',
-        style: const TextStyle(
-          fontSize: 36,
-          color: Warna.black,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormBentoCard(
-    Map<String, dynamic> activeStore,
-    ShadThemeData theme,
-    bool isId,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 6, bottom: 8),
-          child: Text(
-            isId ? 'INFORMASI DETAIL BISNIS' : 'BUSINESS DETAIL INFORMATION',
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-              color: Colors.black45,
-            ),
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade100),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.015),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ShadInputFormField(
-                id: 'name',
-                label: Text(
-                  isId ? 'Nama Toko' : 'Store Name',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                initialValue: activeStore['name'],
-                placeholder: Text(isId ? 'Masukkan nama toko' : 'Enter store name'),
-                validator: (v) => v.length < 3 
-                    ? (isId ? 'Nama terlalu pendek' : 'Name too short') 
-                    : null,
-                leading: const Padding(
-                  padding: EdgeInsets.only(left: 12, right: 8),
-                  child: Icon(TablerIcons.building_store, size: 18, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ShadInputFormField(
-                id: 'phone',
-                label: Text(
-                  isId ? 'Nomor Telepon' : 'Phone Number',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                initialValue: activeStore['phone'] ?? '',
-                placeholder: Text(isId ? 'Contoh: 08123456789' : 'Example: 08123456789'),
-                keyboardType: TextInputType.phone,
-                leading: const Padding(
-                  padding: EdgeInsets.only(left: 12, right: 8),
-                  child: Icon(TablerIcons.phone, size: 18, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ShadInputFormField(
-                id: 'address',
-                label: Text(
-                  isId ? 'Alamat Lengkap' : 'Full Address',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                initialValue: activeStore['address'] ?? '',
-                placeholder: Text(isId ? 'Masukkan alamat lengkap toko' : 'Enter store address'),
-                maxLines: 3,
-                leading: const Padding(
-                  padding: EdgeInsets.only(left: 12, right: 8, top: 12),
-                  child: Icon(TablerIcons.map_pin, size: 18, color: Colors.grey),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Province
-              Text(
-                isId ? 'Provinsi' : 'Province',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              _buildLocationPickerTile(
-                icon: TablerIcons.map,
-                value: _selectedProvinceName,
-                placeholder: isId ? 'Pilih Provinsi' : 'Select Province',
-                isLoading: _loadingProvinces,
-                onTap: _pickProvince,
-              ),
-              const SizedBox(height: 20),
-
-              // City
-              Text(
-                isId ? 'Kota / Kabupaten' : 'City / Regency',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-              const SizedBox(height: 8),
-              _buildLocationPickerTile(
-                icon: TablerIcons.map_pin,
-                value: _selectedCityName,
-                placeholder: _selectedProvinceName == null
-                    ? (isId ? 'Pilih provinsi dulu' : 'Select province first')
-                    : (isId ? 'Pilih Kota / Kabupaten' : 'Select City / Regency'),
-                isLoading: _loadingCities,
-                isDisabled: _selectedProvinceName == null,
-                onTap: _pickCity,
-              ),
-            ],
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.04, end: 0);
-  }
-
   Future<void> _handleChangeLogo(String? currentLogo) async {
     final isId = Localizations.localeOf(context).languageCode == 'id';
 
@@ -1049,48 +1212,60 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               isId ? 'Ubah Logo Toko' : 'Change Store Logo',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: Warna.primary.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(TablerIcons.photo, color: Warna.black, size: 20),
               ),
               title: Text(
                 isId ? 'Pilih dari Galeri' : 'Pick from Gallery',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
               },
             ),
-            const SizedBox(height: 8),
             ListTile(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               leading: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(TablerIcons.camera, color: Warna.black, size: 20),
+                child: const Icon(TablerIcons.camera, color: Color(0xFF1E293B), size: 20),
               ),
               title: Text(
                 isId ? 'Ambil Foto Baru' : 'Take a Photo',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
               ),
               onTap: () {
                 Navigator.pop(context);
@@ -1098,19 +1273,19 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
               },
             ),
             if (_imageFile != null || (currentLogo != null && currentLogo.isNotEmpty && !_logoRemoved)) ...[
-              const SizedBox(height: 8),
               ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 leading: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.red.shade50,
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(TablerIcons.trash, color: Colors.red, size: 20),
                 ),
                 title: Text(
                   isId ? 'Hapus Logo' : 'Remove Logo',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.red),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -1121,11 +1296,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
                 },
               ),
             ],
-            const SizedBox(height: 12),
-            ShadButton.outline(
-              child: Text(isId ? 'Batal' : 'Cancel'),
-              onPressed: () => Navigator.pop(context),
-            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -1148,13 +1319,11 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final values = _formKey.currentState!.value;
       final activeStore = ref.read(activeStoreProvider).value!;
       final supabase = Supabase.instance.client;
 
       String? logoUrl = activeStore['logo_url'];
 
-      // Upload image if changed, or handle removal
       if (_logoRemoved) {
         logoUrl = null;
       } else if (_imageFile != null) {
@@ -1166,8 +1335,6 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         logoUrl = supabase.storage.from('product-images').getPublicUrl(path);
       }
 
-      // Gabungkan profil operasional ke `settings` tanpa menghapus kunci lain
-      // (mis. `settings.features`) yang dikelola bagian aplikasi berbeda.
       final existingSettings = activeStore['settings'] is Map
           ? Map<String, dynamic>.from(activeStore['settings'] as Map)
           : <String, dynamic>{};
@@ -1181,19 +1348,22 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         'operational': {
           ...existingOperational,
           'open_weekdays': openWeekdays,
-          // Tetap ditulis demi kompatibilitas dengan pembaca lama.
           'open_on_weekends':
               openWeekdays.contains(6) || openWeekdays.contains(7),
-          'closed_months': (_closedMonths.toList()..sort()),
+          'closed_months': _existingClosedMonths,
           'open_hour': _openHour,
           'close_hour': _closeHour,
         },
       };
 
+      final updatedName = _nameController.text.trim();
+      final updatedPhone = _phoneController.text.trim();
+      final updatedAddress = _addressController.text.trim();
+
       final updatedData = {
-        'name': values['name'],
-        'phone': values['phone'],
-        'address': values['address'],
+        'name': updatedName,
+        'phone': updatedPhone,
+        'address': updatedAddress,
         'logo_url': logoUrl,
         'province': _selectedProvinceName,
         'city': _selectedCityName,
@@ -1202,21 +1372,33 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
 
       await supabase.from('stores').update(updatedData).eq('id', activeStore['id']);
 
-      // Update local state
       await ref.read(activeStoreProvider.notifier).selectStore({
         ...activeStore,
         ...updatedData,
       });
 
+      // Update snapshot awal agar tombol disabled kembali & tidak memicu dialog konfirmasi
       if (mounted) {
+        setState(() {
+          _initialName = updatedName;
+          _initialPhone = updatedPhone;
+          _initialAddress = updatedAddress;
+          _initialProvinceName = _selectedProvinceName;
+          _initialCityName = _selectedCityName;
+          _initialOpenWeekdays = Set.from(_openWeekdays);
+          _initialOpenHour = _openHour;
+          _initialCloseHour = _closeHour;
+          _imageFile = null;
+          _logoRemoved = false;
+        });
+
         mySnackBar(
           context: context,
           text: Localizations.localeOf(context).languageCode == 'id'
-              ? 'Informasi toko berhasil diperbarui'
-              : 'Store information updated successfully',
+              ? 'Informasi toko berhasil disimpan'
+              : 'Store information saved successfully',
           status: ToastStatus.success,
         );
-        Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
@@ -1233,4 +1415,3 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
     }
   }
 }
-
