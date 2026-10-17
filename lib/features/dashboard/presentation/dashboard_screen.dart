@@ -15,12 +15,27 @@ import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/ads/banner_ad_widget.dart';
 import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/features/settings/providers/subscription_provider.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Validasi apakah toko masih aktif atau sudah dihapus oleh owner
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(activeStoreProvider.notifier).validateActiveStore();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
     final analyticsAsync = ref.watch(analyticsProvider);
@@ -36,6 +51,9 @@ class DashboardScreen extends ConsumerWidget {
 
     return RefreshIndicator(
       onRefresh: () async {
+        final isValid = await ref.read(activeStoreProvider.notifier).validateActiveStore();
+        if (!isValid) return;
+
         ref
             .read(analyticsProvider.notifier)
             .fetchAnalytics(AnalyticsTimeRange.week);

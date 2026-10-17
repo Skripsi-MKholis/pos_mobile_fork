@@ -50,8 +50,17 @@ class ActiveStore extends _$ActiveStore {
               .eq('user_id', user.id)
               .maybeSingle();
           
-          if (response != null) {
+          if (response != null && response['stores'] != null) {
             final storeMap = Map<String, dynamic>.from(response['stores']);
+            
+            // If the store was soft-deleted, clear it immediately
+            if (storeMap['deleted_at'] != null) {
+              await prefs.remove(_storageKey);
+              await _isar.writeTxn(() =>
+                  _isar.stores.filter().supabaseIdEqualTo(savedId).deleteFirst());
+              return null;
+            }
+
             storeMap['user_role'] = response['role'];
             
             // Save to Isar (Note: Store model should ideally handle user_role)
@@ -59,9 +68,15 @@ class ActiveStore extends _$ActiveStore {
             await _isar.writeTxn(() => _isar.stores.putBySupabaseId(updatedStore));
             
             return storeMap;
+          } else {
+            // Not found in Supabase or membership revoked
+            await prefs.remove(_storageKey);
+            await _isar.writeTxn(() =>
+                _isar.stores.filter().supabaseIdEqualTo(savedId).deleteFirst());
+            return null;
           }
         } catch (e) {
-          // If not found in Supabase but found in Isar, keep the local one
+          // If network error but found in Isar, check local fallback
           if (localStore != null) return localStore.toMap();
           
           await prefs.remove(_storageKey);
@@ -71,6 +86,47 @@ class ActiveStore extends _$ActiveStore {
       return localStore?.toMap();
     }
     return null;
+  }
+
+  /// Validates with Supabase whether the currently active store still exists and has not been deleted.
+  /// If it has been deleted, it clears the active store state and Isar cache, returning false.
+  Future<bool> validateActiveStore() async {
+    final currentStore = state.value;
+    if (currentStore == null) return false;
+
+    final storeId = currentStore['id']?.toString();
+    if (storeId == null) return false;
+
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+    if (user == null) return false;
+
+    final connectivity = ref.read(connectivityNotifierProvider).value;
+    if (connectivity == ConnectivityStatus.offline) return true;
+
+    try {
+      await supabase.ensureValidSession();
+      final response = await supabase
+          .from('store_members')
+          .select('role, stores(*)')
+          .eq('store_id', storeId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (response == null ||
+          response['stores'] == null ||
+          response['stores']['deleted_at'] != null) {
+        await clear();
+        await _isar.writeTxn(() =>
+            _isar.stores.filter().supabaseIdEqualTo(storeId).deleteFirst());
+        ref.invalidate(userStoresProvider);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      // In case of error (e.g. transient network issue), keep existing state
+      return true;
+    }
   }
 
   Future<void> selectStore(Map<String, dynamic> storeMap) async {
@@ -238,18 +294,27 @@ Future<List<Map<String, dynamic>>> userStores(UserStoresRef ref) async {
           .select('role, stores:stores(*)')
           .eq('user_id', user.id);
       
-      final stores = (response as List).map((item) {
-        final storeMap = Map<String, dynamic>.from(item['stores']);
-        storeMap['user_role'] = item['role']; // Add role to the store map
-        return storeMap;
-      }).toList();
+      final stores = <Map<String, dynamic>>[];
+      for (final item in (response as List)) {
+        if (item['stores'] == null) continue;
+        final storeData = Map<String, dynamic>.from(item['stores']);
+        // Ignore soft-deleted stores
+        if (storeData['deleted_at'] != null) continue;
+        storeData['user_role'] = item['role'];
+        stores.add(storeData);
+      }
 
-      // Save all to Isar (Note: Isar model might need user_role if we want it offline)
+      // Sync with Isar: put active stores, remove local stores no longer present/active
+      final activeSupabaseIds = stores.map((s) => s['id'].toString()).toSet();
       await isar.writeTxn(() async {
-        for (var s in stores) {
+        // Prune stores locally that were deleted or user is no longer member of
+        for (final local in localStores) {
+          if (!activeSupabaseIds.contains(local.supabaseId)) {
+            await isar.stores.delete(local.id);
+          }
+        }
+        for (final s in stores) {
           final storeObj = Store.fromMap(s);
-          // We can use settings or a dedicated field in Store model for role
-          // For now, let's just save the store itself.
           await isar.stores.putBySupabaseId(storeObj);
         }
       });

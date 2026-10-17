@@ -21,9 +21,10 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    // Clear active store when entering this screen
+    // Clear active store and refresh store list when entering this screen
     Future.microtask(() {
       ref.read(activeStoreProvider.notifier).clear();
+      ref.invalidate(userStoresProvider);
     });
   }
 

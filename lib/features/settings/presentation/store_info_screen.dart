@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
@@ -1187,6 +1188,7 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
           text: isId ? 'Toko berhasil dihapus' : 'Store deleted successfully',
           status: ToastStatus.success,
         );
+        context.go('/select-store');
       }
     } catch (e) {
       if (mounted) {
