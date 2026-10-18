@@ -615,6 +615,7 @@ class _NotificationCenterScreenState
                       grouped: grouped,
                       onRefresh: _refreshStore,
                       onTap: _handleStoreNotificationTap,
+                      dismissDirection: DismissDirection.startToEnd,
                       onDismissed: (supabaseId) {
                         ref.read(notificationNotifierProvider.notifier).deleteNotification(supabaseId);
                         mySnackBar(context: context, text: 'Notifikasi dihapus', status: ToastStatus.success);
@@ -729,6 +730,7 @@ class _NotificationCenterScreenState
     required Future<void> Function() onRefresh,
     required void Function(NotificationLocalModel) onTap,
     required void Function(String) onDismissed,
+    DismissDirection dismissDirection = DismissDirection.endToStart,
   }) {
     final groupKeys = grouped.keys.toList();
 
@@ -760,30 +762,69 @@ class _NotificationCenterScreenState
               ),
               ...groupItems.map((notif) {
                 final notifColor = _getColor(notif.type);
+                final isSlideRight = dismissDirection == DismissDirection.startToEnd;
+
+                final dismissBackground = Container(
+                  alignment: isSlideRight ? Alignment.centerLeft : Alignment.centerRight,
+                  padding: EdgeInsets.only(
+                    left: isSlideRight ? 20.0 : 0.0,
+                    right: isSlideRight ? 0.0 : 20.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Warna.destructive,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: isSlideRight ? MainAxisAlignment.start : MainAxisAlignment.end,
+                    children: [
+                      if (isSlideRight) ...[
+                        const Icon(TablerIcons.trash, color: Colors.white, size: 18),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Hapus',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ] else ...[
+                        const Text(
+                          'Hapus',
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(TablerIcons.trash, color: Colors.white, size: 18),
+                      ],
+                    ],
+                  ),
+                );
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 3.5),
                   child: Dismissible(
                     key: Key('notif_${notif.supabaseId}'),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 20.0),
-                      decoration: BoxDecoration(
-                        color: Warna.destructive,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Hapus',
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    direction: dismissDirection,
+                    background: dismissBackground,
+                    confirmDismiss: (direction) async {
+                      return await showShadDialog<bool>(
+                        context: context,
+                        builder: (dialogCtx) => ShadDialog(
+                          title: const Text('Hapus Notifikasi?'),
+                          description: Text(
+                            'Apakah Anda yakin ingin menghapus "${notif.title}"?',
                           ),
-                          SizedBox(width: 6),
-                          Icon(TablerIcons.trash, color: Colors.white, size: 18),
-                        ],
-                      ),
-                    ),
+                          actions: [
+                            ShadButton.outline(
+                              onPressed: () => Navigator.of(dialogCtx).pop(false),
+                              child: const Text('Batal'),
+                            ),
+                            ShadButton(
+                              backgroundColor: Warna.destructive,
+                              pressedBackgroundColor: Colors.red.shade800,
+                              onPressed: () => Navigator.of(dialogCtx).pop(true),
+                              child: const Text('Hapus'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     onDismissed: (direction) => onDismissed(notif.supabaseId),
                     child: Container(
                       decoration: BoxDecoration(
