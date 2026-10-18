@@ -7,13 +7,11 @@ class NotificationRepository {
   final _supabase = Supabase.instance.client;
   final _isar = IsarService.instance;
 
-  // Mengambil data dari Supabase dan menyinkronkan ke Isar secara lokal
+  // Mengambil notifikasi toko dari remote dan sinkronisasi ke Isar
   Future<List<NotificationLocalModel>> fetchAndSyncNotifications(String storeId, String? userId) async {
     try {
-      // 1. Ambil notifikasi dari remote
       var query = _supabase.from('notifications').select().eq('store_id', storeId);
       
-      // Jika user_id dikirimkan, filter notifikasi broadcast (user_id is null) atau yang ditargetkan khusus ke user tersebut
       if (userId != null) {
         query = query.or('user_id.is.null,user_id.eq.$userId');
       } else {
@@ -23,7 +21,6 @@ class NotificationRepository {
       final response = await query.order('created_at', ascending: false).limit(50);
       final remoteList = response as List;
 
-      // 2. Petakan dan simpan ke Isar
       final List<NotificationLocalModel> notifications = [];
       
       await _isar.writeTxn(() async {
@@ -52,7 +49,67 @@ class NotificationRepository {
     }
   }
 
-  // Mendapatkan daftar notifikasi lokal dari Isar DB
+  // Mengambil notifikasi Mailbox Akun (tidak terikat toko: store_id IS NULL)
+  Future<List<NotificationLocalModel>> fetchAndSyncAccountMailbox(String? userId) async {
+    try {
+      var query = _supabase.from('notifications').select().isFilter('store_id', null);
+      
+      if (userId != null) {
+        query = query.or('user_id.is.null,user_id.eq.$userId');
+      } else {
+        query = query.isFilter('user_id', null);
+      }
+
+      final response = await query.order('created_at', ascending: false).limit(50);
+      final remoteList = response as List;
+
+      final List<NotificationLocalModel> notifications = [];
+      
+      await _isar.writeTxn(() async {
+        for (var data in remoteList) {
+          final notif = NotificationLocalModel()
+            ..supabaseId = data['id']
+            ..storeId = data['store_id']
+            ..userId = data['user_id']
+            ..type = data['type'] ?? 'info'
+            ..title = data['title'] ?? ''
+            ..message = data['message'] ?? ''
+            ..isRead = data['is_read'] ?? false
+            ..createdAt = data['created_at'] == null ? null : DateTime.parse(data['created_at'] as String).toLocal()
+            ..imageUrl = data['image_url']
+            ..metadataJson = data['metadata']?.toString();
+          
+          await _isar.notificationLocalModels.putBySupabaseId(notif);
+          notifications.add(notif);
+        }
+      });
+
+      return notifications;
+    } catch (e) {
+      print('Error dalam fetchAndSyncAccountMailbox: $e');
+      rethrow;
+    }
+  }
+
+  // Mendapatkan daftar notifikasi lokal dari Isar DB khusus toko (store_id != null)
+  Future<List<NotificationLocalModel>> getLocalStoreNotifications(String storeId) async {
+    return await _isar.notificationLocalModels
+        .filter()
+        .storeIdEqualTo(storeId)
+        .sortByCreatedAtDesc()
+        .findAll();
+  }
+
+  // Mendapatkan daftar notifikasi lokal dari Isar DB khusus akun/mailbox (store_id == null)
+  Future<List<NotificationLocalModel>> getLocalAccountNotifications() async {
+    return await _isar.notificationLocalModels
+        .filter()
+        .storeIdIsNull()
+        .sortByCreatedAtDesc()
+        .findAll();
+  }
+
+  // Mendapatkan seluruh daftar notifikasi lokal dari Isar DB
   Future<List<NotificationLocalModel>> getLocalNotifications() async {
     return await _isar.notificationLocalModels
         .where()
@@ -163,6 +220,65 @@ class NotificationRepository {
     }
   }
 
+  // Menandai semua notifikasi akun/mailbox sebagai dibaca
+  Future<void> markAllAccountMailboxAsRead(String? userId) async {
+    try {
+      final unreadNotifs = await _isar.notificationLocalModels
+          .filter()
+          .storeIdIsNull()
+          .and()
+          .isReadEqualTo(false)
+          .findAll();
+
+      await _isar.writeTxn(() async {
+        for (var notif in unreadNotifs) {
+          notif.isRead = true;
+          await _isar.notificationLocalModels.putBySupabaseId(notif);
+        }
+      });
+
+      var query = _supabase
+          .from('notifications')
+          .update({'is_read': true})
+          .isFilter('store_id', null)
+          .eq('is_read', false);
+
+      if (userId != null) {
+        query = query.or('user_id.is.null,user_id.eq.$userId');
+      } else {
+        query = query.isFilter('user_id', null);
+      }
+
+      await query;
+    } catch (e) {
+      print('Error dalam markAllAccountMailboxAsRead: $e');
+    }
+  }
+
+  // Menghapus seluruh notifikasi milik akun (store_id == null)
+  Future<void> clearAllAccountNotifications(String? userId) async {
+    try {
+      final localNotifs = await _isar.notificationLocalModels
+          .filter()
+          .storeIdIsNull()
+          .findAll();
+
+      await _isar.writeTxn(() async {
+        for (var notif in localNotifs) {
+          await _isar.notificationLocalModels.delete(notif.id);
+        }
+      });
+
+      var query = _supabase.from('notifications').delete().isFilter('store_id', null);
+      if (userId != null) {
+        query = query.or('user_id.is.null,user_id.eq.$userId');
+      }
+      await query;
+    } catch (e) {
+      print('Error dalam clearAllAccountNotifications: $e');
+    }
+  }
+
   // Mengirim notifikasi broadcast ke seluruh anggota toko
   Future<void> sendBroadcastNotification({
     required String storeId,
@@ -185,5 +301,29 @@ class NotificationRepository {
       rethrow;
     }
   }
+
+  // Mengirim notifikasi akun/mailbox (store_id = null)
+  Future<void> sendAccountNotification({
+    String? userId,
+    required String title,
+    required String message,
+    required String type,
+  }) async {
+    try {
+      await _supabase.from('notifications').insert({
+        'store_id': null,
+        'user_id': userId,
+        'type': type,
+        'title': title,
+        'message': message,
+        'is_read': false,
+        'metadata': {},
+      });
+    } catch (e) {
+      print('Error dalam sendAccountNotification: $e');
+      rethrow;
+    }
+  }
 }
+
 
