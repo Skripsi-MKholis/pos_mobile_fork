@@ -26,6 +26,7 @@ import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.
 import 'package:pos_mobile/features/pos/presentation/transaction_detail_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/app_settings_screen.dart';
+import 'package:pos_mobile/features/settings/presentation/account_settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
@@ -439,6 +440,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/app-settings',
         builder: (context, state) => const AppSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/account-settings',
+        builder: (context, state) => const AccountSettingsScreen(),
       ),
       GoRoute(
         path: '/sync-monitoring',

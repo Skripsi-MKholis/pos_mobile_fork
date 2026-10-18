@@ -21,9 +21,8 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    // Clear active store and refresh store list when entering this screen
+    // Refresh daftar toko saat masuk ke halaman ini
     Future.microtask(() {
-      ref.read(activeStoreProvider.notifier).clear();
       ref.invalidate(userStoresProvider);
     });
   }
@@ -35,12 +34,27 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
     final connectivity = ref.watch(connectivityNotifierProvider).value;
     final isOffline = connectivity == ConnectivityStatus.offline;
 
+    final activeStore = ref.watch(activeStoreProvider).value;
+    final canGoBack = context.canPop() || activeStore != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        leading: canGoBack
+            ? IconButton(
+                icon: const Icon(TablerIcons.arrow_left, color: Colors.black),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/dashboard');
+                  }
+                },
+              )
+            : null,
         title: const Text(
           'Pilih Toko',
           style: TextStyle(

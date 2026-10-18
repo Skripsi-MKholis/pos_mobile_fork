@@ -172,8 +172,13 @@ class _DrawerMenuContent extends ConsumerWidget {
         const _SectionSpacing(),
         _SectionHeader(title: isIndonesian ? 'PENGATURAN' : 'SETTINGS'),
         _DrawerItem(
+          icon: TablerIcons.user_circle,
+          title: isIndonesian ? 'Pengaturan Akun' : 'Account Settings',
+          route: '/account-settings',
+        ),
+        _DrawerItem(
           icon: TablerIcons.settings,
-          title: isIndonesian ? 'Pengaturan Aplikasi & Akun' : 'App & Account Settings',
+          title: isIndonesian ? 'Pengaturan Aplikasi' : 'App Settings',
           route: '/app-settings',
         ),
 

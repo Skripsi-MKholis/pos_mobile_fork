@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/core/widgets/app_snackbar.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pos_mobile/features/auth/providers/auth_provider.dart';
-import 'package:pos_mobile/features/auth/providers/store_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:pos_mobile/l10n/app_localizations.dart';
 import 'package:pos_mobile/core/providers/locale_provider.dart';
@@ -18,8 +13,6 @@ class AppSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
-    final role = ref.watch(userRoleProvider);
-    final user = ref.watch(currentUserProvider);
     final l10n = AppLocalizations.of(context)!;
     final currentLocale = ref.watch(localeNotifierProvider);
     final isIndonesian = currentLocale.languageCode == 'id';
@@ -35,7 +28,7 @@ class AppSettingsScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          isIndonesian ? 'Pengaturan Aplikasi & Akun' : 'App & Account Settings',
+          isIndonesian ? 'Pengaturan Aplikasi' : 'App Settings',
           style: const TextStyle(
             color: Colors.black,
             fontSize: 18,
@@ -50,105 +43,7 @@ class AppSettingsScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Card Info
-            if (user != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 24),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Warna.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Warna.primary.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 26,
-                      backgroundColor: Warna.primary,
-                      child: Text(
-                        (user.email ?? 'U').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.userMetadata?['full_name'] ??
-                                user.email?.split('@').first ??
-                                'Pengguna',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            user.email ?? '',
-                            style: theme.textTheme.muted.copyWith(fontSize: 12),
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              (role ?? 'Member').toUpperCase(),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Section 1: Akun & Keamanan
-            _buildSection(
-              theme,
-              title: isIndonesian ? 'AKUN & KEAMANAN' : 'ACCOUNT & SECURITY',
-              children: [
-                _buildTile(
-                  theme,
-                  icon: TablerIcons.user,
-                  title: l10n.myProfile,
-                  subtitle: isIndonesian
-                      ? 'Kelola info identitas & foto akun'
-                      : 'Manage profile info & avatar',
-                  onTap: () => context.push('/profile'),
-                ),
-                _buildTile(
-                  theme,
-                  icon: TablerIcons.lock,
-                  title: l10n.changePassword,
-                  subtitle: isIndonesian
-                      ? 'Perbarui kata sandi akun Anda'
-                      : 'Update your account password',
-                  onTap: () => context.push('/change-password'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Section 2: Preferensi Sistem & Aplikasi
+            // Section: Preferensi Sistem & Aplikasi
             _buildSection(
               theme,
               title: isIndonesian ? 'PREFERENSI APLIKASI' : 'APP PREFERENCES',
@@ -174,36 +69,7 @@ class AppSettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Section 3: Sesi & Keanggotaan
-            if (role?.toLowerCase() == 'karyawan') ...[
-              _buildSection(
-                theme,
-                title: isIndonesian ? 'KEANGGOTAAN TOKO' : 'STORE MEMBERSHIP',
-                children: [
-                  _buildTile(
-                    theme,
-                    icon: TablerIcons.logout,
-                    title: l10n.logoutStore,
-                    color: Colors.redAccent,
-                    subtitle: isIndonesian
-                        ? 'Keluar dari akses staf toko saat ini'
-                        : 'Leave current store staff access',
-                    onTap: () => _handleLeaveStore(context, ref, l10n),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Logout App
-            ShadButton.destructive(
-              width: double.infinity,
-              onPressed: () => _handleLogout(context, ref, l10n),
-              child: Text(l10n.logoutApp),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // App Version Info
             Center(
@@ -441,93 +307,5 @@ class AppSettingsScreen extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  Future<void> _handleLeaveStore(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) async {
-    final activeStore = ref.read(activeStoreProvider).value;
-    final user = ref.read(currentUserProvider);
-    if (activeStore == null || user == null) return;
-
-    final confirmed = await showShadDialog<bool>(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: Text(l10n.logoutStore),
-        description: Text(l10n.confirmLeaveStore(activeStore['name'] ?? '')),
-        actions: [
-          ShadButton.outline(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ShadButton.destructive(
-            child: Text(l10n.yesLeave),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        final supabase = sb.Supabase.instance.client;
-        await supabase
-            .from('store_members')
-            .delete()
-            .eq('store_id', activeStore['id'])
-            .eq('user_id', user.id);
-
-        await ref.read(activeStoreProvider.notifier).clear();
-        ref.invalidate(userStoresProvider);
-
-        if (context.mounted) {
-          context.go('/select-store');
-          mySnackBar(
-            context: context,
-            text: l10n.leaveSuccess,
-            status: ToastStatus.success,
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
-          mySnackBar(
-            context: context,
-            text: l10n.leaveFailed(e.toString()),
-            status: ToastStatus.error,
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _handleLogout(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations l10n,
-  ) async {
-    final confirmed = await showShadDialog<bool>(
-      context: context,
-      builder: (context) => ShadDialog(
-        title: Text(l10n.confirmLogout),
-        description: Text(l10n.confirmLogoutDesc),
-        actions: [
-          ShadButton.outline(
-            child: Text(l10n.cancel),
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          ShadButton.destructive(
-            child: Text(l10n.yesLogout),
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await ref.read(activeStoreProvider.notifier).clear();
-      await ref.read(authProvider.notifier).signOut();
-    }
   }
 }
