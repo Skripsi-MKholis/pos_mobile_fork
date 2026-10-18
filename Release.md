@@ -1,16 +1,39 @@
 ### **Versi Sekarang**
 
-**1.14.0+20**
+**1.15.0+21**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Dynamic Subscriptions & Google Play Billing Integration**
+**ZelloPOS Notification Center Overhaul, Transaction Detail, and App Polish**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.15.0+21 (Notification Center Overhaul, Transaction Detail & Core Enhancements)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Pembaruan Menyeluruh Pusat Notifikasi (Notification Center & Kotak Masuk)**:
+  - Redesain antarmuka Pusat Notifikasi (*Notification Center*) yang lebih bersih, modern, dan terstruktur.
+  - Penambahan fitur Kotak Masuk (*Mailbox*) dengan dukungan penandaan status pesan, filter, dan pengelolaan notifikasi.
+  - Fitur hapus/kelola notifikasi terkait toko (*Store Notification Cleanup*) serta perbaikan ikon notifikasi native Android dan warna tema notifikasi.
+* **Halaman Rincian Transaksi Baru (Transaction Detail Screen)**:
+  - Penambahan layar rincian transaksi tersendiri yang menampilkan informasi pembayaran, rincian item, nomor meja/catatan, ringkasan pajak, dan opsi cetak ulang struk secara komprehensif.
+  - Dukungan lokalisasi (i18n) bahasa Indonesia dan Inggris untuk seluruh teks terkait rincian transaksi.
+* **Redesain Antarmuka Menu Utama & Pengaturan**:
+  - Tampilan baru menu *Quick Access* pada Dashboard / Beranda untuk akses cepat ke fitur-fitur esensial.
+  - Penataan ulang menu pada *Settings Screen*, pemisahan *Account Settings*, dan navigasi toko yang lebih intuitif.
+  - Pembaruan slide onboarding kedua untuk memberikan panduan pengenalan fitur yang lebih relevan dan jelas bagi pengguna baru.
+* **Optimalisasi Logika Hapus & Manajemen Data Toko**:
+  - Implementasi *Soft Delete* pada produk untuk menjaga integritas data riwayat transaksi dan sinkronisasi lokal Isar.
+  - Penyempurnaan alur hapus toko (*Delete Store*) dan penyesuaian status toko aktif pada *Store Provider*.
+* **Penyederhanaan Arsitektur & Performa**:
+  - Pembersihan fitur prediksi analitik non-esensial dan kode terkait guna mempercepat build, memangkas ukuran aplikasi, dan menjaga fokus pada fungsi kasir utama yang stabil dan responsif.
+
+---
 
 **Versi 1.14.0+20 (Dynamic Subscriptions & Google Play Billing Integration)**
 
