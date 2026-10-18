@@ -2131,7 +2131,7 @@ class _TransactionHistoryScreenState
         child: InkWell(
           onTap: () {
             context.push(
-              '/receipt',
+              '/transaction-detail',
               extra: {'transaction': tx, 'items': items},
             );
           },

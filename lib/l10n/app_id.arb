@@ -751,5 +751,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "transactionDetail": "Detail Transaksi",
+  "copyTransactionId": "Salin ID Transaksi",
+  "transactionIdCopied": "ID Transaksi berhasil disalin",
+  "transactionInfo": "Informasi Transaksi",
+  "transactionTime": "Waktu Transaksi",
+  "store": "Toko",
+  "orderItemsBreakdown": "Rincian Pesanan ({count} item)",
+  "@orderItemsBreakdown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noItemsBreakdown": "Tidak ada rincian item",
+  "paymentBreakdown": "Rincian Pembayaran",
+  "productSubtotal": "Subtotal Produk",
+  "discountCut": "Diskon / Potongan",
+  "amountPaid": "Jumlah Dibayar",
+  "copy": "Salin"
 }

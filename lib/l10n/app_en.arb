@@ -751,5 +751,25 @@
         "type": "String"
       }
     }
-  }
+  },
+  "transactionDetail": "Transaction Detail",
+  "copyTransactionId": "Copy Transaction ID",
+  "transactionIdCopied": "Transaction ID copied successfully",
+  "transactionInfo": "Transaction Information",
+  "transactionTime": "Transaction Time",
+  "store": "Store",
+  "orderItemsBreakdown": "Order Breakdown ({count} items)",
+  "@orderItemsBreakdown": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noItemsBreakdown": "No item details available",
+  "paymentBreakdown": "Payment Breakdown",
+  "productSubtotal": "Product Subtotal",
+  "discountCut": "Discount / Promo",
+  "amountPaid": "Amount Paid",
+  "copy": "Copy"
 }

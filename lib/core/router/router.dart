@@ -23,6 +23,7 @@ import 'package:pos_mobile/features/pos/presentation/payment_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/receipt_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/printer_settings_screen.dart';
 import 'package:pos_mobile/features/pos/presentation/transaction_history_screen.dart';
+import 'package:pos_mobile/features/pos/presentation/transaction_detail_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/app_settings_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
@@ -326,6 +327,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/payment',
         builder: (context, state) => const PaymentScreen(),
+      ),
+      GoRoute(
+        path: '/transaction-detail',
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return TransactionDetailScreen(
+            transaction: extra['transaction'],
+            items: extra['items'] ?? const [],
+          );
+        },
       ),
       GoRoute(
         path: '/receipt',

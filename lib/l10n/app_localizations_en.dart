@@ -1288,4 +1288,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String customProductAdded(String name) {
     return '$name added to cart';
   }
+
+  @override
+  String get transactionDetail => 'Transaction Detail';
+
+  @override
+  String get copyTransactionId => 'Copy Transaction ID';
+
+  @override
+  String get transactionIdCopied => 'Transaction ID copied successfully';
+
+  @override
+  String get transactionInfo => 'Transaction Information';
+
+  @override
+  String get store => 'Store';
+
+  @override
+  String orderItemsBreakdown(int count) {
+    return 'Order Breakdown ($count items)';
+  }
+
+  @override
+  String get noItemsBreakdown => 'No item details available';
+
+  @override
+  String get paymentBreakdown => 'Payment Breakdown';
+
+  @override
+  String get productSubtotal => 'Product Subtotal';
+
+  @override
+  String get discountCut => 'Discount / Promo';
+
+  @override
+  String get amountPaid => 'Amount Paid';
+
+  @override
+  String get copy => 'Copy';
 }

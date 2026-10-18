@@ -1293,4 +1293,42 @@ class AppLocalizationsId extends AppLocalizations {
   String customProductAdded(String name) {
     return '$name ditambahkan ke keranjang';
   }
+
+  @override
+  String get transactionDetail => 'Detail Transaksi';
+
+  @override
+  String get copyTransactionId => 'Salin ID Transaksi';
+
+  @override
+  String get transactionIdCopied => 'ID Transaksi berhasil disalin';
+
+  @override
+  String get transactionInfo => 'Informasi Transaksi';
+
+  @override
+  String get store => 'Toko';
+
+  @override
+  String orderItemsBreakdown(int count) {
+    return 'Rincian Pesanan ($count item)';
+  }
+
+  @override
+  String get noItemsBreakdown => 'Tidak ada rincian item';
+
+  @override
+  String get paymentBreakdown => 'Rincian Pembayaran';
+
+  @override
+  String get productSubtotal => 'Subtotal Produk';
+
+  @override
+  String get discountCut => 'Diskon / Potongan';
+
+  @override
+  String get amountPaid => 'Jumlah Dibayar';
+
+  @override
+  String get copy => 'Salin';
 }

@@ -2419,6 +2419,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} added to cart'**
   String customProductAdded(String name);
+
+  /// No description provided for @transactionDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Detail'**
+  String get transactionDetail;
+
+  /// No description provided for @copyTransactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Transaction ID'**
+  String get copyTransactionId;
+
+  /// No description provided for @transactionIdCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID copied successfully'**
+  String get transactionIdCopied;
+
+  /// No description provided for @transactionInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Information'**
+  String get transactionInfo;
+
+  /// No description provided for @store.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get store;
+
+  /// No description provided for @orderItemsBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Breakdown ({count} items)'**
+  String orderItemsBreakdown(int count);
+
+  /// No description provided for @noItemsBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'No item details available'**
+  String get noItemsBreakdown;
+
+  /// No description provided for @paymentBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Breakdown'**
+  String get paymentBreakdown;
+
+  /// No description provided for @productSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Subtotal'**
+  String get productSubtotal;
+
+  /// No description provided for @discountCut.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount / Promo'**
+  String get discountCut;
+
+  /// No description provided for @amountPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Paid'**
+  String get amountPaid;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
 }
 
 class _AppLocalizationsDelegate
