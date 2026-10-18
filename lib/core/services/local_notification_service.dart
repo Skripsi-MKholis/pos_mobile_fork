@@ -16,6 +16,7 @@ class LocalNotificationService {
   final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  String _smallIcon = '@mipmap/launcher_icon';
 
   // ===== Channel Notifikasi (dipisah per kategori agar bisa diatur dari OS) =====
   static const AndroidNotificationChannel transactionChannel = AndroidNotificationChannel(
@@ -58,11 +59,11 @@ class LocalNotificationService {
     switch (type) {
       case 'stock':
       case 'low_stock':
-      case 'out_of_stock':
+      case 'warning':
         return stockChannel;
       case 'transaction':
       case 'transaction_void':
-      case 'payment':
+      case 'danger':
       case 'success':
         return transactionChannel;
       case 'reminder':
@@ -75,23 +76,40 @@ class LocalNotificationService {
   Future<void> initialize() async {
     if (_initialized || kIsWeb) return;
 
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
 
-    await plugin.initialize(
-      settings: const InitializationSettings(
-        android: androidSettings,
-        iOS: darwinSettings,
-      ),
-      onDidReceiveNotificationResponse: (response) {
-        NotificationDeepLink.handlePayload(response.payload);
-      },
-    );
+    // Coba gunakan @drawable/ic_stat_notify (ikon transparan siluet).
+    // Jika sesi APK yang sedang berjalan belum di-rebuild, fallback ke @mipmap/launcher_icon agar tidak crash.
+    try {
+      await plugin.initialize(
+        settings: const InitializationSettings(
+          android: AndroidInitializationSettings('@drawable/ic_stat_notify'),
+          iOS: darwinSettings,
+        ),
+        onDidReceiveNotificationResponse: (response) {
+          NotificationDeepLink.handlePayload(response.payload);
+        },
+      );
+      _smallIcon = '@drawable/ic_stat_notify';
+    } catch (e) {
+      if (kDebugMode) {
+        print('Fallback initialize ke @mipmap/launcher_icon: $e');
+      }
+      await plugin.initialize(
+        settings: const InitializationSettings(
+          android: AndroidInitializationSettings('@mipmap/launcher_icon'),
+          iOS: darwinSettings,
+        ),
+        onDidReceiveNotificationResponse: (response) {
+          NotificationDeepLink.handlePayload(response.payload);
+        },
+      );
+      _smallIcon = '@mipmap/launcher_icon';
+    }
 
     if (Platform.isAndroid) {
       final androidPlugin = plugin
@@ -113,30 +131,39 @@ class LocalNotificationService {
   }
 
   /// Meminta izin notifikasi (Android 13+) dan exact alarm (Android 12+).
-  /// Dipanggil setelah login agar prompt muncul di momen yang tepat.
-  Future<void> requestPermissions() async {
-    if (!Platform.isAndroid) return;
-    final androidPlugin = plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    try {
-      await androidPlugin?.requestNotificationsPermission();
-    } catch (e) {
-      if (kDebugMode) print('Gagal meminta izin notifikasi: $e');
+  Future<bool> requestPermissions() async {
+    if (kIsWeb) return false;
+    await initialize();
+
+    if (Platform.isAndroid) {
+      final androidPlugin = plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final notifGranted =
+          await androidPlugin?.requestNotificationsPermission() ?? false;
+      final exactAlarmGranted =
+          await androidPlugin?.requestExactAlarmsPermission() ?? true;
+      return notifGranted && exactAlarmGranted;
     }
-    try {
-      await androidPlugin?.requestExactAlarmsPermission();
-    } catch (e) {
-      if (kDebugMode) print('Gagal meminta izin exact alarm: $e');
+
+    if (Platform.isIOS) {
+      final iosPlugin = plugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+      return await iosPlugin?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          ) ??
+          false;
     }
+
+    return false;
   }
 
-  /// Menampilkan notifikasi native berdasarkan `type` (otomatis memilih channel).
-  /// [supabaseId] dipakai sebagai identitas tray agar jalur FCM dan Realtime
-  /// tidak memunculkan notifikasi ganda untuk data yang sama.
+  /// Menampilkan notifikasi lokal sesuai kategori tipe pesan.
   Future<void> showForType({
-    required String? title,
-    required String? body,
-    required String? type,
+    required String title,
+    required String body,
+    String? type,
     String? supabaseId,
     String? metadataJson,
   }) async {
@@ -148,29 +175,54 @@ class LocalNotificationService {
       'metadata': metadataJson,
     });
 
-    await plugin.show(
-      id: supabaseId?.hashCode ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          channelDescription: channel.description,
-          icon: '@mipmap/launcher_icon',
-          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
-          color: const Color(0xFF9AE600),
-          priority: Priority.high,
-          importance: channel.importance,
+    try {
+      await plugin.show(
+        id: supabaseId?.hashCode ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            icon: _smallIcon,
+            largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+            color: const Color(0xFF9AE600),
+            priority: Priority.high,
+            importance: channel.importance,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
+        payload: payload,
+      );
+    } catch (e) {
+      // Fallback jika icon gagal dimuat
+      await plugin.show(
+        id: supabaseId?.hashCode ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            channel.id,
+            channel.name,
+            channelDescription: channel.description,
+            icon: '@mipmap/launcher_icon',
+            priority: Priority.high,
+            importance: channel.importance,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
         ),
-      ),
-      payload: payload,
-    );
+        payload: payload,
+      );
+    }
   }
 
   /// Notifikasi uji dari layar Settings untuk memverifikasi izin perangkat.
@@ -179,26 +231,49 @@ class LocalNotificationService {
     required String body,
   }) async {
     await initialize();
-    await plugin.show(
-      id: 999,
-      title: title,
-      body: body,
-      notificationDetails: NotificationDetails(
-        android: AndroidNotificationDetails(
-          reminderChannel.id,
-          reminderChannel.name,
-          channelDescription: reminderChannel.description,
-          icon: '@mipmap/launcher_icon',
-          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
-          color: const Color(0xFF9AE600),
-          priority: Priority.high,
-          importance: Importance.high,
+    try {
+      await plugin.show(
+        id: 999,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            reminderChannel.id,
+            reminderChannel.name,
+            channelDescription: reminderChannel.description,
+            icon: _smallIcon,
+            largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+            color: const Color(0xFF9AE600),
+            priority: Priority.high,
+            importance: Importance.high,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+          ),
         ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentSound: true,
+      );
+    } catch (e) {
+      // Fallback tanpa resource drawable baru
+      await plugin.show(
+        id: 999,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            reminderChannel.id,
+            reminderChannel.name,
+            channelDescription: reminderChannel.description,
+            icon: '@mipmap/launcher_icon',
+            priority: Priority.high,
+            importance: Importance.high,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentSound: true,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }

@@ -127,7 +127,7 @@ class NotificationSchedulerService {
         channel.id,
         channel.name,
         channelDescription: channel.description,
-        icon: '@mipmap/launcher_icon',
+        icon: '@drawable/ic_stat_notify',
         largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
         color: const Color(0xFF9AE600),
         priority: Priority.defaultPriority,
