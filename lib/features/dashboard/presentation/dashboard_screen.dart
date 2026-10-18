@@ -65,8 +65,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHorizontalQuickAccess(context, l10n, theme),
-            const SizedBox(height: 20),
+            _buildQuickAccessGrid(context, l10n, theme),
+            const SizedBox(height: 18),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: theme.colorScheme.border.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 18),
             _buildHeader(l10n, theme),
             const SizedBox(height: 16),
             _buildExpiringBanner(context, ref, theme, l10n),
@@ -93,7 +99,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildHorizontalQuickAccess(
+  Widget _buildQuickAccessGrid(
     BuildContext context,
     AppLocalizations l10n,
     ShadThemeData theme,
@@ -148,92 +154,70 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              l10n.quickAccess.toUpperCase(),
-              style: theme.textTheme.muted.copyWith(
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
-          ],
+        Text(
+          l10n.quickAccess.toUpperCase(),
+          style: theme.textTheme.muted.copyWith(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
         ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          clipBehavior: Clip.none,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: quickActions.map((item) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: GestureDetector(
-                  onTap: item.onTap,
-                  behavior: HitTestBehavior.opaque,
-                  child: SizedBox(
-                    width: 66,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: theme.colorScheme.border,
-                              width: 1,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: item.onTap,
-                              borderRadius: BorderRadius.circular(16),
-                              splashColor: item.iconColor.withValues(alpha: 0.12),
-                              highlightColor: item.iconColor.withValues(alpha: 0.06),
-                              child: Center(
-                                child: Icon(
-                                  item.icon,
-                                  color: item.iconColor,
-                                  size: 22,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item.label,
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.foreground,
-                            height: 1.15,
-                          ),
-                        ),
-                      ],
+        const SizedBox(height: 10),
+        GridView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: quickActions.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 4,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 10,
+            mainAxisExtent: 74,
+          ),
+          itemBuilder: (context, index) {
+            final item = quickActions[index];
+            return InkWell(
+              onTap: item.onTap,
+              borderRadius: BorderRadius.circular(12),
+              splashColor: item.iconColor.withValues(alpha: 0.12),
+              highlightColor: item.iconColor.withValues(alpha: 0.06),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: item.iconColor.withValues(alpha: isDark ? 0.18 : 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        item.icon,
+                        color: item.iconColor,
+                        size: 22,
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
+                  const SizedBox(height: 6),
+                  Flexible(
+                    child: Text(
+                      item.label,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.foreground,
+                        height: 1.15,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );
