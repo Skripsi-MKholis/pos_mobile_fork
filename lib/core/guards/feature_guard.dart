@@ -8,13 +8,6 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 /// Daftar Enum Standar Fitur Aplikasi yang dapat di Lock/Unlock
 enum AppFeature {
-  /// Prediksi Penjualan Berbasis AI / Machine Learning (LSTM)
-  smartAnalytics(
-    'smart_analytics',
-    'Smart AI Analytics',
-    'Prediksi tren penjualan masa depan toko menggunakan model Machine Learning LSTM dan evaluasi akurasi.',
-  ),
-
   /// Laporan Analisis Advance (Grafik Tren Penjualan & Ekspor Laporan)
   advancedReports(
     'advanced_reports',

@@ -9,7 +9,6 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/core/services/wilayah_service.dart';
-import 'package:pos_mobile/features/reports/models/forecast_input.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shimmer/shimmer.dart';
@@ -99,11 +98,26 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         _selectedProvinceName = _initialProvinceName;
         _selectedCityName = _initialCityName;
 
-        final profile = StoreOperationalProfile.fromStoreSettings(activeStore);
-        _initialOpenWeekdays = profile.openWeekdays.toSet();
-        _existingClosedMonths = profile.closedMonths;
-        _initialOpenHour = profile.openHour;
-        _initialCloseHour = profile.closeHour;
+        final settings = activeStore['settings'] is Map ? activeStore['settings'] as Map : null;
+        final operational = settings?['operational'] is Map ? settings!['operational'] as Map : null;
+
+        final rawWeekdays = operational?['open_weekdays'];
+        if (rawWeekdays is List && rawWeekdays.isNotEmpty) {
+          _initialOpenWeekdays = rawWeekdays.map((e) => (e as num).toInt()).where((d) => d >= 1 && d <= 7).toSet();
+          if (_initialOpenWeekdays.isEmpty) _initialOpenWeekdays = {1, 2, 3, 4, 5, 6, 7};
+        } else {
+          _initialOpenWeekdays = {1, 2, 3, 4, 5, 6, 7};
+        }
+
+        final rawClosedMonths = operational?['closed_months'];
+        if (rawClosedMonths is List) {
+          _existingClosedMonths = rawClosedMonths.map((e) => (e as num).toInt()).toList();
+        } else {
+          _existingClosedMonths = const [];
+        }
+
+        _initialOpenHour = (operational?['open_hour'] as num?)?.toInt() ?? 8;
+        _initialCloseHour = (operational?['close_hour'] as num?)?.toInt() ?? 21;
 
         _openWeekdays = Set.from(_initialOpenWeekdays);
         _openHour = _initialOpenHour;
@@ -951,8 +965,8 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
           const SizedBox(height: 4),
           Text(
             isId
-                ? 'Diselaraskan dengan model prediksi analitik penjualan toko'
-                : 'Synced with the predictive analytics sales forecast model',
+                ? 'Jadwal buka toko untuk operasional dan laporan penjualan'
+                : 'Store operating schedule for business operations and sales reporting',
             style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 16),

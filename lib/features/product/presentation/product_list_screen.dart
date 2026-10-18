@@ -8,11 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
-import 'package:pos_mobile/features/reports/models/forecast_point.dart'
-    show DemandTrend;
-import 'package:pos_mobile/features/reports/presentation/widgets/recommendation_style.dart'
-    show DemandTrendStyle;
-import 'package:pos_mobile/features/reports/providers/stock_forecast_provider.dart';
 import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/models/category.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -49,7 +44,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String? _selectedCategory;
-  bool _showSlowingOnly = false;
   ProductCatalogSort _sortOption = ProductCatalogSort.nameAsc;
 
   @override
@@ -542,39 +536,21 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: categoriesAsync.maybeWhen(
                   data: (categories) {
-                    final slowingIds = ref.watch(slowingProductIdsProvider);
-
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           _buildFilterPill(
                             label: l10n.all,
-                            isSelected: _selectedCategory == null && !_showSlowingOnly,
+                            isSelected: _selectedCategory == null,
                             onTap: () {
                               setState(() {
                                 _selectedCategory = null;
-                                _showSlowingOnly = false;
                               });
                             },
                           ),
-                          if (slowingIds.isNotEmpty) ...[
-                            const SizedBox(width: 6),
-                            _buildFilterPill(
-                              label: isId ? 'Melambat' : 'Slowing',
-                              icon: TablerIcons.trending_down,
-                              badgeColor: const Color(0xFFEA580C),
-                              isSelected: _showSlowingOnly,
-                              onTap: () {
-                                setState(() {
-                                  _showSlowingOnly = !_showSlowingOnly;
-                                  if (_showSlowingOnly) _selectedCategory = null;
-                                });
-                              },
-                            ),
-                          ],
                           ...categories.map((c) {
-                            final isSelected = _selectedCategory == c.supabaseId && !_showSlowingOnly;
+                            final isSelected = _selectedCategory == c.supabaseId;
                             return Padding(
                               padding: const EdgeInsets.only(left: 6),
                               child: _buildFilterPill(
@@ -583,7 +559,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 onTap: () {
                                   setState(() {
                                     _selectedCategory = isSelected ? null : c.supabaseId;
-                                    _showSlowingOnly = false;
                                   });
                                 },
                               ),
@@ -608,9 +583,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                           (p.sku?.toLowerCase().contains(query) ?? false);
                       final matchesCategory =
                           _selectedCategory == null || p.categoryId == _selectedCategory;
-                      final matchesTrend =
-                          !_showSlowingOnly || ref.read(slowingProductIdsProvider).contains(p.supabaseId);
-                      return matchesSearch && matchesCategory && matchesTrend;
+                      return matchesSearch && matchesCategory;
                     }).toList();
 
                     // Apply Sorting
@@ -660,8 +633,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                                   child: _buildEmptyState(
                                     theme,
                                     hasActiveFilter: _searchQuery.isNotEmpty ||
-                                        _selectedCategory != null ||
-                                        _showSlowingOnly,
+                                        _selectedCategory != null,
                                   ),
                                 ),
                               ),
@@ -782,40 +754,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     );
   }
 
-  Widget _buildTrendChip(String productSupabaseId) {
-    final forecast = ref.watch(stockForecastProvider)[productSupabaseId];
-    final trend = forecast?.demand.trend;
-    if (trend == null || trend == DemandTrend.flat) {
-      return const SizedBox.shrink();
-    }
-
-    final style = DemandTrendStyle.of(trend);
-    return Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        decoration: BoxDecoration(
-          color: style.color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(style.icon, size: 10, color: style.color),
-            const SizedBox(width: 3),
-            Text(
-              style.label,
-              style: TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.bold,
-                color: style.color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildStockIndicator(int stock, ShadThemeData theme) {
     Color bgColor;
@@ -971,7 +909,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    _buildTrendChip(product.supabaseId),
                     _buildStockIndicator(product.stockQuantity, theme),
                   ],
                 ),
@@ -1126,7 +1063,6 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                       _searchController.clear();
                       _searchQuery = '';
                       _selectedCategory = null;
-                      _showSlowingOnly = false;
                       _sortOption = ProductCatalogSort.nameAsc;
                     });
                   },

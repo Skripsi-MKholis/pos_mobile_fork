@@ -30,10 +30,7 @@ import 'package:pos_mobile/features/settings/presentation/account_settings_scree
 import 'package:pos_mobile/features/settings/presentation/sync_monitoring_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/notification_settings_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/reports_screen.dart';
-import 'package:pos_mobile/features/reports/presentation/smart_analytics_screen.dart';
 import 'package:pos_mobile/features/reports/presentation/sales_performance_screen.dart';
-import 'package:pos_mobile/features/reports/presentation/smart_analytics_history_screen.dart';
-import 'package:pos_mobile/features/reports/presentation/forecast_accuracy_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/profile_screen.dart';
 import 'package:pos_mobile/features/auth/presentation/change_password_screen.dart';
 import 'package:pos_mobile/features/settings/presentation/store_info_screen.dart';
@@ -412,30 +409,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: '/smart-analytics',
-        builder: (context, state) => const SmartAnalyticsScreen(),
-      ),
-      GoRoute(
         path: '/reports',
         builder: (context, state) => const ReportsScreen(),
       ),
       GoRoute(
         path: '/sales-performance',
         builder: (context, state) => const SalesPerformanceScreen(),
-      ),
-      GoRoute(
-        path: '/smart-analytics/accuracy',
-        builder: (context, state) => const ForecastAccuracyScreen(),
-      ),
-      GoRoute(
-        path: '/smart-analytics/history',
-        builder: (context, state) => const SmartAnalyticsHistoryScreen(),
-      ),
-      GoRoute(
-        path: '/smart-analytics/history/:id',
-        builder: (context, state) => SmartAnalyticsScreen(
-          snapshotId: state.pathParameters['id'],
-        ),
       ),
       GoRoute(
         path: '/app-settings',

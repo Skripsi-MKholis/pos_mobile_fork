@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:pos_mobile/core/guards/feature_guard.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
-import 'package:pos_mobile/features/reports/presentation/widgets/hourly_forecast_card.dart';
 import 'package:pos_mobile/features/reports/providers/analytics_provider.dart'
     show AnalyticsTimeRange;
 import 'package:pos_mobile/features/reports/providers/sales_performance_provider.dart';
@@ -228,9 +227,6 @@ class _SalesPerformanceScreenState
           icon: TablerIcons.clock,
           child: _buildHourChart(state, theme, compact),
         ),
-        const SizedBox(height: 16),
-        // Prediksi jam ramai — pelengkap grafik aktual di atasnya (§8.5).
-        const HourlyForecastCard(),
         const SizedBox(height: 16),
         _buildChartCard(
           theme,

@@ -11,7 +11,6 @@ import 'package:pos_mobile/core/services/analytics_service.dart';
 import 'package:pos_mobile/core/utils/debouncer.dart';
 import 'package:pos_mobile/features/product/providers/product_provider.dart';
 import 'package:pos_mobile/features/product/providers/category_provider.dart';
-import 'package:pos_mobile/features/reports/presentation/widgets/restock_suggestion_card.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -515,17 +514,6 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                   ),
                 ),
 
-                // 3. Smart Restock Suggestion (Pinned)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: RestockSuggestionCard(
-                    onApply: (product, suggestedStock) => _openStockEditModal(
-                      context,
-                      product,
-                      initialStock: suggestedStock,
-                    ),
-                  ),
-                ),
 
                 // Status filter notification bar (if filtered - Pinned)
                 if (_searchQuery.isNotEmpty ||
@@ -817,13 +805,6 @@ class _StockManagementScreenState extends ConsumerState<StockManagementScreen> {
                             ),
                           ],
                         ],
-                      ),
-                      // Forecast Badge if any
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: StockForecastBadge(
-                          productSupabaseId: product.supabaseId,
-                        ),
                       ),
                     ],
                   ),
