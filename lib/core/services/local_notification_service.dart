@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -75,7 +76,7 @@ class LocalNotificationService {
     if (_initialized || kIsWeb) return;
 
     const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings darwinSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -156,7 +157,9 @@ class LocalNotificationService {
           channel.id,
           channel.name,
           channelDescription: channel.description,
-          icon: '@mipmap/ic_launcher',
+          icon: '@mipmap/launcher_icon',
+          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+          color: const Color(0xFF9AE600),
           priority: Priority.high,
           importance: channel.importance,
         ),
@@ -185,7 +188,9 @@ class LocalNotificationService {
           reminderChannel.id,
           reminderChannel.name,
           channelDescription: reminderChannel.description,
-          icon: '@mipmap/ic_launcher',
+          icon: '@mipmap/launcher_icon',
+          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/launcher_icon'),
+          color: const Color(0xFF9AE600),
           priority: Priority.high,
           importance: Importance.high,
         ),
