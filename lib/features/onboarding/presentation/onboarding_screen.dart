@@ -28,10 +28,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         description: 'Proses pesanan pelanggan dalam hitungan detik dengan antarmuka yang intuitif dan sistem transaksi kasir yang andal.',
         illustration: _buildPOSIllustration(),
       ),
+      // Slide Manajemen Meja & Split Bill (Disimpan/dikomentari karena fitur belum ada):
+      // OnboardingData(
+      //   title: 'Manajemen Meja & Split Bill',
+      //   description: 'Pantau ketersediaan meja makan secara langsung dan permudah pembagian tagihan pesanan untuk pengalaman pelanggan terbaik.',
+      //   illustration: _buildTableIllustration(),
+      // ),
       OnboardingData(
-        title: 'Manajemen Meja & Split Bill',
-        description: 'Pantau ketersediaan meja makan secara langsung dan permudah pembagian tagihan pesanan untuk pengalaman pelanggan terbaik.',
-        illustration: _buildTableIllustration(),
+        title: 'Manajemen Produk & Stok',
+        description: 'Kelola katalog menu, kategori varian, hingga pantau stok barang secara akurat dan mudah dalam satu genggaman.',
+        illustration: _buildProductIllustration(),
       ),
       OnboardingData(
         title: 'Analitik Pintar & Laporan',
@@ -414,6 +420,258 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  // Implementasi ilustrasi Manajemen Produk & Stok:
+  Widget _buildProductIllustration() {
+    return SizedBox(
+      height: 240,
+      width: 300,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background Decorative Glow
+          Container(
+            width: 180,
+            height: 180,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Warna.primary.withValues(alpha: 0.2),
+                  Warna.primary.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ).animate().scale(duration: 800.ms, curve: Curves.easeOutBack),
+
+          // Main Card: Product Catalog Showcase
+          Positioned(
+            bottom: 20,
+            child: Container(
+              width: 190,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Warna.line, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Search & Category Header Mockup
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Warna.primary.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(TablerIcons.box_seam, size: 14, color: Colors.black87),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(width: 55, height: 6, decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(3))),
+                          const SizedBox(height: 3),
+                          Container(width: 35, height: 4, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2))),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Mock Product Item 1
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Warna.primary.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(TablerIcons.cup, size: 16, color: Colors.black87),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(3))),
+                              const SizedBox(height: 4),
+                              Container(width: 30, height: 4, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Text(
+                            'Stok 24',
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.green.shade700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Mock Product Item 2
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Icon(TablerIcons.bread, size: 16, color: Colors.amber.shade800),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(width: 45, height: 5, decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(3))),
+                              const SizedBox(height: 4),
+                              Container(width: 35, height: 4, decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2))),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Text(
+                            'Stok 12',
+                            style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.green.shade700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ).animate().scale(delay: 200.ms, duration: 500.ms, curve: Curves.easeOutBack).fadeIn(),
+
+          // Floating Badge: Stock Alert / In Stock
+          Positioned(
+            top: 15,
+            right: 30,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+                border: Border.all(color: Warna.primary.withValues(alpha: 0.4), width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'Stok Realtime',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+             .slideY(begin: -0.08, end: 0.08, duration: 2.seconds, curve: Curves.easeInOut)
+             .animate().scale(delay: 400.ms, duration: 500.ms, curve: Curves.easeOutBack).fadeIn(),
+          ),
+
+          // Floating Badge: Category Tag
+          Positioned(
+            bottom: 8,
+            left: 28,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(TablerIcons.tags, size: 12, color: Colors.white),
+                  SizedBox(width: 4),
+                  Text(
+                    'Kategori Menu',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+             .slideY(begin: 0.06, end: -0.06, duration: 2200.ms, curve: Curves.easeInOut)
+             .animate().scale(delay: 500.ms, duration: 500.ms, curve: Curves.easeOutBack).fadeIn(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Ilustrasi Meja & Split Bill disimpan untuk fitur mendatang:
+  /*
   Widget _buildTableIllustration() {
     return SizedBox(
       height: 240,
@@ -611,6 +869,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       ),
     );
   }
+  */
 
   Widget _buildAnalyticsIllustration() {
     return SizedBox(
