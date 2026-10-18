@@ -344,6 +344,18 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(activeStoreProvider, (previous, next) {
+      final prevStoreId = previous?.value?['id']?.toString();
+      final nextStoreId = next.value?['id']?.toString();
+      if (prevStoreId != nextStoreId) {
+        _searchController.clear();
+        setState(() {
+          _searchQuery = '';
+          _selectedCategoryId = null;
+        });
+      }
+    });
+
     final productsAsync = ref.watch(productNotifierProvider);
     final products = productsAsync.value ?? [];
     final categoriesAsync = ref.watch(categoryNotifierProvider);

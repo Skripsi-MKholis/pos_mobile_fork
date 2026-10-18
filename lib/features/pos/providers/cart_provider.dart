@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:pos_mobile/core/models/product.dart';
 import 'package:pos_mobile/core/models/table.dart';
 import 'package:pos_mobile/core/models/voucher.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/pos/models/cart_item.dart';
 import 'package:pos_mobile/features/pos/models/cart_state.dart';
 
@@ -11,6 +12,14 @@ part 'cart_provider.g.dart';
 class CartNotifier extends _$CartNotifier {
   @override
   CartState build() {
+    ref.listen(activeStoreProvider, (previous, next) {
+      final prevStoreId = previous?.value?['id']?.toString();
+      final nextStoreId = next.value?['id']?.toString();
+      if (prevStoreId != nextStoreId) {
+        clearCart();
+      }
+    });
+
     return CartState();
   }
 
