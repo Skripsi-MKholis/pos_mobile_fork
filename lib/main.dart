@@ -17,6 +17,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pos_mobile/core/ads/interstitial_ad_manager.dart';
 import 'package:pos_mobile/core/theme/app_theme.dart';
 
+import 'package:pos_mobile/core/services/fcm_service.dart';
+import 'package:pos_mobile/core/services/local_notification_service.dart';
+import 'package:pos_mobile/core/services/notification_deep_link.dart';
+import 'package:pos_mobile/features/dashboard/providers/notification_provider.dart';
+import 'package:pos_mobile/features/dashboard/providers/mailbox_provider.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -28,6 +34,14 @@ void main() async {
     debugPrint('Error validating session during main initialization: $e');
   }
   await IsarService.init();
+
+  // Inisialisasi awal local notification channel OS dan FCM
+  try {
+    await LocalNotificationService.instance.initialize();
+    await FCMService.instance.initialize();
+  } catch (e) {
+    debugPrint('Error inisialisasi notification service di main: $e');
+  }
 
   // Inisialisasi Google Mobile Ads (tanpa await agar tidak memblokir startup)
   MobileAds.instance.initialize().then((_) {
@@ -52,8 +66,12 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Keep sync logic alive in the background
+    NotificationDeepLink.container = ProviderScope.containerOf(context);
+
+    // Keep sync logic and notification listeners alive in the background
     ref.watch(syncNotifierProvider);
+    ref.watch(notificationNotifierProvider);
+    ref.watch(mailboxNotifierProvider);
 
     final router = ref.watch(routerProvider);
 

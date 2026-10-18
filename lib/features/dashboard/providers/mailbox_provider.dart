@@ -8,7 +8,7 @@ import 'package:pos_mobile/features/dashboard/providers/notification_provider.da
 import 'package:pos_mobile/features/dashboard/providers/notification_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class MailboxNotifier extends AutoDisposeAsyncNotifier<List<NotificationLocalModel>> {
+class MailboxNotifier extends AsyncNotifier<List<NotificationLocalModel>> {
   final NotificationRepository _repository = NotificationRepository();
   RealtimeChannel? _channel;
 
@@ -121,11 +121,11 @@ class MailboxNotifier extends AutoDisposeAsyncNotifier<List<NotificationLocalMod
 }
 
 final mailboxNotifierProvider =
-    AutoDisposeAsyncNotifierProvider<MailboxNotifier, List<NotificationLocalModel>>(
+    AsyncNotifierProvider<MailboxNotifier, List<NotificationLocalModel>>(
   MailboxNotifier.new,
 );
 
-final unreadMailboxCountProvider = AutoDisposeProvider<int>((ref) {
+final unreadMailboxCountProvider = Provider<int>((ref) {
   final mailboxAsync = ref.watch(mailboxNotifierProvider);
   return mailboxAsync.maybeWhen(
     data: (list) => list.where((n) => !n.isRead).length,

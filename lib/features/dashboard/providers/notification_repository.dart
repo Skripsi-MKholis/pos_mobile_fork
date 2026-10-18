@@ -8,9 +8,21 @@ class NotificationRepository {
   final _isar = IsarService.instance;
 
   // Mengambil notifikasi toko dari remote dan sinkronisasi ke Isar
-  Future<List<NotificationLocalModel>> fetchAndSyncNotifications(String storeId, String? userId) async {
+  Future<List<NotificationLocalModel>> fetchAndSyncNotifications(
+    dynamic storeIdOrIds,
+    String? userId,
+  ) async {
     try {
-      var query = _supabase.from('notifications').select().eq('store_id', storeId);
+      var query = _supabase.from('notifications').select();
+      if (storeIdOrIds is List<String>) {
+        if (storeIdOrIds.isNotEmpty) {
+          query = query.inFilter('store_id', storeIdOrIds);
+        } else {
+          return [];
+        }
+      } else if (storeIdOrIds != null) {
+        query = query.eq('store_id', storeIdOrIds.toString());
+      }
       
       if (userId != null) {
         query = query.or('user_id.is.null,user_id.eq.$userId');
@@ -287,6 +299,7 @@ class NotificationRepository {
     required String type,
   }) async {
     try {
+      final currentUserId = _supabase.auth.currentUser?.id;
       await _supabase.from('notifications').insert({
         'store_id': storeId,
         'user_id': null, // null menunjukkan broadcast ke semua store members
@@ -294,7 +307,9 @@ class NotificationRepository {
         'title': title,
         'message': message,
         'is_read': false,
-        'metadata': {},
+        'metadata': {
+          if (currentUserId != null) 'sender_id': currentUserId,
+        },
       });
     } catch (e) {
       print('Error dalam sendBroadcastNotification: $e');

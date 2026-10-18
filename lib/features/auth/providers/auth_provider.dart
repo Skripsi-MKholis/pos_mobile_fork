@@ -23,6 +23,7 @@ class Auth extends _$Auth {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       await AnalyticsService.instance.setUserId(user.id);
+      await FCMService.instance.syncTokenIfLoggedIn();
     }
     await AnalyticsService.instance.logLogin(method: 'email');
   }
@@ -73,6 +74,7 @@ class Auth extends _$Auth {
     final user = Supabase.instance.client.auth.currentUser;
     if (user != null) {
       await AnalyticsService.instance.setUserId(user.id);
+      await FCMService.instance.syncTokenIfLoggedIn();
     }
     await AnalyticsService.instance.logLogin(method: 'google');
   }

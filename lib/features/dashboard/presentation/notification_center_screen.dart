@@ -8,6 +8,7 @@ import 'package:pos_mobile/features/dashboard/providers/notification_provider.da
 import 'package:pos_mobile/features/dashboard/providers/mailbox_provider.dart';
 import 'package:pos_mobile/core/theme/colors.dart';
 import 'package:pos_mobile/core/widgets/app_snackbar.dart';
+import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 
 class NotificationCenterScreen extends ConsumerStatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -140,17 +141,26 @@ class _NotificationCenterScreenState
     }
   }
 
-  void _handleStoreNotificationTap(NotificationLocalModel notif) {
+  void _handleStoreNotificationTap(NotificationLocalModel notif) async {
     if (!notif.isRead) {
       ref
           .read(notificationNotifierProvider.notifier)
           .markAsRead(notif.supabaseId);
     }
 
-    if (notif.type == 'low_stock' || notif.type == 'danger') {
-      context.push('/products');
-    } else if (notif.type == 'transaction_void' || notif.type == 'warning') {
-      context.push('/transactions');
+    // Jika notifikasi memiliki storeId dan berbeda dari toko aktif saat ini, beralih ke toko tersebut
+    final targetStoreId = notif.storeId;
+    if (targetStoreId != null && targetStoreId.isNotEmpty) {
+      final currentStoreId = ref.read(activeStoreProvider).value?['id']?.toString();
+      if (currentStoreId != targetStoreId) {
+        await ref.read(activeStoreProvider.notifier).switchStoreById(targetStoreId);
+      }
+    }
+
+    if (notif.type == 'low_stock' || notif.type == 'danger' || notif.type == 'stock') {
+      if (mounted) context.push('/stock');
+    } else if (notif.type == 'transaction_void' || notif.type == 'warning' || notif.type == 'transaction') {
+      if (mounted) context.push('/transactions');
     }
   }
 

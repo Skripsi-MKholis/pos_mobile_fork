@@ -145,6 +145,55 @@ class ActiveStore extends _$ActiveStore {
     );
   }
 
+  /// Beralih ke toko tertentu berdasarkan ID toko (misal ketika tap notifikasi dari toko lain).
+  Future<bool> switchStoreById(String storeId) async {
+    if (storeId.isEmpty) return false;
+    final currentStore = state.value;
+    if (currentStore != null && currentStore['id']?.toString() == storeId) {
+      return true; // Sudah di toko ini
+    }
+
+    // 1. Coba cari di Isar terlebih dahulu
+    final localStore = await _isar.stores.filter()
+        .supabaseIdEqualTo(storeId)
+        .findFirst();
+
+    if (localStore != null) {
+      await selectStore(localStore.toMap());
+    }
+
+    // 2. Jika online, perbarui info detail & user_role dari Supabase
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user != null) {
+      final connectivity = ref.read(connectivityNotifierProvider).value;
+      if (connectivity == ConnectivityStatus.online) {
+        try {
+          final supabase = Supabase.instance.client;
+          await supabase.ensureValidSession();
+          final response = await supabase
+              .from('store_members')
+              .select('role, stores(*)')
+              .eq('store_id', storeId)
+              .eq('user_id', user.id)
+              .maybeSingle();
+
+          if (response != null && response['stores'] != null) {
+            final storeMap = Map<String, dynamic>.from(response['stores']);
+            if (storeMap['deleted_at'] == null) {
+              storeMap['user_role'] = response['role'];
+              await selectStore(storeMap);
+              return true;
+            }
+          }
+        } catch (e) {
+          // Abaikan jika network issue dan sudah dapat dari Isar
+        }
+      }
+    }
+
+    return localStore != null;
+  }
+
   Future<void> createStore({
     required String name,
     required String address,

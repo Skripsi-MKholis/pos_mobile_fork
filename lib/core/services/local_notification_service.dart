@@ -165,6 +165,7 @@ class LocalNotificationService {
     required String body,
     String? type,
     String? supabaseId,
+    String? storeId,
     String? metadataJson,
   }) async {
     await initialize();
@@ -172,6 +173,7 @@ class LocalNotificationService {
     final payload = jsonEncode({
       'type': type,
       'id': supabaseId,
+      'store_id': storeId,
       'metadata': metadataJson,
     });
 

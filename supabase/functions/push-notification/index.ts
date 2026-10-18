@@ -196,8 +196,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Tentukan user penerima
+    // Tentukan user penerima dan nama toko jika ada
     let userIds: string[] = [];
+    let storeName: string | null = null;
+
+    if (record.store_id) {
+      const { data: storeData } = await supabase
+        .from("stores")
+        .select("name")
+        .eq("id", record.store_id)
+        .maybeSingle();
+      if (storeData && storeData.name) {
+        storeName = storeData.name;
+      }
+    }
+
     if (record.user_id) {
       userIds = [record.user_id];
     } else if (record.store_id) {
@@ -213,6 +226,11 @@ Deno.serve(async (req) => {
     const senderId = record.metadata?.["sender_id"] as string | undefined;
     if (senderId) {
       userIds = userIds.filter((id) => id !== senderId);
+    }
+
+    // Sisipkan nama toko di judul notifikasi jika ada nama toko dan belum berprefix toko
+    if (storeName && record.title && !record.title.startsWith(`[${storeName}]`)) {
+      record.title = `[${storeName}] ${record.title}`;
     }
 
     if (userIds.length === 0) {

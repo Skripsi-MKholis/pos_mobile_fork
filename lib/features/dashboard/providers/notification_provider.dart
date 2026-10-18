@@ -8,27 +8,39 @@ import 'package:pos_mobile/features/auth/providers/store_provider.dart';
 import 'package:pos_mobile/features/dashboard/providers/notification_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:pos_mobile/core/utils/supabase_helper.dart';
+import 'package:pos_mobile/core/models/store.dart';
+import 'package:isar_community/isar.dart';
 
 part 'notification_provider.g.dart';
 
 // Provider untuk menampung notifikasi terbaru yang masuk secara real-time guna memicu UI Toast
 final lastReceivedNotificationProvider = StateProvider<NotificationLocalModel?>((ref) => null);
 
-@riverpod
+@Riverpod(keepAlive: true)
 class NotificationNotifier extends _$NotificationNotifier {
   final NotificationRepository _repository = NotificationRepository();
   RealtimeChannel? _channel;
 
   @override
   FutureOr<List<NotificationLocalModel>> build() async {
-
     // Memantau store aktif
     final activeStore = ref.watch(activeStoreProvider).value;
-    final storeId = activeStore?['id'];
-    if (storeId == null) return [];
+    final activeStoreId = activeStore?['id']?.toString();
+    if (activeStoreId == null) return [];
 
     final user = Supabase.instance.client.auth.currentUser;
     final userId = user?.id;
+
+    // Ambil daftar seluruh toko yang dimiliki/diikuti user
+    final storesAsync = ref.watch(userStoresProvider);
+    final userStoresList = storesAsync.value ?? [];
+    final allStoreIds = userStoresList
+        .map((s) => s['id']?.toString())
+        .whereType<String>()
+        .toSet();
+    if (activeStoreId.isNotEmpty) {
+      allStoreIds.add(activeStoreId);
+    }
 
     // Memantau status koneksi internet
     final connectivity = ref.watch(connectivityNotifierProvider).value;
@@ -40,10 +52,13 @@ class NotificationNotifier extends _$NotificationNotifier {
     if (connectivity == ConnectivityStatus.online) {
       try {
         await Supabase.instance.client.ensureValidSession();
-        final syncedList = await _repository.fetchAndSyncNotifications(storeId, userId);
+        final syncedList = await _repository.fetchAndSyncNotifications(
+          allStoreIds.toList(),
+          userId,
+        );
         
-        // Pasang realtime listener
-        _setupRealtimeListener(storeId, userId);
+        // Pasang realtime listener untuk semua store user
+        _setupRealtimeListener(allStoreIds, activeStoreId, userId);
         
         return syncedList;
       } catch (e) {
@@ -55,36 +70,62 @@ class NotificationNotifier extends _$NotificationNotifier {
     return localList;
   }
 
-  void _setupRealtimeListener(String storeId, String? userId) {
+  void _setupRealtimeListener(
+    Set<String> allowedStoreIds,
+    String activeStoreId,
+    String? userId,
+  ) {
     if (_channel != null) {
       Supabase.instance.client.removeChannel(_channel!);
     }
 
-    _channel = Supabase.instance.client.channel('notifications_realtime')
+    _channel = Supabase.instance.client.channel('notifications_realtime_all_stores')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'notifications',
-          filter: PostgresChangeFilter(
-            type: PostgresChangeFilterType.eq,
-            column: 'store_id',
-            value: storeId,
-          ),
           callback: (payload) async {
             final data = payload.newRecord;
-            
-            // Cek apakah notifikasi untuk pengguna ini (bila user_id diset) atau broadcast (user_id = null)
+            final notifStoreId = data['store_id']?.toString();
             final targetUserId = data['user_id'];
+
+            // 1. Validasi penerima:
+            // Jika user_id diisi dan bukan user saat ini, abaikan
             if (targetUserId != null && targetUserId != userId) {
-              return; // Bukan notifikasi untuk kita
+              return;
+            }
+
+            // Jika ada store_id, pastikan user memiliki akses ke store tersebut
+            if (notifStoreId != null && notifStoreId.isNotEmpty) {
+              if (!allowedStoreIds.contains(notifStoreId)) {
+                return;
+              }
+            }
+
+            // 2. Tentukan nama toko pengirim (jika dari store lain, tambahkan prefix)
+            String title = data['title'] ?? '';
+            if (notifStoreId != null && notifStoreId.isNotEmpty) {
+              try {
+                final isar = IsarService.instance;
+                final storeInDb = await isar.stores
+                    .filter()
+                    .supabaseIdEqualTo(notifStoreId)
+                    .findFirst();
+                if (storeInDb != null && storeInDb.name.isNotEmpty) {
+                  // Jika berasal dari store lain, sertakan info nama toko
+                  if (notifStoreId != activeStoreId) {
+                    title = '[${storeInDb.name}] $title';
+                  }
+                }
+              } catch (_) {}
             }
 
             final notif = NotificationLocalModel()
               ..supabaseId = data['id']
-              ..storeId = data['store_id']
+              ..storeId = notifStoreId
               ..userId = data['user_id']
               ..type = data['type'] ?? 'info'
-              ..title = data['title'] ?? ''
+              ..title = title
               ..message = data['message'] ?? ''
               ..isRead = data['is_read'] ?? false
               ..createdAt = data['created_at'] == null ? null : DateTime.parse(data['created_at'] as String).toLocal()
@@ -101,14 +142,13 @@ class NotificationNotifier extends _$NotificationNotifier {
             // Picu dialog/toast dengan menyimpan notifikasi di StateProvider
             ref.read(lastReceivedNotificationProvider.notifier).state = notif;
 
-            // Tampilkan juga notifikasi native di system tray agar tetap
-            // terlihat walau user sedang di layar lain / layar mati.
-            // Id tray = hash supabaseId, sama dengan jalur FCM → tidak dobel.
+            // Tampilkan juga notifikasi native di system tray
             LocalNotificationService.instance.showForType(
               title: notif.title,
               body: notif.message,
               type: notif.type,
               supabaseId: notif.supabaseId,
+              storeId: notifStoreId,
               metadataJson: notif.metadataJson,
             );
           },
@@ -181,7 +221,7 @@ class NotificationNotifier extends _$NotificationNotifier {
 }
 
 // Provider helper untuk menghitung jumlah notifikasi yang belum dibaca
-@riverpod
+@Riverpod(keepAlive: true)
 int unreadNotificationCount(UnreadNotificationCountRef ref) {
   final notificationsAsync = ref.watch(notificationNotifierProvider);
   return notificationsAsync.maybeWhen(

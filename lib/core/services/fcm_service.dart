@@ -128,6 +128,7 @@ class FCMService {
           body: body,
           type: data['type'],
           supabaseId: data['id'] ?? message.messageId,
+          storeId: data['store_id'],
           metadataJson: data['metadata'],
         );
       }
@@ -167,12 +168,27 @@ class FCMService {
     _initialized = true;
   }
 
+  /// Sinkronisasi ulang token FCM ke tabel user_fcm_tokens (misal setelah login/ganti user)
+  Future<void> syncTokenIfLoggedIn() async {
+    try {
+      final token = await _messaging.getToken();
+      if (token != null) {
+        await saveTokenToSupabase(token);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Gagal syncTokenIfLoggedIn: $e');
+      }
+    }
+  }
+
   // Arahkan navigasi ketika push FCM ditap (background/terminated)
   void _handleRemoteMessageTap(RemoteMessage message) {
     final data = message.data;
     NotificationDeepLink.handlePayload(jsonEncode({
       'type': data['type'],
       'id': data['id'],
+      'store_id': data['store_id'],
       'metadata': data['metadata'],
     }));
   }
