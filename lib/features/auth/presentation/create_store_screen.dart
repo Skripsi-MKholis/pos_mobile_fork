@@ -260,102 +260,111 @@ class _CreateStoreScreenState extends ConsumerState<CreateStoreScreen> {
       body: SafeArea(
         child: Stack(
           children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Warna.primary,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Warna.primary.withOpacity(0.2),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(TablerIcons.building_store, size: 28, color: Colors.black),
-                    ),
-                  ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
-
-                  const SizedBox(height: 20),
-
-                  Text(
-                    'Selamat Datang!',
-                    style: theme.textTheme.h2.copyWith(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 24,
-                      letterSpacing: -0.5,
-                    ),
-                  ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
-
-                  const SizedBox(height: 12),
-
-                  Text(
-                    'Satu langkah lagi untuk memulai bisnis Anda. Mari buat toko pertama Anda.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.muted.copyWith(fontSize: 14, height: 1.4),
-                  ).animate().fadeIn(delay: 400.ms),
-
-                  const SizedBox(height: 24),
-
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 30,
-                          offset: const Offset(0, 15),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        // Progress bar
-                        Stack(
-                          children: [
-                            Container(
-                              height: 6,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 580),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Warna.primary,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Warna.primary.withOpacity(0.2),
+                                blurRadius: 15,
+                                offset: const Offset(0, 8),
                               ),
+                            ],
+                          ),
+                          child: const Icon(TablerIcons.building_store, size: 28, color: Colors.black),
+                        ),
+                      ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
+
+                      const SizedBox(height: 20),
+
+                      Text(
+                        'Selamat Datang!',
+                        style: theme.textTheme.h2.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 24,
+                          letterSpacing: -0.5,
+                        ),
+                      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
+
+                      const SizedBox(height: 12),
+
+                      Text(
+                        'Satu langkah lagi untuk memulai bisnis Anda. Mari buat toko pertama Anda.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.muted.copyWith(fontSize: 14, height: 1.4),
+                      ).animate().fadeIn(delay: 400.ms),
+
+                      const SizedBox(height: 24),
+
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
                             ),
-                            AnimatedContainer(
-                              duration: 400.ms,
-                              height: 6,
-                              width: MediaQuery.of(context).size.width *
-                                  (_currentStep == 0 ? 0.5 : 1.0),
-                              decoration: BoxDecoration(
-                                color: Warna.primary,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            // Progress bar
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Stack(
+                                  children: [
+                                    Container(
+                                      height: 6,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade100,
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                                      ),
+                                    ),
+                                    AnimatedContainer(
+                                      duration: 400.ms,
+                                      height: 6,
+                                      width: constraints.maxWidth *
+                                          (_currentStep == 0 ? 0.5 : 1.0),
+                                      decoration: BoxDecoration(
+                                        color: Warna.primary,
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(32.0),
+                              child: AnimatedSwitcher(
+                                duration: 300.ms,
+                                child: _currentStep == 0
+                                    ? _buildStep1(theme)
+                                    : _buildStep2(theme),
                               ),
                             ),
                           ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(32.0),
-                          child: AnimatedSwitcher(
-                            duration: 300.ms,
-                            child: _currentStep == 0
-                                ? _buildStep1(theme)
-                                : _buildStep2(theme),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
-                ],
+                      ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1, end: 0),
+                    ],
+                  ),
+                ),
               ),
             ),
             // Back button

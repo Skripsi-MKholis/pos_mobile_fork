@@ -103,41 +103,46 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             itemCount: _pages.length,
             itemBuilder: (context, index) {
               final page = _pages[index];
-              return SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 90.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      page.illustration,
-                      const SizedBox(height: 32),
-                      Text(
-                        page.title,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                          letterSpacing: -0.5,
-                        ),
-                      ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, duration: 500.ms),
-                      const SizedBox(height: 12),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          page.description,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            height: 1.5,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.1, duration: 500.ms),
-                    ],
+              return Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 90.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 20),
+                          page.illustration,
+                          const SizedBox(height: 32),
+                          Text(
+                            page.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontFamily: 'Outfit',
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              letterSpacing: -0.5,
+                            ),
+                          ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, duration: 500.ms),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Text(
+                              page.description,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                height: 1.5,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ).animate().fadeIn(delay: 200.ms, duration: 500.ms).slideY(begin: 0.1, duration: 500.ms),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               );
@@ -149,84 +154,89 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             bottom: 48,
             left: 32,
             right: 32,
-            child: Column(
-              children: [
-                // Animated pill page indicator
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _pages.length,
-                    (index) => AnimatedContainer(
-                      duration: 300.ms,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      height: 8,
-                      width: _currentPage == index ? 24 : 8,
-                      decoration: BoxDecoration(
-                        color: _currentPage == index
-                            ? Warna.primary
-                            : Colors.grey.shade300,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 36),
-                
-                // Action Buttons Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Column(
                   children: [
-                    if (_currentPage < _pages.length - 1)
-                      TextButton(
-                        onPressed: () => _completeOnboarding(),
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        ),
-                        child: Text(
-                          'Lewati',
-                          style: TextStyle(
-                            fontFamily: 'Outfit',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
+                    // Animated pill page indicator
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        _pages.length,
+                        (index) => AnimatedContainer(
+                          duration: 300.ms,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          height: 8,
+                          width: _currentPage == index ? 24 : 8,
+                          decoration: BoxDecoration(
+                            color: _currentPage == index
+                                ? Warna.primary
+                                : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                      )
-                    else
-                      const SizedBox(width: 80),
+                      ),
+                    ),
+                    const SizedBox(height: 36),
                     
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_currentPage < _pages.length - 1) {
-                          _pageController.nextPage(
-                            duration: 400.ms,
-                            curve: Curves.easeInOut,
-                          );
-                        } else {
-                          _completeOnboarding();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Warna.primary,
-                        foregroundColor: Colors.black,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+                    // Action Buttons Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (_currentPage < _pages.length - 1)
+                          TextButton(
+                            onPressed: () => _completeOnboarding(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                            child: Text(
+                              'Lewati',
+                              style: TextStyle(
+                                fontFamily: 'Outfit',
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          )
+                        else
+                          const SizedBox(width: 80),
+                        
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_currentPage < _pages.length - 1) {
+                              _pageController.nextPage(
+                                duration: 400.ms,
+                                curve: Curves.easeInOut,
+                              );
+                            } else {
+                              _completeOnboarding();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Warna.primary,
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Text(
+                            _currentPage == _pages.length - 1 ? 'Mulai Sekarang' : 'Lanjut',
+                            style: const TextStyle(
+                              fontFamily: 'Outfit',
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        _currentPage == _pages.length - 1 ? 'Mulai Sekarang' : 'Lanjut',
-                        style: const TextStyle(
-                          fontFamily: 'Outfit',
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
         ],

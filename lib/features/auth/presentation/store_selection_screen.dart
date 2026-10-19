@@ -78,188 +78,193 @@ class _StoreSelectionScreenState extends ConsumerState<StoreSelectionScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            // Scrollable List Area
-            Expanded(
-              child: storesAsync.when(
-                data: (stores) {
-                  if (stores.isEmpty) {
-                    if (isOffline) {
-                      return SingleChildScrollView(
-                        padding: const EdgeInsets.all(24.0),
-                        child: _buildOfflineEmptyState(context, theme),
-                      );
-                    }
-                    return SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: _buildEmptyState(context, theme),
-                    );
-                  }
-                  
-                  return ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                    physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()), // Beautiful bouncing physics!
-                    itemCount: stores.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final store = stores[index];
-                      // Show section label above the first card!
-                      if (index == 0) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center, // Centered title!
-                              children: [
-                                const Icon(TablerIcons.building_store, size: 18, color: Colors.black54),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'OUTLET ANDA',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.0,
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ).animate().fadeIn(delay: 200.ms),
-                            const SizedBox(height: 16),
-                            _buildStoreCard(context, ref, theme, store, Warna.primary),
-                          ],
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Column(
+              children: [
+                // Scrollable List Area
+                Expanded(
+                  child: storesAsync.when(
+                    data: (stores) {
+                      if (stores.isEmpty) {
+                        if (isOffline) {
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(24.0),
+                            child: _buildOfflineEmptyState(context, theme),
+                          );
+                        }
+                        return SingleChildScrollView(
+                          padding: const EdgeInsets.all(24.0),
+                          child: _buildEmptyState(context, theme),
                         );
                       }
-                      return _buildStoreCard(context, ref, theme, store, Warna.primary);
+                      
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()), // Beautiful bouncing physics!
+                        itemCount: stores.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final store = stores[index];
+                          // Show section label above the first card!
+                          if (index == 0) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center, // Centered title!
+                                  children: [
+                                    const Icon(TablerIcons.building_store, size: 18, color: Colors.black54),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'OUTLET ANDA',
+                                      style: TextStyle(
+                                        color: Colors.grey[500],
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.0,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ).animate().fadeIn(delay: 200.ms),
+                                const SizedBox(height: 16),
+                                _buildStoreCard(context, ref, theme, store, Warna.primary),
+                              ],
+                            );
+                          }
+                          return _buildStoreCard(context, ref, theme, store, Warna.primary);
+                        },
+                      );
                     },
-                  );
-                },
-                loading: () => Center(
-                  child: CircularProgressIndicator(
-                    color: Warna.primary,
+                    loading: () => Center(
+                      child: CircularProgressIndicator(
+                        color: Warna.primary,
+                      ),
+                    ),
+                    error: (err, stack) => Center(child: Text('Error: $err')),
                   ),
                 ),
-                error: (err, stack) => Center(child: Text('Error: $err')),
-              ),
-            ),
 
-            // Sticky Bottom Buttons Container
-            Container(
-              padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 20.0, top: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Join with Invite Code Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: isOffline
-                          ? null
-                          : () => _showJoinStoreDialog(context, Warna.primary, theme),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isOffline
-                            ? Colors.grey.shade100
-                            : Warna.primary, // Solid brand green primary!
-                        foregroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 0,
+                // Sticky Bottom Buttons Container
+                Container(
+                  padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 20.0, top: 12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, -4),
                       ),
-                      child: Row(
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Join with Invite Code Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: isOffline
+                              ? null
+                              : () => _showJoinStoreDialog(context, Warna.primary, theme),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isOffline
+                                ? Colors.grey.shade100
+                                : Warna.primary, // Solid brand green primary!
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                TablerIcons.ticket,
+                                size: 18,
+                                color: isOffline ? Colors.grey : Colors.black,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Punya Kode Undangan?',
+                                style: TextStyle(
+                                  color: isOffline ? Colors.grey : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            TablerIcons.ticket,
-                            size: 18,
-                            color: isOffline ? Colors.grey : Colors.black,
+                          Container(
+                            height: 1,
+                            width: 40,
+                            color: Colors.grey.shade200,
                           ),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 8),
                           Text(
-                            'Punya Kode Undangan?',
+                            'atau kelola toko baru',
                             style: TextStyle(
-                              color: isOffline ? Colors.grey : Colors.black,
+                              color: Colors.grey[400],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 1,
+                            width: 40,
+                            color: Colors.grey.shade200,
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                       // Register New Store Button
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: isOffline
+                              ? null
+                              : () => context.push('/create-store'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: BorderSide(
+                              color: isOffline ? Colors.grey.shade300 : Warna.primary,
+                              width: 1.5,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Text(
+                            '+ Daftarkan Toko / Outlet Baru',
+                            style: TextStyle(
+                              color: isOffline ? Colors.grey : Colors.black87,
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        height: 1,
-                        width: 40,
-                        color: Colors.grey.shade200,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'atau kelola toko baru',
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        height: 1,
-                        width: 40,
-                        color: Colors.grey.shade200,
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 12),
-
-                   // Register New Store Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: isOffline
-                          ? null
-                          : () => context.push('/create-store'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(
-                          color: isOffline ? Colors.grey.shade300 : Warna.primary,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Text(
-                        '+ Daftarkan Toko / Outlet Baru',
-                        style: TextStyle(
-                          color: isOffline ? Colors.grey : Colors.black87,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

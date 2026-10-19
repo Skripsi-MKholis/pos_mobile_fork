@@ -96,11 +96,14 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
               // Back button
               Align(
                 alignment: Alignment.centerLeft,
@@ -293,8 +296,10 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildStep({required String number, required String text}) {
     return Row(
