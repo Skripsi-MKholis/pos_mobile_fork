@@ -73,45 +73,50 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         },
         color: Warna.primary,
         backgroundColor: Colors.white,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Pengantar Fitur
-              _buildHeaderBanner(isIndonesian, theme),
-              const SizedBox(height: 20),
-
-            // Filter Periode
-            _buildTimeFilter(theme, isIndonesian),
-            const SizedBox(height: 20),
-
-            // Konten Perhitungan Laba & HPP
-            analyticsAsync.when(
-              data: (state) => _buildProfitAndCogsContent(
-                state,
-                productsAsync,
-                currencyFormat,
-                theme,
-                isIndonesian,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
               ),
-              loading: () => _buildLoadingSkeleton(theme),
-              error: (err, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Text(
-                    isIndonesian
-                        ? 'Gagal memuat kalkulasi: $err'
-                        : 'Failed to load calculations: $err',
-                    style: TextStyle(color: Colors.grey[600]),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Pengantar Fitur
+                  _buildHeaderBanner(isIndonesian, theme),
+                  const SizedBox(height: 20),
+
+                // Filter Periode
+                _buildTimeFilter(theme, isIndonesian),
+                const SizedBox(height: 20),
+
+                // Konten Perhitungan Laba & HPP
+                analyticsAsync.when(
+                  data: (state) => _buildProfitAndCogsContent(
+                    state,
+                    productsAsync,
+                    currencyFormat,
+                    theme,
+                    isIndonesian,
+                  ),
+                  loading: () => _buildLoadingSkeleton(theme),
+                  error: (err, _) => Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text(
+                        isIndonesian
+                            ? 'Gagal memuat kalkulasi: $err'
+                            : 'Failed to load calculations: $err',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       ),

@@ -73,37 +73,42 @@ class _SalesPerformanceScreenState
             onRefresh: isLocked
                 ? () async {}
                 : () => ref.read(salesPerformanceProvider.notifier).fetch(range),
-            child: ListView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-              children: [
-                _buildTimeFilter(l10n, theme, range),
-                const SizedBox(height: 16),
-                perfAsync.when(
-                  data: (state) => _buildContent(
-                    context,
-                    state,
-                    l10n,
-                    theme,
-                    currency,
-                    compact,
-                    locale,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ListView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                  loading: () => _buildSkeleton(theme),
-                  error: (err, _) => Padding(
-                    padding: const EdgeInsets.only(top: 80),
-                    child: Center(
-                      child: Text(
-                        l10n.failedToLoad(err.toString()),
-                        style: theme.textTheme.muted,
-                        textAlign: TextAlign.center,
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                  children: [
+                    _buildTimeFilter(l10n, theme, range),
+                    const SizedBox(height: 16),
+                    perfAsync.when(
+                      data: (state) => _buildContent(
+                        context,
+                        state,
+                        l10n,
+                        theme,
+                        currency,
+                        compact,
+                        locale,
+                      ),
+                      loading: () => _buildSkeleton(theme),
+                      error: (err, _) => Padding(
+                        padding: const EdgeInsets.only(top: 80),
+                        child: Center(
+                          child: Text(
+                            l10n.failedToLoad(err.toString()),
+                            style: theme.textTheme.muted,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           if (isLocked) _buildLockOverlay(theme),

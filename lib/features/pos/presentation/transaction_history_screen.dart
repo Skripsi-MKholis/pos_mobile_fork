@@ -106,12 +106,15 @@ class _TransactionHistoryScreenState
       },
       color: Warna.primary,
       backgroundColor: Colors.white,
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
 
           // Segment Switcher: Riwayat Transaksi vs Tren & Produk Terlaris
           SliverToBoxAdapter(
@@ -457,7 +460,9 @@ class _TransactionHistoryScreenState
           ],
         ],
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildSegmentSwitcher(bool isIndonesian) {
