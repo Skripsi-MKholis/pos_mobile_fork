@@ -595,31 +595,36 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
         ),
         body: SafeArea(
           top: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: ShadForm(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 1. Identity Header Card (Logo, Name, Business Type)
-                  _buildHeaderIdentityCard(activeStore, storeName, businessType, isId),
-                  const SizedBox(height: 14),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                child: ShadForm(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 1. Identity Header Card (Logo, Name, Business Type)
+                      _buildHeaderIdentityCard(activeStore, storeName, businessType, isId),
+                      const SizedBox(height: 14),
 
-                  // 2. Business Details Form Card
-                  _buildFormCard(activeStore, theme, isId),
-                  const SizedBox(height: 14),
+                      // 2. Business Details Form Card
+                      _buildFormCard(activeStore, theme, isId),
+                      const SizedBox(height: 14),
 
-                  // 3. Operational Profile Card
-                  _buildOperationalCard(theme, isId),
-                  const SizedBox(height: 14),
+                      // 3. Operational Profile Card
+                      _buildOperationalCard(theme, isId),
+                      const SizedBox(height: 14),
 
-                  // 4. Danger Zone Card (Owner only)
-                  _buildDangerZoneCard(activeStore, theme, isId),
-                ],
+                      // 4. Danger Zone Card (Owner only)
+                      _buildDangerZoneCard(activeStore, theme, isId),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
