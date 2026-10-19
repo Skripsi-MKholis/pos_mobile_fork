@@ -371,13 +371,23 @@ class _POSScreenState extends ConsumerState<POSScreen> {
     );
     final theme = ShadTheme.of(context);
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      behavior: HitTestBehavior.translucent,
-      child: Column(
-        children: [
-          // Top Toolbar with Table Selection
-          Padding(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenWidth = constraints.maxWidth;
+        // Hitung jumlah kolom produk:
+        // Layar < 600 (ponsel): 2 kolom
+        // Layar 600 - 900 (tablet kecil / medium): 3-4 kolom
+        // Layar >= 900 (tablet landscape): 4-5 kolom
+        final int crossAxisCount = (screenWidth / 180).floor().clamp(2, 5);
+        final bool isTablet = screenWidth >= 720;
+
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          behavior: HitTestBehavior.translucent,
+          child: Column(
+            children: [
+              // Top Toolbar with Table Selection
+              Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: Row(
               children: [
@@ -558,7 +568,7 @@ class _POSScreenState extends ConsumerState<POSScreen> {
 
                   if (products.isEmpty) {
                     final bottomInset = MediaQuery.of(context).padding.bottom;
-                    final navBarHeight = 76.0 + 24.0 + bottomInset;
+                    final navBarHeight = isTablet ? 40.0 : (76.0 + 24.0 + bottomInset);
 
                     return LayoutBuilder(
                       builder: (context, constraints) {
@@ -740,6 +750,10 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                   final showCustomCard = isAllCategory && isNotSearching;
                   final totalGridCount = filteredProducts.length + (showCustomCard ? 1 : 0);
 
+                  final bottomPadding = isTablet
+                      ? (cartItems.isNotEmpty ? 110.0 : 32.0)
+                      : (cartItems.isNotEmpty ? 190.0 : 100.0);
+
                   return GridView.builder(
                     physics: const BouncingScrollPhysics(
                       parent: AlwaysScrollableScrollPhysics(),
@@ -748,11 +762,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                       16,
                       16,
                       16,
-                      cartItems.isNotEmpty ? 190 : 100,
+                      bottomPadding,
                     ),
                     gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                        SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
                           childAspectRatio: 0.8,
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
@@ -780,7 +794,11 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     },
                   );
                 },
-                loading: () => _buildProductSkeleton(context),
+                loading: () => _buildProductSkeleton(
+                  context,
+                  crossAxisCount: crossAxisCount,
+                  isTablet: isTablet,
+                ),
                 error: (err, stack) => Center(child: Text('Error: $err')),
               ),
             ),
@@ -789,13 +807,20 @@ class _POSScreenState extends ConsumerState<POSScreen> {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: _buildCartSummary(context, cartNotifier, currencyFormat),
+                    child: _buildCartSummary(
+                      context,
+                      cartNotifier,
+                      currencyFormat,
+                      isTablet: isTablet,
+                    ),
                   ),
               ],
             ),
           ),
         ],
       ),
+    );
+      },
     );
   }
 
@@ -1245,12 +1270,13 @@ class _POSScreenState extends ConsumerState<POSScreen> {
   Widget _buildCartSummary(
     BuildContext context,
     CartNotifier cartNotifier,
-    NumberFormat format,
-  ) {
+    NumberFormat format, {
+    bool isTablet = false,
+  }) {
     final theme = ShadTheme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+    final summaryWidget = Container(
+      margin: EdgeInsets.fromLTRB(16, 0, 16, isTablet ? 20 : 96),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1333,25 +1359,43 @@ class _POSScreenState extends ConsumerState<POSScreen> {
         ),
       ),
     );
+
+    if (isTablet) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: summaryWidget,
+        ),
+      );
+    }
+    return summaryWidget;
   }
 
-  Widget _buildProductSkeleton(BuildContext context) {
+  Widget _buildProductSkeleton(
+    BuildContext context, {
+    int crossAxisCount = 2,
+    bool isTablet = false,
+  }) {
     final theme = ShadTheme.of(context);
     final cartItems = ref.watch(cartNotifierProvider).items;
+    final bottomPadding = isTablet
+        ? (cartItems.isNotEmpty ? 110.0 : 32.0)
+        : (cartItems.isNotEmpty ? 190.0 : 100.0);
+
     return GridView.builder(
       padding: EdgeInsets.fromLTRB(
         16,
         16,
         16,
-        cartItems.isNotEmpty ? 190 : 100,
+        bottomPadding,
       ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
         childAspectRatio: 0.8,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: 6,
+      itemCount: crossAxisCount * 2,
       itemBuilder: (context, index) => Shimmer.fromColors(
         baseColor: theme.colorScheme.muted.withOpacity(0.5),
         highlightColor: theme.colorScheme.muted.withOpacity(0.2),

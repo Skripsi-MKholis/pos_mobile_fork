@@ -46,64 +46,75 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       decimalDigits: 0,
     );
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        final isValid = await ref.read(activeStoreProvider.notifier).validateActiveStore();
-        if (!isValid) return;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth >= 720;
 
-        ref
-            .read(analyticsProvider.notifier)
-            .fetchAnalytics(AnalyticsTimeRange.week);
-        ref.read(productNotifierProvider.notifier).syncProducts();
+        return RefreshIndicator(
+          onRefresh: () async {
+            final isValid = await ref.read(activeStoreProvider.notifier).validateActiveStore();
+            if (!isValid) return;
+
+            ref
+                .read(analyticsProvider.notifier)
+                .fetchAnalytics(AnalyticsTimeRange.week);
+            ref.read(productNotifierProvider.notifier).syncProducts();
+          },
+          color: Warna.primary,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 32 : 20,
+              vertical: 20,
+            ),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildQuickAccessGrid(context, l10n, theme, isTablet: isTablet),
+                const SizedBox(height: 18),
+                Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: theme.colorScheme.border.withValues(alpha: 0.5),
+                ),
+                const SizedBox(height: 18),
+                _buildHeader(l10n, theme),
+                const SizedBox(height: 16),
+                _buildExpiringBanner(context, ref, theme, l10n),
+                const SizedBox(height: 8),
+                _buildTimeFilter(ref, l10n, theme),
+                const SizedBox(height: 16),
+                _buildStatsGrid(
+                  context,
+                  l10n,
+                  analyticsAsync,
+                  productsAsync,
+                  currencyFormat,
+                  theme,
+                  isTablet: isTablet,
+                ),
+                const Center(
+                  child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
+                ),
+                const SizedBox(height: 16),
+                _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
+                SizedBox(height: isTablet ? 40 : 110), // Di tablet tidak ada floating nav bar bawah
+              ],
+            ),
+          ),
+        );
       },
-      color: Warna.primary,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildQuickAccessGrid(context, l10n, theme),
-            const SizedBox(height: 18),
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: theme.colorScheme.border.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 18),
-            _buildHeader(l10n, theme),
-            const SizedBox(height: 16),
-            _buildExpiringBanner(context, ref, theme, l10n),
-            const SizedBox(height: 8),
-            _buildTimeFilter(ref, l10n, theme),
-            const SizedBox(height: 16),
-            _buildStatsGrid(
-              context,
-              l10n,
-              analyticsAsync,
-              productsAsync,
-              currencyFormat,
-              theme,
-            ),
-            const Center(
-              child: BannerAdWidget(padding: EdgeInsets.symmetric(vertical: 4)),
-            ),
-            const SizedBox(height: 16),
-            _buildSalesPerformanceCard(context, analyticsAsync, l10n, theme),
-            const SizedBox(height: 110), // Jarak aman agar tidak tertutup floating bottom bar
-          ],
-        ),
-      ),
     );
   }
 
   Widget _buildQuickAccessGrid(
     BuildContext context,
     AppLocalizations l10n,
-    ShadThemeData theme,
-  ) {
+    ShadThemeData theme, {
+    bool isTablet = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final quickActions = [
@@ -168,9 +179,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: quickActions.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            crossAxisSpacing: 8,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isTablet ? quickActions.length : 4,
+            crossAxisSpacing: isTablet ? 16 : 8,
             mainAxisSpacing: 10,
             mainAxisExtent: 74,
           ),
@@ -230,8 +241,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     AsyncValue<AnalyticsState> analyticsAsync,
     AsyncValue<List<dynamic>> productsAsync,
     NumberFormat format,
-    ShadThemeData theme,
-  ) {
+    ShadThemeData theme, {
+    bool isTablet = false,
+  }) {
     final analytics = analyticsAsync.value;
     final products = productsAsync.value;
     final isLoading = analyticsAsync.isLoading;
@@ -273,10 +285,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
-      crossAxisCount: 2,
+      crossAxisCount: isTablet ? 4 : 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
+      childAspectRatio: isTablet ? 1.6 : 1.4,
       children: [
         _buildStatCard(
           revenueLabel,

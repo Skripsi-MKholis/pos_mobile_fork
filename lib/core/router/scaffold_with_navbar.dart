@@ -188,197 +188,302 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
 
         await SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       },
-      child: Scaffold(
-        key: _scaffoldKey,
-        extendBody: true,
-        extendBodyBehindAppBar: false,
-        drawer: const AppDrawer(),
-        appBar: PillAppBar(
-          title: pageTitle,
-          showDrawerButton: true,
-          actions: [
-            Consumer(
-              builder: (context, ref, child) {
-                final status = ref.watch(connectivityNotifierProvider);
-                return status.when(
-                  data: (s) {
-                    if (s == ConnectivityStatus.online) {
-                      return const SizedBox.shrink();
-                    }
-                    return InkWell(
-                      onTap: () {
-                        context.push('/sync-monitoring');
-                      },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth >= 720;
+
+          // Widget Body dengan Sidebar (Tablet) atau Full (Phone)
+          Widget contentBody;
+          if (isTablet) {
+            contentBody = Row(
+              children: [
+                // Floating Left Sidebar Navigation
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+                  child: _buildSidebar(context, navItems, selectedIndex, theme),
+                ),
+                Expanded(child: widget.navigationShell),
+              ],
+            );
+          } else {
+            contentBody = widget.navigationShell;
+          }
+
+          return Scaffold(
+            key: _scaffoldKey,
+            extendBody: !isTablet,
+            extendBodyBehindAppBar: false,
+            drawer: const AppDrawer(),
+            appBar: PillAppBar(
+              title: pageTitle,
+              showDrawerButton: true,
+              compact: isTablet,
+              actions: [
+                Consumer(
+                  builder: (context, ref, child) {
+                    final status = ref.watch(connectivityNotifierProvider);
+                    return status.when(
+                      data: (s) {
+                        if (s == ConnectivityStatus.online) {
+                          return const SizedBox.shrink();
+                        }
+                        return InkWell(
+                          onTap: () {
+                            context.push('/sync-monitoring');
+                          },
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.orange.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
-                              decoration: const BoxDecoration(
-                                color: Colors.orange,
-                                shape: BoxShape.circle,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.orange.withValues(alpha: 0.2),
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Offline',
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.orange,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  'Offline',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    );
+                  },
+                ),
+                const SizedBox(width: 4),
+                Center(
+                  child: Container(
+                    width: isTablet ? 38 : 44,
+                    height: isTablet ? 38 : 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        width: 1,
+                      ),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Consumer(
+                        builder: (context, ref, child) {
+                          final unreadCount = ref.watch(
+                            unreadNotificationCountProvider,
+                          );
+                          return Badge(
+                            label: Text(unreadCount.toString()),
+                            isLabelVisible: unreadCount > 0,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                            child: Icon(
+                              TablerIcons.bell,
+                              size: isTablet ? 18 : 20,
+                              color: Colors.black,
+                            ),
+                          );
+                        },
+                      ),
+                      onPressed: () {
+                        context.push('/notifications');
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(width: isTablet ? 12 : 8),
+              ],
+            ),
+            body: contentBody,
+            bottomNavigationBar: isTablet
+                ? null
+                : Builder(
+                    builder: (context) {
+                      final systemNavInset =
+                          MediaQuery.of(context).padding.bottom;
+                      final floatingOffset = 24 + systemNavInset;
+                      return Container(
+                        height: 76 + floatingOffset,
+                        color: Colors.transparent,
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 20,
+                              right: 20,
+                              bottom: floatingOffset,
+                              child: Container(
+                                height: 64,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(32),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      blurRadius: 20,
+                                      color: Colors.black.withValues(alpha: .2),
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                  ),
+                                  child: GNav(
+                                    rippleColor: Colors.white10,
+                                    hoverColor: Colors.white10,
+                                    gap: 4,
+                                    activeColor: Warna.black,
+                                    iconSize: 20,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 10,
+                                    ),
+                                    duration: const Duration(milliseconds: 300),
+                                    tabBackgroundColor: Warna.primary,
+                                    color: Colors.white54,
+                                    tabs: navItems
+                                        .map(
+                                          (item) => GButton(
+                                            icon: item['icon'],
+                                            text: item['label'],
+                                            textStyle: const TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              color: Warna.black,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                    selectedIndex: selectedIndex == -1
+                                        ? 0
+                                        : selectedIndex,
+                                    onTabChange: (index) {
+                                      final item = navItems[index];
+                                      if (item['branch'] != null) {
+                                        widget.navigationShell.goBranch(
+                                          item['branch'] as int,
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                );
-              },
-            ),
-            const SizedBox(width: 4),
-            Center(
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    width: 1,
-                  ),
-                ),
-                child: IconButton(
-                  icon: Consumer(
-                    builder: (context, ref, child) {
-                      final unreadCount = ref.watch(
-                        unreadNotificationCountProvider,
-                      );
-                      return Badge(
-                        label: Text(unreadCount.toString()),
-                        isLabelVisible: unreadCount > 0,
-                        backgroundColor: Colors.red,
-                        textColor: Colors.white,
-                        child: const Icon(
-                          TablerIcons.bell,
-                          size: 20,
-                          color: Colors.black,
-                        ),
                       );
                     },
                   ),
-                  onPressed: () {
-                    context.push('/notifications');
-                  },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildSidebar(
+    BuildContext context,
+    List<Map<String, dynamic>> navItems,
+    int selectedIndex,
+    ShadThemeData theme,
+  ) {
+    return Container(
+      width: 76,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.9), // Sama persis dengan portrait navbar
+        borderRadius: BorderRadius.circular(38),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 20,
+            color: Colors.black.withValues(alpha: .2),
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(navItems.length, (index) {
+          final item = navItems[index];
+          final isSelected = selectedIndex == index;
+          final IconData icon = item['icon'];
+          final String label = item['label'];
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6.0),
+            child: InkWell(
+              onTap: () {
+                if (item['branch'] != null) {
+                  widget.navigationShell.goBranch(item['branch'] as int);
+                }
+              },
+              borderRadius: BorderRadius.circular(24),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? Warna.primary : Colors.transparent,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: isSelected ? Warna.black : Colors.white54,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: isSelected ? Warna.black : Colors.white54,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        body: widget.navigationShell,
-        bottomNavigationBar: Builder(
-          builder: (context) {
-            // Jarak aman dari tombol navigasi/gestur bawaan Android (home/back)
-            // agar navbar mengambang tidak tertutup.
-            final systemNavInset = MediaQuery.of(context).padding.bottom;
-            final floatingOffset = 24 + systemNavInset;
-            return Container(
-              height: 76 + floatingOffset, // Extra height to allow floating
-              color: Colors.transparent,
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 20,
-                    right: 20,
-                    bottom: floatingOffset,
-                    child: Container(
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(
-                          alpha: 0.9,
-                        ), // Modern opacity
-                        borderRadius: BorderRadius.circular(32),
-                        boxShadow: [
-                          BoxShadow(
-                            blurRadius: 20,
-                            color: Colors.black.withValues(alpha: .2),
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: GNav(
-                          rippleColor: Colors.white10,
-                          hoverColor: Colors.white10,
-                          gap: 4,
-                          activeColor: Warna.black,
-                          iconSize: 20,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 10,
-                          ),
-                          duration: const Duration(milliseconds: 300),
-                          tabBackgroundColor: Warna.primary,
-                          color: Colors.white54,
-                          tabs: navItems
-                              .map(
-                                (item) => GButton(
-                                  icon: item['icon'],
-                                  text: item['label'],
-                                  textStyle: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: Warna.black,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                          selectedIndex: selectedIndex == -1
-                              ? 0
-                              : selectedIndex,
-                          onTabChange: (index) {
-                            final item = navItems[index];
-                            if (item['branch'] != null) {
-                              widget.navigationShell.goBranch(
-                                item['branch'] as int,
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+          );
+        }),
       ),
     );
   }

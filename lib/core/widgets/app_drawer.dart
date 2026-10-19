@@ -16,10 +16,14 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Di ponsel menggunakan 80% lebar layar, di tablet dibatasi maksimal 360px
+    final drawerWidth = (screenWidth * 0.8).clamp(280.0, 360.0);
+
     return Drawer(
       backgroundColor: Colors.white,
       elevation: 0,
-      width: MediaQuery.of(context).size.width * 0.8,
+      width: drawerWidth,
       child: const SafeArea(
         child: Column(
           children: [

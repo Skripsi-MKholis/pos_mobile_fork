@@ -6,6 +6,7 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PillAppBar({
     required this.title,
     this.showDrawerButton = false,
+    this.compact = false,
     this.leading,
     this.actions,
     super.key,
@@ -13,22 +14,25 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   final String title;
   final bool showDrawerButton;
+  final bool compact;
   final Widget? leading;
   final List<Widget>? actions;
 
   @override
-  Size get preferredSize => const Size.fromHeight(80);
+  Size get preferredSize => Size.fromHeight(compact ? 54 : 80);
 
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final buttonSize = compact ? 38.0 : 44.0;
+    final iconSize = compact ? 18.0 : 20.0;
 
     Widget? leadingWidget = leading;
     if (leadingWidget == null && showDrawerButton) {
       leadingWidget = Center(
         child: Container(
-          width: 44,
-          height: 44,
+          width: buttonSize,
+          height: buttonSize,
           decoration: BoxDecoration(
             color: Colors.white,
             shape: BoxShape.circle,
@@ -46,9 +50,10 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           child: Builder(
             builder: (context) => IconButton(
-              icon: const Icon(
+              padding: EdgeInsets.zero,
+              icon: Icon(
                 TablerIcons.menu_2,
-                size: 20,
+                size: iconSize,
                 color: Colors.black,
               ),
               onPressed: () => Scaffold.of(context).openDrawer(),
@@ -72,9 +77,14 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+            padding: EdgeInsets.fromLTRB(
+              compact ? 16 : 20,
+              compact ? 4 : 12,
+              compact ? 16 : 20,
+              compact ? 4 : 12,
+            ),
             child: SizedBox(
-              height: 56,
+              height: compact ? 44 : 56,
               child: AppBar(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -82,12 +92,12 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
                 elevation: 0,
                 scrolledUnderElevation: 0,
                 centerTitle: true,
-                leadingWidth: leadingWidget != null ? 56 : 0,
+                leadingWidth: leadingWidget != null ? (compact ? 46 : 56) : 0,
                 leading: leadingWidget,
                 title: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: compact ? 16 : 20,
+                    vertical: compact ? 6 : 8,
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -108,7 +118,7 @@ class PillAppBar extends StatelessWidget implements PreferredSizeWidget {
                     title,
                     style: theme.textTheme.h4.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: compact ? 14 : 16,
                       color: Colors.black,
                     ),
                   ),
