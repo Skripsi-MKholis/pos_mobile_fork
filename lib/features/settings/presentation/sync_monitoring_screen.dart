@@ -226,13 +226,16 @@ class _SyncMonitoringScreenState extends ConsumerState<SyncMonitoringScreen> {
           ),
 
           SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                     // Connectivity Status Card
                     _buildConnectivityCard(isOnline, theme)
                         .animate()
@@ -354,9 +357,11 @@ class _SyncMonitoringScreenState extends ConsumerState<SyncMonitoringScreen> {
               ),
             ),
           ),
-        ],
+        ),
       ),
-    );
+    ],
+  ),
+);
   }
 
   Widget _buildConnectivityCard(bool isOnline, ShadThemeData theme) {

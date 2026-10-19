@@ -37,60 +37,65 @@ class AppSettingsScreen extends ConsumerWidget {
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Section: Preferensi Sistem & Aplikasi
-            _buildSection(
-              theme,
-              title: isIndonesian ? 'PREFERENSI APLIKASI' : 'APP PREFERENCES',
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTile(
+                // Section: Preferensi Sistem & Aplikasi
+                _buildSection(
                   theme,
-                  icon: TablerIcons.language,
-                  title: l10n.language,
-                  trailingText: l10n.languageName,
-                  subtitle: isIndonesian
-                      ? 'Pilih bahasa antarmuka aplikasi'
-                      : 'Select application interface language',
-                  onTap: () => _showLanguageSelector(context, ref, currentLocale),
+                  title: isIndonesian ? 'PREFERENSI APLIKASI' : 'APP PREFERENCES',
+                  children: [
+                    _buildTile(
+                      theme,
+                      icon: TablerIcons.language,
+                      title: l10n.language,
+                      trailingText: l10n.languageName,
+                      subtitle: isIndonesian
+                          ? 'Pilih bahasa antarmuka aplikasi'
+                          : 'Select application interface language',
+                      onTap: () => _showLanguageSelector(context, ref, currentLocale),
+                    ),
+                    _buildTile(
+                      theme,
+                      icon: TablerIcons.refresh,
+                      title: l10n.dataSynchronization,
+                      subtitle: isIndonesian
+                          ? 'Status antrean & sinkronisasi offline'
+                          : 'Offline queue status & data sync',
+                      onTap: () => context.push('/sync-monitoring'),
+                    ),
+                  ],
                 ),
-                _buildTile(
-                  theme,
-                  icon: TablerIcons.refresh,
-                  title: l10n.dataSynchronization,
-                  subtitle: isIndonesian
-                      ? 'Status antrean & sinkronisasi offline'
-                      : 'Offline queue status & data sync',
-                  onTap: () => context.push('/sync-monitoring'),
+                const SizedBox(height: 32),
+
+                // App Version Info
+                Center(
+                  child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final appVersion = snapshot.data?.version ?? '';
+                      final buildNumber = snapshot.data?.buildNumber ?? '';
+                      return Text(
+                        'Zello POS • ${l10n.version} $appVersion ($buildNumber)',
+                        style: theme.textTheme.muted.copyWith(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      );
+                    },
+                  ),
                 ),
+                const SizedBox(height: 32),
               ],
             ),
-            const SizedBox(height: 32),
-
-            // App Version Info
-            Center(
-              child: FutureBuilder<PackageInfo>(
-                future: PackageInfo.fromPlatform(),
-                builder: (context, snapshot) {
-                  final appVersion = snapshot.data?.version ?? '';
-                  final buildNumber = snapshot.data?.buildNumber ?? '';
-                  return Text(
-                    'Zello POS • ${l10n.version} $appVersion ($buildNumber)',
-                    style: theme.textTheme.muted.copyWith(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ),
       ),
     );

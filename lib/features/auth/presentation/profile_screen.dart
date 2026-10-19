@@ -335,10 +335,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           onRefresh: () async {
             ref.invalidate(userProfileProvider);
           },
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-            child: profileAsync.when(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                child: profileAsync.when(
               data: (profile) {
                 final fullName = profile?['full_name'] ?? 
                     user?.userMetadata?['full_name'] ?? 
@@ -647,7 +650,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildInitialsAvatar(String name) {

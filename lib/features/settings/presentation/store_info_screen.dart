@@ -555,71 +555,81 @@ class _StoreInfoScreenState extends ConsumerState<StoreInfoScreen> {
               ),
             ],
           ),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ShadButton(
-              backgroundColor: hasChanges ? Warna.primary : const Color(0xFFE2E8F0),
-              foregroundColor: hasChanges ? Warna.black : const Color(0xFF94A3B8),
-              onPressed: (!hasChanges || _isSaving) ? null : _saveChanges,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Warna.black,
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          TablerIcons.device_floppy,
-                          size: 18,
-                          color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isId ? 'Simpan Perubahan' : 'Save Changes',
-                          style: TextStyle(
-                            color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14.5,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ShadButton(
+                  backgroundColor: hasChanges ? Warna.primary : const Color(0xFFE2E8F0),
+                  foregroundColor: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+                  onPressed: (!hasChanges || _isSaving) ? null : _saveChanges,
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: Warna.black,
                           ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              TablerIcons.device_floppy,
+                              size: 18,
+                              color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              isId ? 'Simpan Perubahan' : 'Save Changes',
+                              style: TextStyle(
+                                color: hasChanges ? Warna.black : const Color(0xFF94A3B8),
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14.5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                ),
+              ),
             ),
           ),
         ),
         body: SafeArea(
           top: false,
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            child: ShadForm(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 1. Identity Header Card (Logo, Name, Business Type)
-                  _buildHeaderIdentityCard(activeStore, storeName, businessType, isId),
-                  const SizedBox(height: 14),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                child: ShadForm(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // 1. Identity Header Card (Logo, Name, Business Type)
+                      _buildHeaderIdentityCard(activeStore, storeName, businessType, isId),
+                      const SizedBox(height: 14),
 
-                  // 2. Business Details Form Card
-                  _buildFormCard(activeStore, theme, isId),
-                  const SizedBox(height: 14),
+                      // 2. Business Details Form Card
+                      _buildFormCard(activeStore, theme, isId),
+                      const SizedBox(height: 14),
 
-                  // 3. Operational Profile Card
-                  _buildOperationalCard(theme, isId),
-                  const SizedBox(height: 14),
+                      // 3. Operational Profile Card
+                      _buildOperationalCard(theme, isId),
+                      const SizedBox(height: 14),
 
-                  // 4. Danger Zone Card (Owner only)
-                  _buildDangerZoneCard(activeStore, theme, isId),
-                ],
+                      // 4. Danger Zone Card (Owner only)
+                      _buildDangerZoneCard(activeStore, theme, isId),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

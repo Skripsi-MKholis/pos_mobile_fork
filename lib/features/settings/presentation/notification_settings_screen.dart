@@ -149,11 +149,14 @@ class _NotificationSettingsScreenState
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: Colors.black))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   // ===== Toggle utama =====
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -299,6 +302,8 @@ class _NotificationSettingsScreenState
                 ],
               ),
             ),
+          ),
+        ),
     );
   }
 
