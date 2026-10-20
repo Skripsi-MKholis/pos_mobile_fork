@@ -82,12 +82,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 28),
 
-          // 2. PENGELOLAAN TOKO (Owner / Admin)
-          if (isAdmin) ...[
-            _buildMenuSection(
-              theme,
-              isIndonesian ? 'PENGELOLAAN TOKO' : 'STORE MANAGEMENT',
-              [
+          // 2. PENGELOLAAN TOKO
+          _buildMenuSection(
+            theme,
+            isIndonesian ? 'PENGELOLAAN TOKO' : 'STORE MANAGEMENT',
+            [
+              if (isAdmin)
                 _buildMenuItem(
                   context,
                   theme,
@@ -95,15 +95,16 @@ class SettingsScreen extends ConsumerWidget {
                   l10n.storeInformation,
                   () => context.push('/store-info'),
                 ),
-                _buildMenuItem(
-                  context,
-                  theme,
-                  TablerIcons.users,
-                  l10n.employeeManagement,
-                  () => context.push('/staff-management'),
-                  requiredFeature: AppFeature.staffManagement,
-                  ref: ref,
-                ),
+              _buildMenuItem(
+                context,
+                theme,
+                TablerIcons.users,
+                l10n.employeeManagement,
+                () => context.push('/staff-management'),
+                requiredFeature: AppFeature.staffManagement,
+                ref: ref,
+              ),
+              if (isAdmin) ...[
                 _buildMenuItem(
                   context,
                   theme,
@@ -119,9 +120,9 @@ class SettingsScreen extends ConsumerWidget {
                   () => context.push('/subscription'),
                 ),
               ],
-            ),
-            const SizedBox(height: 28),
-          ],
+            ],
+          ),
+          const SizedBox(height: 28),
 
           // 3. OPERASIONAL & PERANGKAT
           _buildMenuSection(

@@ -139,13 +139,12 @@ class _DrawerMenuContent extends ConsumerWidget {
           title: l10n.receiptCustomization,
           route: '/receipt-customization',
         ),
-        if (isOwnerOrAdmin)
-          _DrawerItem(
-            icon: TablerIcons.users,
-            title: l10n.employeeManagement,
-            route: '/staff-management',
-            requiredFeature: AppFeature.staffManagement,
-          ),
+        _DrawerItem(
+          icon: TablerIcons.users,
+          title: l10n.employeeManagement,
+          route: '/staff-management',
+          requiredFeature: AppFeature.staffManagement,
+        ),
 
         // 4. KELOLA TOKO & ADMINISTRASI
         if (isOwnerOrAdmin) ...[

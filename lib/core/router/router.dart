@@ -125,7 +125,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               'admin';
 
       if (!isOwner) {
-        final restrictedRoutes = ['/staff-management', '/store-info'];
+        final restrictedRoutes = ['/store-info'];
 
         final isRestricted = restrictedRoutes.any(
           (route) => state.matchedLocation.startsWith(route),
