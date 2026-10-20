@@ -396,16 +396,14 @@ class SettingsScreen extends ConsumerWidget {
             color: theme.colorScheme.border.withValues(alpha: 0.4),
           ),
 
-          // Bagian Toko Aktif (Klik untuk buka Info Toko, tombol switch untuk ganti toko)
+          // Bagian Toko Aktif (Hanya Owner/Admin yang bisa klik untuk buka Info Toko)
           Material(
             color: Warna.primary.withValues(alpha: 0.04),
             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
             child: InkWell(
-              onTap: () {
-                if (store != null) {
-                  context.push('/store-info');
-                }
-              },
+              onTap: isOwnerOrAdmin && store != null
+                  ? () => context.push('/store-info')
+                  : null,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -455,12 +453,14 @@ class SettingsScreen extends ConsumerWidget {
                                   letterSpacing: 0.3,
                                 ),
                               ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                TablerIcons.chevron_right,
-                                size: 12,
-                                color: theme.colorScheme.mutedForeground.withValues(alpha: 0.7),
-                              ),
+                              if (isOwnerOrAdmin) ...[
+                                const SizedBox(width: 4),
+                                Icon(
+                                  TablerIcons.chevron_right,
+                                  size: 12,
+                                  color: theme.colorScheme.mutedForeground.withValues(alpha: 0.7),
+                                ),
+                              ],
                             ],
                           ),
                           Text(

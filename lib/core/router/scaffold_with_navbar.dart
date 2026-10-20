@@ -358,6 +358,7 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
                                     horizontal: 16.0,
                                   ),
                                   child: GNav(
+                                    key: ValueKey('gnav_$selectedIndex'),
                                     rippleColor: Colors.white10,
                                     hoverColor: Colors.white10,
                                     gap: 4,
