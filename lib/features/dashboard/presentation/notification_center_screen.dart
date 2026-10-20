@@ -342,7 +342,18 @@ class _NotificationCenterScreenState
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final unreadStoreCount = ref.watch(unreadNotificationCountProvider);
+    final activeStore = ref.watch(activeStoreProvider).value;
+    final activeStoreId = activeStore?['id']?.toString();
+    final notificationsAsync = ref.watch(notificationNotifierProvider);
+    final unreadStoreCount = notificationsAsync.maybeWhen(
+      data: (list) {
+        final storeList = activeStoreId == null || activeStoreId.isEmpty
+            ? list
+            : list.where((n) => n.storeId == activeStoreId);
+        return storeList.where((n) => !n.isRead).length;
+      },
+      orElse: () => 0,
+    );
     final unreadMailboxCount = ref.watch(unreadMailboxCountProvider);
     final isStoreTab = _tabController.index == 0;
     final currentUnreadCount = isStoreTab ? unreadStoreCount : unreadMailboxCount;
@@ -553,12 +564,19 @@ class _NotificationCenterScreenState
   // TAB 1: NOTIFIKASI TOKO (Operasional, Stok, Void Kasir)
   Widget _buildStoreTab(ShadThemeData theme, int unreadCount) {
     final notificationsAsync = ref.watch(notificationNotifierProvider);
+    final activeStore = ref.watch(activeStoreProvider).value;
+    final activeStoreId = activeStore?['id']?.toString();
 
     return notificationsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
       error: (error, stack) => _buildErrorState(theme, () => ref.invalidate(notificationNotifierProvider)),
       data: (list) {
-        if (list.isEmpty) {
+        // Batasi hanya untuk notifikasi store aktif saat ini
+        final storeList = activeStoreId == null || activeStoreId.isEmpty
+            ? list
+            : list.where((n) => n.storeId == activeStoreId).toList();
+
+        if (storeList.isEmpty) {
           return _buildEmptyState(
             icon: TablerIcons.bell_off,
             title: 'Belum Ada Notifikasi Toko',
@@ -567,15 +585,16 @@ class _NotificationCenterScreenState
           );
         }
 
-        final filteredList = list.where((n) {
+        final filteredList = storeList.where((n) {
           if (_selectedStoreFilter == 'unread') return !n.isRead;
           if (_selectedStoreFilter == 'low_stock') return n.type == 'low_stock';
           if (_selectedStoreFilter == 'transaction_void') return n.type == 'transaction_void';
           return true;
         }).toList();
 
-        final stockCount = list.where((n) => n.type == 'low_stock' && !n.isRead).length;
-        final voidCount = list.where((n) => n.type == 'transaction_void' && !n.isRead).length;
+        final activeStoreUnreadCount = storeList.where((n) => !n.isRead).length;
+        final stockCount = storeList.where((n) => n.type == 'low_stock' && !n.isRead).length;
+        final voidCount = storeList.where((n) => n.type == 'transaction_void' && !n.isRead).length;
 
         final Map<String, List<NotificationLocalModel>> grouped = {};
         for (var notif in filteredList) {
@@ -605,7 +624,7 @@ class _NotificationCenterScreenState
                       value: 'unread',
                       currentSelected: _selectedStoreFilter,
                       onSelected: (val) => setState(() => _selectedStoreFilter = val),
-                      count: unreadCount,
+                      count: activeStoreUnreadCount,
                     ),
                     const SizedBox(width: 8),
                     _buildFilterChip(
