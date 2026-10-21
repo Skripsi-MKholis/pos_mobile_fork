@@ -9,6 +9,13 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get clearCartConfirm => 'Are you sure you want to clear the cart?';
+
+  @override
+  String get clearCartDesc =>
+      'All items in the cart will be removed. This action cannot be undone.';
+
+  @override
   String get menu => 'Menu';
 
   @override

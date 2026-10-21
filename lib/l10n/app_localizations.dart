@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('id'),
   ];
 
+  /// No description provided for @clearCartConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to clear the cart?'**
+  String get clearCartConfirm;
+
+  /// No description provided for @clearCartDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All items in the cart will be removed. This action cannot be undone.'**
+  String get clearCartDesc;
+
   /// No description provided for @menu.
   ///
   /// In en, this message translates to:

@@ -1,5 +1,7 @@
 {
   "@@locale": "en",
+  "clearCartConfirm": "Are you sure you want to clear the cart?",
+  "clearCartDesc": "All items in the cart will be removed. This action cannot be undone.",
   "menu": "Menu",
   "catalogAndStock": "CATALOG & STOCK",
   "productList": "Product List",

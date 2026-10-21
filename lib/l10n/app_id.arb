@@ -1,5 +1,7 @@
 {
   "@@locale": "id",
+  "clearCartConfirm": "Apakah Anda yakin ingin mengosongkan keranjang?",
+  "clearCartDesc": "Semua barang di keranjang akan dihapus. Tindakan ini tidak dapat dibatalkan.",
   "menu": "Menu",
   "catalogAndStock": "KATALOG & STOK",
   "productList": "Daftar Produk",
