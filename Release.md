@@ -1,16 +1,39 @@
 ### **Versi Sekarang**
 
-**1.15.0+21**
+**1.16.0+22**
 
 ---
 
 ### **Nama Release**
 
-**ZelloPOS Notification Center Overhaul, Transaction Detail, and App Polish**
+**ZelloPOS Tablet Responsiveness, Staff Management & Notification Enhancements**
 
 ---
 
 ### **Catatan Release (What's New)**
+
+**Versi 1.16.0+22 (Tablet Responsiveness, Staff Management & Notification Enhancements)**
+
+Ringkasan perubahan pada rilis ini:
+
+* **Optimalisasi Responsivitas Tablet & Layar Lebar**:
+  - Peningkatan tata letak adaptif dan margin layar (*Tablet Screen Margin*) untuk seluruh layar autentikasi (Login, Register, Lupa Password, Konfirmasi Email, Pemilihan Toko, Onboarding).
+  - Penyesuaian margin dan layout pada halaman pengaturan dan informasi toko (*Store Info*, *Account Settings*, *App Settings*, *Notification Settings*, dan *Sync Monitoring*).
+  - Peningkatan tata letak tablet pada Dashboard, Kasir (*POS Screen* & *Cart Detail Sheet*), Riwayat Transaksi, serta Laporan Penjualan (*Sales Performance & Reports*).
+  - Penyesuaian navigasi adaptif pada `ScaffoldWithNavBar`, `AppDrawer`, dan `PillAppBar` untuk pengalaman layar lebar yang lebih proporsional.
+* **Peningkatan Signifikan Manajemen Staf (Staff Management)**:
+  - Pembaruan menyeluruh pada modul manajemen staf toko dengan antarmuka yang lebih intuitif, pengelolaan peran (*roles*) dan hak akses yang lebih terstruktur.
+  - Penyesuaian akses cepat manajemen staf dari menu pengaturan (*Settings Screen*) dan drawer navigasi.
+* **Penyempurnaan Fitur & Layanan Notifikasi**:
+  - Penanganan *deep linking* notifikasi yang lebih andal untuk mengarahkan pengguna langsung ke konteks tujuan.
+  - Perbaikan sinkronisasi dan alur notifikasi push via Edge Function dan FCM Service.
+  - Perbaikan antarmuka Pusat Notifikasi (*Notification Center Screen*) saat memuat atau memperbarui status notifikasi.
+* **Perbaikan Bug & Optimalisasi Kasir (Bug Fixes & Polish)**:
+  - Perbaikan bug pada keranjang belanja kasir (*Cart Provider*) untuk memastikan konsistensi item.
+  - Perbaikan bug interaksi tombol menu dan tombol toko pada layar pengaturan.
+  - Perbaikan tampilan serta pembaruan data informasi toko (*Store Info Screen*).
+
+---
 
 **Versi 1.15.0+21 (Notification Center Overhaul, Transaction Detail & Core Enhancements)**
 
